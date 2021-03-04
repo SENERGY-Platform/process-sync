@@ -1,0 +1,1 @@
+synchronises process states with a remote camunda instance by communicating with a github.com/SENERGY-Platform/mgw-process-sync-client via mqtt 
