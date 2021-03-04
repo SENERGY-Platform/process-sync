@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package database
+package controller
 
-import "errors"
+import (
+	"errors"
+	"net/http"
+)
 
-var ErrNotFound = errors.New("not found")
+func (this *Controller) ApiCheckAccess(request *http.Request, networkId string) (err error, errCode int) {
+	return errors.New("not implemented"), http.StatusNotImplemented
+}

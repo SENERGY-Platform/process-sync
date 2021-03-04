@@ -39,7 +39,7 @@ type Config struct {
 	MqttBroker                       string `json:"mqtt_broker"`
 	MqttCleanSession                 bool   `json:"mqtt_clean_session"`
 	MqttGroupId                      string `json:"mqtt_group_id"` //optional
-	ServerPort                       string `json:"server_port"`
+	ApiPort                          string `json:"api_port"`
 	MongoTable                       string `json:"mongo_table"`
 	MongoProcessDefinitionCollection string `json:"mongo_process_definition_collection"`
 	MongoDeploymentCollection        string `json:"mongo_deployment_collection"`
