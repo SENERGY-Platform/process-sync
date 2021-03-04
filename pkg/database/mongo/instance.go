@@ -1,0 +1,164 @@
+package mongo
+
+import (
+	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/database"
+	"github.com/SENERGY-Platform/process-sync/pkg/model"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/bsonx"
+	"strings"
+)
+
+var instanceIdKey string
+var instanceNetworkIdKey string
+var instancePlaceholderKey string
+
+func init() {
+	prepareCollection(func(config configuration.Config) string {
+		return config.MongoProcessInstanceCollection
+	},
+		model.ProcessInstance{},
+		[]KeyMapping{
+			{
+				FieldName: "ProcessInstance.Id",
+				Key:       &instanceIdKey,
+			},
+			{
+				FieldName: "SyncInfo.NetworkId",
+				Key:       &instanceNetworkIdKey,
+			},
+			{
+				FieldName: "SyncInfo.IsPlaceholder",
+				Key:       &instancePlaceholderKey,
+			},
+		},
+		[]IndexDesc{
+			{
+				Name:   "instanceplaceholderindex",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&instancePlaceholderKey},
+			},
+			{
+				Name:   "instancenetworkindex",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&instanceNetworkIdKey},
+			},
+			{
+				Name:   "instancecompoundindex",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&instanceIdKey, &instanceNetworkIdKey},
+			},
+		},
+	)
+}
+
+func (this *Mongo) processInstanceCollection() *mongo.Collection {
+	return this.client.Database(this.config.MongoTable).Collection(this.config.MongoProcessInstanceCollection)
+}
+
+func (this *Mongo) SaveProcessInstance(processInstance model.ProcessInstance) error {
+	ctx, _ := this.getTimeoutContext()
+	_, err := this.processInstanceCollection().ReplaceOne(
+		ctx,
+		bson.M{
+			instanceIdKey:        processInstance.Id,
+			instanceNetworkIdKey: processInstance.NetworkId,
+		},
+		processInstance,
+		options.Replace().SetUpsert(true))
+	return err
+}
+
+func (this *Mongo) RemoveProcessInstance(networkId string, processInstanceId string) error {
+	ctx, _ := this.getTimeoutContext()
+	_, err := this.processInstanceCollection().DeleteOne(
+		ctx,
+		bson.M{
+			instanceIdKey:        processInstanceId,
+			instanceNetworkIdKey: networkId,
+		})
+	return err
+}
+
+func (this *Mongo) RemovePlaceholderProcessInstances(networkId string) error {
+	ctx, _ := this.getTimeoutContext()
+	_, err := this.processInstanceCollection().DeleteOne(
+		ctx,
+		bson.M{
+			instancePlaceholderKey: true,
+			instanceNetworkIdKey:   networkId,
+		})
+	return err
+}
+
+func (this *Mongo) RemoveUnknownProcessInstances(networkId string, knownIds []string) error {
+	ctx, _ := this.getTimeoutContext()
+	_, err := this.processInstanceCollection().DeleteMany(
+		ctx,
+		bson.M{
+			instanceIdKey:        bson.M{"$nin": knownIds},
+			instanceNetworkIdKey: networkId,
+		})
+	return err
+}
+
+func (this *Mongo) ReadProcessInstance(networkId string, processInstanceId string) (processInstance model.ProcessInstance, err error) {
+	ctx, _ := this.getTimeoutContext()
+	result := this.processInstanceCollection().FindOne(
+		ctx,
+		bson.M{
+			instanceIdKey:        processInstanceId,
+			instanceNetworkIdKey: networkId,
+		})
+	err = result.Err()
+	if err == mongo.ErrNoDocuments {
+		return processInstance, database.ErrNotFound
+	}
+	if err != nil {
+		return
+	}
+	err = result.Decode(&processInstance)
+	if err == mongo.ErrNoDocuments {
+		return processInstance, database.ErrNotFound
+	}
+	return processInstance, err
+}
+
+func (this *Mongo) ListProcessInstances(networkIds []string, limit int64, offset int64, sort string) (result []model.ProcessInstance, err error) {
+	opt := options.Find()
+	opt.SetLimit(limit)
+	opt.SetSkip(offset)
+
+	parts := strings.Split(sort, ".")
+	sortby := instanceIdKey
+	switch parts[0] {
+	case "id":
+		sortby = instanceIdKey
+	}
+	direction := int32(1)
+	if len(parts) > 1 && parts[1] == "desc" {
+		direction = int32(-1)
+	}
+	opt.SetSort(bsonx.Doc{{sortby, bsonx.Int32(direction)}})
+
+	ctx, _ := this.getTimeoutContext()
+	cursor, err := this.processInstanceCollection().Find(ctx, bson.M{instanceNetworkIdKey: bson.M{"$in": networkIds}}, opt)
+	if err != nil {
+		return nil, err
+	}
+	for cursor.Next(ctx) {
+		element := model.ProcessInstance{}
+		err = cursor.Decode(&element)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, element)
+	}
+	err = cursor.Err()
+	return
+}

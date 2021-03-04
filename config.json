@@ -1,0 +1,15 @@
+{
+    "mongo_url": "",
+    "mqtt_broker": "",
+    "mqtt_user": "",
+    "mqtt_pw": "",
+    "mqtt_client_id": "",
+    "mqtt_group_id": "",
+    "mqtt_clean_session": false,
+    "debug": true,
+    "mongo_deployment_collection": "deployments",
+    "mongo_process_definition_collection": "process_definitions",
+    "mongo_process_history_collection": "process_history",
+    "mongo_incident_collection": "incidents",
+    "mongo_process_instance_collection": "process_instances"
+}
