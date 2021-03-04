@@ -22,13 +22,19 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/database/mongo"
 	"github.com/SENERGY-Platform/process-sync/pkg/mgw"
+	"github.com/SENERGY-Platform/process-sync/pkg/security"
 	"net/http"
 )
 
 type Controller struct {
-	config configuration.Config
-	mgw    *mgw.Mgw
-	db     database.Database
+	config   configuration.Config
+	mgw      *mgw.Mgw
+	db       database.Database
+	security Security
+}
+
+type Security interface {
+	CheckBool(token string, kind string, id string, rights string) (allowed bool, err error)
 }
 
 func NewDefault(config configuration.Config, ctx context.Context) (ctrl *Controller, err error) {
@@ -36,11 +42,11 @@ func NewDefault(config configuration.Config, ctx context.Context) (ctrl *Control
 	if err != nil {
 		return ctrl, err
 	}
-	return New(config, ctx, db)
+	return New(config, ctx, db, security.New(config))
 }
 
-func New(config configuration.Config, ctx context.Context, db database.Database) (ctrl *Controller, err error) {
-	ctrl = &Controller{config: config, db: db}
+func New(config configuration.Config, ctx context.Context, db database.Database, security Security) (ctrl *Controller, err error) {
+	ctrl = &Controller{config: config, db: db, security: security}
 	if err != nil {
 		return ctrl, err
 	}

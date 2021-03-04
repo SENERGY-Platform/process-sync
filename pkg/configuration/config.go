@@ -46,6 +46,7 @@ type Config struct {
 	MongoProcessHistoryCollection    string `json:"mongo_process_history_collection"`
 	MongoIncidentCollection          string `json:"mongo_incident_collection"`
 	MongoProcessInstanceCollection   string `json:"mongo_process_instance_collection"`
+	PermissionsUrl                   string `json:"permissions_url"`
 }
 
 //loads config from json in location and used environment variables (e.g ZookeeperUrl --> ZOOKEEPER_URL)

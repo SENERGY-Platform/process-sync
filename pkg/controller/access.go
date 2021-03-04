@@ -22,5 +22,13 @@ import (
 )
 
 func (this *Controller) ApiCheckAccess(request *http.Request, networkId string) (err error, errCode int) {
-	return errors.New("not implemented"), http.StatusNotImplemented
+	token := request.Header.Get("Authorization")
+	allowed, err := this.security.CheckBool(token, "hubs", networkId, "rx")
+	if err != nil {
+		return err, http.StatusInternalServerError
+	}
+	if !allowed {
+		return errors.New("not allowed"), http.StatusForbidden
+	}
+	return nil, http.StatusOK
 }

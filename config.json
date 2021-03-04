@@ -12,5 +12,6 @@
     "mongo_process_definition_collection": "process_definitions",
     "mongo_process_history_collection": "process_history",
     "mongo_incident_collection": "incidents",
-    "mongo_process_instance_collection": "process_instances"
+    "mongo_process_instance_collection": "process_instances",
+    "permissions_url": ""
 }
