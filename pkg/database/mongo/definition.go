@@ -30,6 +30,7 @@ import (
 var definitionIdKey string
 var definitionNameKey string
 var definitionNetworkIdKey string
+var definitionDeploymentKey string
 
 func init() {
 	prepareCollection(func(config configuration.Config) string {
@@ -46,6 +47,10 @@ func init() {
 				Key:       &definitionNameKey,
 			},
 			{
+				FieldName: "ProcessDefinition.DeploymentId",
+				Key:       &definitionDeploymentKey,
+			},
+			{
 				FieldName: "SyncInfo.NetworkId",
 				Key:       &definitionNetworkIdKey,
 			},
@@ -56,6 +61,12 @@ func init() {
 				Unique: false,
 				Asc:    true,
 				Keys:   []*string{&definitionNetworkIdKey},
+			},
+			{
+				Name:   "definitiondeploymentindex",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&definitionDeploymentKey, &definitionNetworkIdKey},
 			},
 			{
 				Name:   "definitioncompoundindex",
@@ -162,4 +173,26 @@ func (this *Mongo) ListProcessDefinitions(networkIds []string, limit int64, offs
 	}
 	err = cursor.Err()
 	return
+}
+
+func (this *Mongo) GetDefinitionByDeploymentId(networkId string, deploymentId string) (processDefinition model.ProcessDefinition, err error) {
+	ctx, _ := this.getTimeoutContext()
+	result := this.processDefinitionCollection().FindOne(
+		ctx,
+		bson.M{
+			definitionDeploymentKey: deploymentId,
+			definitionNetworkIdKey:  networkId,
+		})
+	err = result.Err()
+	if err == mongo.ErrNoDocuments {
+		return processDefinition, database.ErrNotFound
+	}
+	if err != nil {
+		return
+	}
+	err = result.Decode(&processDefinition)
+	if err == mongo.ErrNoDocuments {
+		return processDefinition, database.ErrNotFound
+	}
+	return processDefinition, err
 }

@@ -16,6 +16,13 @@
 
 package configuration
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 var TimeNow = time.Now
+
+var Id = func() string {
+	return uuid.NewString()
+}

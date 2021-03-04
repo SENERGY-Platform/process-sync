@@ -20,6 +20,7 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
+	"github.com/SENERGY-Platform/process-sync/pkg/model/deploymentmodel"
 	"log"
 	"runtime/debug"
 )
@@ -64,5 +65,103 @@ func (this *Controller) DeleteUnknownDeployments(networkId string, knownIds []st
 func (this *Controller) ApiReadDeployment(networkId string, deploymentId string) (result model.Deployment, err error, errCode int) {
 	result, err = this.db.ReadDeployment(networkId, deploymentId)
 	errCode = this.SetErrCode(err)
+	return
+}
+
+func (this *Controller) ApiDeleteDeployment(networkId string, deploymentId string) (err error, errCode int) {
+	defer func() {
+		errCode = this.SetErrCode(err)
+	}()
+	var current model.Deployment
+	current, err = this.db.ReadDeployment(networkId, deploymentId)
+	if err != nil {
+		return
+	}
+	err = this.mgw.SendDeploymentDeleteCommand(networkId, deploymentId)
+	if err != nil {
+		return
+	}
+	current.MarkedForDelete = true
+	err = this.db.SaveDeployment(current)
+	return
+}
+
+func (this *Controller) ApiListDeployments(networkIds []string, limit int64, offset int64, sort string) (result []model.Deployment, err error, errCode int) {
+	result, err = this.db.ListDeployments(networkIds, limit, offset, sort)
+	errCode = this.SetErrCode(err)
+	return
+}
+
+func (this *Controller) ApiCreateDeployment(networkId string, deployment deploymentmodel.Deployment) (err error, errCode int) {
+	defer func() {
+		errCode = this.SetErrCode(err)
+	}()
+	err = this.mgw.SendDeploymentCommand(networkId, deployment)
+	if err != nil {
+		return
+	}
+	now := configuration.TimeNow()
+	err = this.db.SaveDeployment(model.Deployment{
+		Deployment: camundamodel.Deployment{
+			Id:             configuration.Id(),
+			Name:           deployment.Name,
+			Source:         "senergy",
+			DeploymentTime: now,
+			TenantId:       "senergy",
+		},
+		SyncInfo: model.SyncInfo{
+			NetworkId:       networkId,
+			IsPlaceholder:   true,
+			MarkedForDelete: false,
+			SyncDate:        now,
+		},
+	})
+	return
+}
+
+func (this *Controller) ApiStartDeployment(networkId string, deploymentId string) (err error, errCode int) {
+	defer func() {
+		errCode = this.SetErrCode(err)
+	}()
+	var current model.Deployment
+	current, err = this.db.ReadDeployment(networkId, deploymentId)
+	if err != nil {
+		return
+	}
+	if current.IsPlaceholder {
+		err = IsPlaceholderProcessErr
+		return
+	}
+	if current.MarkedForDelete {
+		err = IsMarkedForDeleteErr
+		return
+	}
+
+	definition, err := this.db.GetDefinitionByDeploymentId(networkId, deploymentId)
+	if err != nil {
+		return
+	}
+
+	err = this.mgw.SendDeploymentStartCommand(networkId, deploymentId)
+	if err != nil {
+		return
+	}
+
+	now := configuration.TimeNow()
+	err = this.db.SaveProcessInstance(model.ProcessInstance{
+		ProcessInstance: camundamodel.ProcessInstance{
+			Id:           configuration.Id(),
+			DefinitionId: definition.Id,
+			Ended:        false,
+			Suspended:    false,
+			TenantId:     "senergy",
+		},
+		SyncInfo: model.SyncInfo{
+			NetworkId:       networkId,
+			IsPlaceholder:   true,
+			MarkedForDelete: false,
+			SyncDate:        now,
+		},
+	})
 	return
 }

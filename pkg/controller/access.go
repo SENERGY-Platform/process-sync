@@ -21,14 +21,28 @@ import (
 	"net/http"
 )
 
-func (this *Controller) ApiCheckAccess(request *http.Request, networkId string) (err error, errCode int) {
+func (this *Controller) ApiCheckAccess(request *http.Request, networkId string, rights string) (err error, errCode int) {
 	token := request.Header.Get("Authorization")
-	allowed, err := this.security.CheckBool(token, "hubs", networkId, "rx")
+	allowed, err := this.security.CheckBool(token, "hubs", networkId, rights)
 	if err != nil {
 		return err, http.StatusInternalServerError
 	}
 	if !allowed {
 		return errors.New("not allowed"), http.StatusForbidden
+	}
+	return nil, http.StatusOK
+}
+
+func (this *Controller) ApiCheckAccessMultiple(request *http.Request, networkIds []string, rights string) (err error, errCode int) {
+	token := request.Header.Get("Authorization")
+	allowed, err := this.security.CheckMultiple(token, "hubs", networkIds, rights)
+	if err != nil {
+		return err, http.StatusInternalServerError
+	}
+	for _, id := range networkIds {
+		if !allowed[id] {
+			return errors.New("not allowed"), http.StatusForbidden
+		}
 	}
 	return nil, http.StatusOK
 }

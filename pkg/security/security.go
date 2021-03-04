@@ -39,7 +39,7 @@ type IdWrapper struct {
 	Id string `json:"id"`
 }
 
-func IsAdmin(token string) bool {
+func (this *Security) IsAdmin(token string) bool {
 	roles, err := ReadTokenRoles(token)
 	if err != nil {
 		log.Println("ERROR: unable to parse auth token to check if user is admin:", err)
@@ -58,7 +58,7 @@ func contains(s []string, e string) bool {
 }
 
 func (this *Security) CheckBool(token string, kind string, id string, rights string) (allowed bool, err error) {
-	if IsAdmin(token) {
+	if this.IsAdmin(token) {
 		return true, nil
 	}
 	req, err := http.NewRequest("GET", this.config.PermissionsUrl+"/v3/resources/"+url.QueryEscape(kind)+"/"+url.QueryEscape(id)+"/access?rights="+rights, nil)
@@ -84,4 +84,48 @@ func (this *Security) CheckBool(token string, kind string, id string, rights str
 		return false, err
 	}
 	return true, nil
+}
+
+func (this *Security) CheckMultiple(token string, kind string, ids []string, rights string) (result map[string]bool, err error) {
+	result = map[string]bool{}
+	if this.IsAdmin(token) {
+		for _, id := range ids {
+			result[id] = true
+		}
+		return result, nil
+	}
+	requestBody := new(bytes.Buffer)
+	err = json.NewEncoder(requestBody).Encode(QueryMessage{
+		Resource: kind,
+		CheckIds: &QueryCheckIds{
+			Ids:    ids,
+			Rights: rights,
+		},
+	})
+	if err != nil {
+		return result, err
+	}
+	req, err := http.NewRequest("POST", this.config.PermissionsUrl+"/v3/query", requestBody)
+	if err != nil {
+		debug.PrintStack()
+		return result, err
+	}
+	req.Header.Set("Authorization", token)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		debug.PrintStack()
+		return result, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(resp.Body)
+		return result, errors.New(buf.String())
+	}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		debug.PrintStack()
+		return result, err
+	}
+	return result, err
 }

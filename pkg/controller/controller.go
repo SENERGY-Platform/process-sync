@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/database/mongo"
@@ -35,6 +36,7 @@ type Controller struct {
 
 type Security interface {
 	CheckBool(token string, kind string, id string, rights string) (allowed bool, err error)
+	CheckMultiple(token string, kind string, ids []string, rights string) (result map[string]bool, err error)
 }
 
 func NewDefault(config configuration.Config, ctx context.Context) (ctrl *Controller, err error) {
@@ -57,12 +59,19 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 	return ctrl, nil
 }
 
+var IsPlaceholderProcessErr = errors.New("is placeholder process")
+var IsMarkedForDeleteErr = errors.New("is market for deletion")
+
 func (this *Controller) SetErrCode(err error) int {
 	switch err {
 	case nil:
 		return http.StatusOK
 	case database.ErrNotFound:
 		return http.StatusNotFound
+	case IsPlaceholderProcessErr:
+		return http.StatusBadRequest
+	case IsMarkedForDeleteErr:
+		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError
 	}
