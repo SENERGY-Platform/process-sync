@@ -28,11 +28,11 @@ import (
 )
 
 func init() {
-	endpoints = append(endpoints, HistoryEndpoints)
+	endpoints = append(endpoints, IncidentEndpoints)
 }
 
-func HistoryEndpoints(config configuration.Config, ctrl *controller.Controller, router *httprouter.Router) {
-	resource := "/history/process-instances"
+func IncidentEndpoints(config configuration.Config, ctrl *controller.Controller, router *httprouter.Router) {
+	resource := "/incidents"
 
 	router.GET(resource+"/:networkId/:id", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 		networkId := params.ByName("networkId")
@@ -42,7 +42,7 @@ func HistoryEndpoints(config configuration.Config, ctrl *controller.Controller, 
 			http.Error(writer, err.Error(), errCode)
 			return
 		}
-		result, err, errCode := ctrl.ApiReadHistoricProcessInstance(networkId, id)
+		result, err, errCode := ctrl.ApiReadIncident(networkId, id)
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
 			return
@@ -63,7 +63,7 @@ func HistoryEndpoints(config configuration.Config, ctrl *controller.Controller, 
 			http.Error(writer, err.Error(), errCode)
 			return
 		}
-		err, errCode = ctrl.ApiDeleteHistoricProcessInstance(networkId, id)
+		err, errCode = ctrl.ApiDeleteIncident(networkId, id)
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
 			return
@@ -111,7 +111,7 @@ func HistoryEndpoints(config configuration.Config, ctrl *controller.Controller, 
 			http.Error(writer, err.Error(), errCode)
 			return
 		}
-		result, err, errCode := ctrl.ApiListHistoricProcessInstance(networkIds, limit, offset, sort)
+		result, err, errCode := ctrl.ApiListIncidents(networkIds, limit, offset, sort)
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
 			return

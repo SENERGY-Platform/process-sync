@@ -55,3 +55,23 @@ func (this *Controller) DeleteUnknownIncidents(networkId string, knownIds []stri
 		debug.PrintStack()
 	}
 }
+
+func (this *Controller) ApiReadIncident(networkId string, id string) (result model.Incident, err error, errCode int) {
+	result, err = this.db.ReadIncident(networkId, id)
+	errCode = this.SetErrCode(err)
+	return
+}
+
+func (this *Controller) ApiDeleteIncident(networkId string, id string) (err error, errCode int) {
+	defer func() {
+		errCode = this.SetErrCode(err)
+	}()
+	err = this.db.RemoveIncident(networkId, id)
+	return
+}
+
+func (this *Controller) ApiListIncidents(networkIds []string, limit int64, offset int64, sort string) (result []model.Incident, err error, errCode int) {
+	result, err = this.db.ListIncidents(networkIds, limit, offset, sort)
+	errCode = this.SetErrCode(err)
+	return
+}
