@@ -109,7 +109,7 @@ func (this *Controller) ApiCreateDeployment(networkId string, deployment deploym
 	now := configuration.TimeNow()
 	err = this.db.SaveDeployment(model.Deployment{
 		Deployment: camundamodel.Deployment{
-			Id:             configuration.Id(),
+			Id:             "placeholder-" + configuration.Id(),
 			Name:           deployment.Name,
 			Source:         "senergy",
 			DeploymentTime: now,
@@ -156,7 +156,7 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 	now := configuration.TimeNow()
 	err = this.db.SaveProcessInstance(model.ProcessInstance{
 		ProcessInstance: camundamodel.ProcessInstance{
-			Id:           configuration.Id(),
+			Id:           "placeholder-" + configuration.Id(),
 			DefinitionId: definition.Id,
 			Ended:        false,
 			Suspended:    false,

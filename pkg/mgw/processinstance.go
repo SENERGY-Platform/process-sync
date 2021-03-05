@@ -64,5 +64,5 @@ func (this *Mgw) handleProcessInstanceKnown(message paho.Message) {
 }
 
 func (this *Mgw) SendProcessStopCommand(networkId string, processInstanceId string) error {
-	return this.send(this.getCommandTopic(networkId, processInstanceTopic, "delete"), processInstanceId)
+	return this.sendStr(this.getCommandTopic(networkId, processInstanceTopic, "delete"), processInstanceId)
 }

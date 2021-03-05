@@ -242,7 +242,7 @@ func testStartDeployment(port string, networkId string, list *[]model.Deployment
 			return
 		}
 		deployment := (*list)[index]
-		req, err := http.NewRequest("GET", "http://localhost:"+port+"/deployments/"+networkId+"/"+deployment.Id, nil)
+		req, err := http.NewRequest("GET", "http://localhost:"+port+"/deployments/"+networkId+"/"+deployment.Id+"/start", nil)
 		if err != nil {
 			t.Error(err)
 			return

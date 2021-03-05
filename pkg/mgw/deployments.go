@@ -65,13 +65,13 @@ func (this *Mgw) handleDeploymentKnown(message paho.Message) {
 }
 
 func (this *Mgw) SendDeploymentCommand(networkId string, deployment deploymentmodel.Deployment) error {
-	return this.send(this.getCommandTopic(networkId, deploymentTopic), deployment)
+	return this.sendObj(this.getCommandTopic(networkId, deploymentTopic), deployment)
 }
 
 func (this *Mgw) SendDeploymentDeleteCommand(networkId string, deploymentId string) error {
-	return this.send(this.getCommandTopic(networkId, deploymentTopic, "delete"), deploymentId)
+	return this.sendStr(this.getCommandTopic(networkId, deploymentTopic, "delete"), deploymentId)
 }
 
 func (this *Mgw) SendDeploymentStartCommand(networkId string, deploymentId string) error {
-	return this.send(this.getCommandTopic(networkId, deploymentTopic, "start"), deploymentId)
+	return this.sendStr(this.getCommandTopic(networkId, deploymentTopic, "start"), deploymentId)
 }

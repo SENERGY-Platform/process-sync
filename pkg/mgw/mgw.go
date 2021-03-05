@@ -223,12 +223,18 @@ func (this *Mgw) getStateTopic(networkId string, entity string, substate ...stri
 	return
 }
 
-func (this *Mgw) send(topic string, message interface{}) error {
+func (this *Mgw) sendObj(topic string, message interface{}) error {
 	msg, err := json.Marshal(message)
 	if err != nil {
 		return err
 	}
 	token := this.mqtt.Publish(topic, 2, false, msg)
+	token.Wait()
+	return token.Error()
+}
+
+func (this *Mgw) sendStr(topic string, message string) error {
+	token := this.mqtt.Publish(topic, 2, false, message)
 	token.Wait()
 	return token.Error()
 }

@@ -64,5 +64,5 @@ func (this *Mgw) handleHistoricProcessInstanceKnown(message paho.Message) {
 }
 
 func (this *Mgw) SendProcessHistoryDeleteCommand(networkId string, processInstanceHistoryId string) error {
-	return this.send(this.getCommandTopic(networkId, processInstanceHistoryTopic, "delete"), processInstanceHistoryId)
+	return this.sendStr(this.getCommandTopic(networkId, processInstanceHistoryTopic, "delete"), processInstanceHistoryId)
 }
