@@ -108,7 +108,7 @@ func (this *Mongo) RemoveDeployment(networkId string, deploymentId string) error
 
 func (this *Mongo) RemovePlaceholderDeployments(networkId string) error {
 	ctx, _ := this.getTimeoutContext()
-	_, err := this.deploymentCollection().DeleteOne(
+	_, err := this.deploymentCollection().DeleteMany(
 		ctx,
 		bson.M{
 			deploymentPlaceholderKey: true,

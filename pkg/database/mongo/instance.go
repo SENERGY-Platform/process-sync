@@ -103,7 +103,7 @@ func (this *Mongo) RemoveProcessInstance(networkId string, processInstanceId str
 
 func (this *Mongo) RemovePlaceholderProcessInstances(networkId string) error {
 	ctx, _ := this.getTimeoutContext()
-	_, err := this.processInstanceCollection().DeleteOne(
+	_, err := this.processInstanceCollection().DeleteMany(
 		ctx,
 		bson.M{
 			instancePlaceholderKey: true,
