@@ -55,3 +55,33 @@ func (this *Controller) DeleteUnknownHistoricProcessInstances(networkId string, 
 		debug.PrintStack()
 	}
 }
+
+func (this *Controller) ApiReadHistoricProcessInstance(networkId string, id string) (result model.HistoricProcessInstance, err error, errCode int) {
+	result, err = this.db.ReadHistoricProcessInstance(networkId, id)
+	errCode = this.SetErrCode(err)
+	return
+}
+
+func (this *Controller) ApiDeleteHistoricProcessInstance(networkId string, id string) (err error, errCode int) {
+	defer func() {
+		errCode = this.SetErrCode(err)
+	}()
+	var current model.HistoricProcessInstance
+	current, err = this.db.ReadHistoricProcessInstance(networkId, id)
+	if err != nil {
+		return
+	}
+	err = this.mgw.SendProcessHistoryDeleteCommand(networkId, id)
+	if err != nil {
+		return
+	}
+	current.MarkedForDelete = true
+	err = this.db.SaveHistoricProcessInstance(current)
+	return
+}
+
+func (this *Controller) ApiListHistoricProcessInstance(networkIds []string, limit int64, offset int64, sort string) (result []model.HistoricProcessInstance, err error, errCode int) {
+	result, err = this.db.ListHistoricProcessInstances(networkIds, limit, offset, sort)
+	errCode = this.SetErrCode(err)
+	return
+}
