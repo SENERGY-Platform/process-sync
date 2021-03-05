@@ -55,3 +55,15 @@ func (this *Controller) DeleteUnknownProcessDefinitions(networkId string, knownI
 		debug.PrintStack()
 	}
 }
+
+func (this *Controller) ApiReadProcessDefinition(networkId string, id string) (result model.ProcessDefinition, err error, errCode int) {
+	result, err = this.db.ReadProcessDefinition(networkId, id)
+	errCode = this.SetErrCode(err)
+	return
+}
+
+func (this *Controller) ApiListProcessDefinitions(networkIds []string, limit int64, offset int64, sort string) (result []model.ProcessDefinition, err error, errCode int) {
+	result, err = this.db.ListProcessDefinitions(networkIds, limit, offset, sort)
+	errCode = this.SetErrCode(err)
+	return
+}
