@@ -35,6 +35,7 @@ func MgwProcessSyncClient(ctx context.Context, wg *sync.WaitGroup, camundaDb str
 		"MQTT_BROKER=" + mqttUrl,
 		"MQTT_CLIENT_ID=" + mqttClientId,
 		"NETWORK_ID=" + networkId,
+		"DEBUG=true",
 	})
 	if err != nil {
 		return err

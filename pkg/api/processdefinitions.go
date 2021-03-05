@@ -71,7 +71,7 @@ func ProcessDefinitionEndpoints(config configuration.Config, ctrl *controller.Co
 		}
 		offsetStr := request.URL.Query().Get("offset")
 		if offsetStr == "" {
-			offsetStr = "100"
+			offsetStr = "0"
 		}
 		offset, err := strconv.ParseInt(offsetStr, 10, 64)
 		if err != nil {

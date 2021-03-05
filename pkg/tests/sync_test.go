@@ -113,7 +113,7 @@ func TestSync(t *testing.T) {
 
 func testRemoveDeployment(port string, networkId string, list *[]model.Deployment, index int) func(t *testing.T) {
 	return func(t *testing.T) {
-		if len(*list) >= index {
+		if index >= len(*list) {
 			t.Error(len(*list), index)
 			return
 		}
@@ -143,7 +143,7 @@ func testRemoveDeployment(port string, networkId string, list *[]model.Deploymen
 
 func testDeleteInstances(port string, networkId string, list *[]model.ProcessInstance, index int) func(t *testing.T) {
 	return func(t *testing.T) {
-		if len(*list) >= index {
+		if index >= len(*list) {
 			t.Error(len(*list), index)
 			return
 		}
@@ -237,7 +237,7 @@ func testGetInstances(port string, networkId string, result *[]model.ProcessInst
 
 func testStartDeployment(port string, networkId string, list *[]model.Deployment, index int) func(t *testing.T) {
 	return func(t *testing.T) {
-		if len(*list) >= index {
+		if index >= len(*list) {
 			t.Error(len(*list), index)
 			return
 		}
