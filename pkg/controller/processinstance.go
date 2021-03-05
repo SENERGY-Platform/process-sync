@@ -60,3 +60,33 @@ func (this *Controller) DeleteUnknownProcessInstances(networkId string, knownIds
 		debug.PrintStack()
 	}
 }
+
+func (this *Controller) ApiReadProcessInstance(networkId string, id string) (result model.ProcessInstance, err error, errCode int) {
+	result, err = this.db.ReadProcessInstance(networkId, id)
+	errCode = this.SetErrCode(err)
+	return
+}
+
+func (this *Controller) ApiDeleteProcessInstance(networkId string, id string) (err error, errCode int) {
+	defer func() {
+		errCode = this.SetErrCode(err)
+	}()
+	var current model.ProcessInstance
+	current, err = this.db.ReadProcessInstance(networkId, id)
+	if err != nil {
+		return
+	}
+	err = this.mgw.SendProcessHistoryDeleteCommand(networkId, id)
+	if err != nil {
+		return
+	}
+	current.MarkedForDelete = true
+	err = this.db.SaveProcessInstance(current)
+	return
+}
+
+func (this *Controller) ApiListProcessInstances(networkIds []string, limit int64, offset int64, sort string) (result []model.ProcessInstance, err error, errCode int) {
+	result, err = this.db.ListProcessInstances(networkIds, limit, offset, sort)
+	errCode = this.SetErrCode(err)
+	return
+}
