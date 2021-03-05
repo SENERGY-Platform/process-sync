@@ -22,6 +22,7 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/deploymentmodel"
 	"log"
+	"net/http"
 	"runtime/debug"
 )
 
@@ -93,6 +94,11 @@ func (this *Controller) ApiListDeployments(networkIds []string, limit int64, off
 }
 
 func (this *Controller) ApiCreateDeployment(networkId string, deployment deploymentmodel.Deployment) (err error, errCode int) {
+	this.removeUnusedElementsFromDeployment(&deployment)
+	err = deployment.Validate()
+	if err != nil {
+		return err, http.StatusBadRequest
+	}
 	defer func() {
 		errCode = this.SetErrCode(err)
 	}()
@@ -164,4 +170,10 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 		},
 	})
 	return
+}
+
+func (this *Controller) removeUnusedElementsFromDeployment(deployment *deploymentmodel.Deployment) {
+	deployment.Id = ""
+	deployment.Elements = nil
+	deployment.Diagram.XmlRaw = ""
 }

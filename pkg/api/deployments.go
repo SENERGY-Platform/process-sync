@@ -85,11 +85,6 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 			http.Error(writer, err.Error(), http.StatusBadRequest)
 			return
 		}
-		err = deployment.Validate(deploymentmodel.ValidatePublish)
-		if err != nil {
-			http.Error(writer, err.Error(), http.StatusBadRequest)
-			return
-		}
 		err, errCode := ctrl.ApiCheckAccess(request, networkId, "a")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)

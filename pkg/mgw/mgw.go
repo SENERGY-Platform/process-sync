@@ -101,48 +101,93 @@ func (this *Mgw) subscribe() {
 	}
 
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", deploymentTopic), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleDeploymentUpdate(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", deploymentTopic, "delete"), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleDeploymentDelete(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", deploymentTopic, "known"), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleDeploymentKnown(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", incidentTopic), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleIncidentUpdate(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", incidentTopic, "delete"), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleIncidentDelete(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", incidentTopic, "known"), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleIncidentKnown(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", processDefinitionTopic), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleProcessDefinitionUpdate(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", processDefinitionTopic, "delete"), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleProcessDefinitionDelete(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", processDefinitionTopic, "known"), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleProcessDefinitionKnown(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", processInstanceTopic), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleProcessInstanceUpdate(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", processInstanceTopic, "delete"), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleProcessInstanceDelete(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", processInstanceTopic, "known"), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleProcessInstanceKnown(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", processInstanceHistoryTopic), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleHistoricProcessInstanceUpdate(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", processInstanceHistoryTopic, "delete"), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleHistoricProcessInstanceDelete(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getCommandTopic("+", processInstanceHistoryTopic, "known"), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
 		this.handleHistoricProcessInstanceKnown(message)
 	})
 }
