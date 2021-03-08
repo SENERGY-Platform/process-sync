@@ -61,6 +61,7 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 
 var IsPlaceholderProcessErr = errors.New("is placeholder process")
 var IsMarkedForDeleteErr = errors.New("is market for deletion")
+var HistoryMayOnlyDeletedIfFinishedOrPlaceholderErr = errors.New("history may only deleted if the process instance is finished or the element is a placeholder")
 
 func (this *Controller) SetErrCode(err error) int {
 	switch err {
@@ -71,6 +72,8 @@ func (this *Controller) SetErrCode(err error) int {
 	case IsPlaceholderProcessErr:
 		return http.StatusBadRequest
 	case IsMarkedForDeleteErr:
+		return http.StatusBadRequest
+	case HistoryMayOnlyDeletedIfFinishedOrPlaceholderErr:
 		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError

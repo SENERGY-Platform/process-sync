@@ -29,6 +29,7 @@ import (
 
 var historyIdKey string
 var historyNetworkIdKey string
+var historyPlaceholderKey string
 
 func init() {
 	prepareCollection(func(config configuration.Config) string {
@@ -36,6 +37,10 @@ func init() {
 	},
 		model.HistoricProcessInstance{},
 		[]KeyMapping{
+			{
+				FieldName: "SyncInfo.IsPlaceholder",
+				Key:       &historyPlaceholderKey,
+			},
 			{
 				FieldName: "HistoricProcessInstance.Id",
 				Key:       &historyIdKey,
@@ -46,6 +51,12 @@ func init() {
 			},
 		},
 		[]IndexDesc{
+			{
+				Name:   "historyplaceholderindex",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&instancePlaceholderKey},
+			},
 			{
 				Name:   "historynetworkindex",
 				Unique: false,
@@ -155,4 +166,15 @@ func (this *Mongo) ListHistoricProcessInstances(networkIds []string, limit int64
 	}
 	err = cursor.Err()
 	return
+}
+
+func (this *Mongo) RemovePlaceholderHistoricProcessInstances(networkId string) error {
+	ctx, _ := this.getTimeoutContext()
+	_, err := this.processHistoryCollection().DeleteMany(
+		ctx,
+		bson.M{
+			historyPlaceholderKey: true,
+			historyNetworkIdKey:   networkId,
+		})
+	return err
 }

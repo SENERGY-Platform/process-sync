@@ -28,6 +28,7 @@ type Database interface {
 
 	SaveHistoricProcessInstance(historicProcessInstance model.HistoricProcessInstance) error
 	RemoveHistoricProcessInstance(networkId string, historicProcessInstanceId string) error
+	RemovePlaceholderHistoricProcessInstances(id string) error
 	RemoveUnknownHistoricProcessInstances(networkId string, knownIds []string) error
 	ReadHistoricProcessInstance(networkId string, historicProcessInstanceId string) (historicProcessInstance model.HistoricProcessInstance, err error)
 	ListHistoricProcessInstances(networkIds []string, limit int64, offset int64, sort string) (historicProcessInstance []model.HistoricProcessInstance, err error)

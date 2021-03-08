@@ -132,3 +132,5 @@ type HistoricProcessInstancesWithTotal = struct {
 	Total int64                    `json:"total"`
 	Data  HistoricProcessInstances `json:"data"`
 }
+
+var CamundaTimeFormat = "2006-01-02T15:04:05.000Z0700"

@@ -25,7 +25,12 @@ import (
 )
 
 func (this *Controller) UpdateHistoricProcessInstance(networkId string, historicProcessInstance camundamodel.HistoricProcessInstance) {
-	err := this.db.SaveHistoricProcessInstance(model.HistoricProcessInstance{
+	err := this.db.RemovePlaceholderHistoricProcessInstances(networkId)
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+	}
+	err = this.db.SaveHistoricProcessInstance(model.HistoricProcessInstance{
 		HistoricProcessInstance: historicProcessInstance,
 		SyncInfo: model.SyncInfo{
 			NetworkId:       networkId,
@@ -71,12 +76,20 @@ func (this *Controller) ApiDeleteHistoricProcessInstance(networkId string, id st
 	if err != nil {
 		return
 	}
-	err = this.mgw.SendProcessHistoryDeleteCommand(networkId, id)
-	if err != nil {
-		return
+	if current.IsPlaceholder {
+		err = this.db.RemoveHistoricProcessInstance(networkId, id)
+	} else {
+		if current.EndTime == "" {
+			err = HistoryMayOnlyDeletedIfFinishedOrPlaceholderErr
+			return
+		}
+		err = this.mgw.SendProcessHistoryDeleteCommand(networkId, id)
+		if err != nil {
+			return
+		}
+		current.MarkedForDelete = true
+		err = this.db.SaveHistoricProcessInstance(current)
 	}
-	current.MarkedForDelete = true
-	err = this.db.SaveHistoricProcessInstance(current)
 	return
 }
 

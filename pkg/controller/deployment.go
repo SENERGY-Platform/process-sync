@@ -78,12 +78,16 @@ func (this *Controller) ApiDeleteDeployment(networkId string, deploymentId strin
 	if err != nil {
 		return
 	}
-	err = this.mgw.SendDeploymentDeleteCommand(networkId, deploymentId)
-	if err != nil {
-		return
+	if current.IsPlaceholder {
+		err = this.db.RemoveDeployment(networkId, deploymentId)
+	} else {
+		err = this.mgw.SendDeploymentDeleteCommand(networkId, deploymentId)
+		if err != nil {
+			return
+		}
+		current.MarkedForDelete = true
+		err = this.db.SaveDeployment(current)
 	}
-	current.MarkedForDelete = true
-	err = this.db.SaveDeployment(current)
 	return
 }
 
@@ -154,13 +158,38 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 	}
 
 	now := configuration.TimeNow()
+	instanceId := "placeholder-" + configuration.Id()
 	err = this.db.SaveProcessInstance(model.ProcessInstance{
 		ProcessInstance: camundamodel.ProcessInstance{
-			Id:           "placeholder-" + configuration.Id(),
+			Id:           instanceId,
 			DefinitionId: definition.Id,
 			Ended:        false,
 			Suspended:    false,
 			TenantId:     "senergy",
+		},
+		SyncInfo: model.SyncInfo{
+			NetworkId:       networkId,
+			IsPlaceholder:   true,
+			MarkedForDelete: false,
+			SyncDate:        now,
+		},
+	})
+	if err != nil {
+		return
+	}
+	err = this.db.SaveHistoricProcessInstance(model.HistoricProcessInstance{
+		HistoricProcessInstance: camundamodel.HistoricProcessInstance{
+			Id:                       "placeholder-" + configuration.Id(),
+			SuperProcessInstanceId:   instanceId,
+			ProcessDefinitionName:    definition.Name,
+			ProcessDefinitionKey:     definition.Key,
+			ProcessDefinitionVersion: float64(definition.Version),
+			ProcessDefinitionId:      definition.Id,
+			StartTime:                now.Format(camundamodel.CamundaTimeFormat),
+			DurationInMillis:         0,
+			StartUserId:              "senergy",
+			TenantId:                 "senergy",
+			State:                    "PLACEHOLDER",
 		},
 		SyncInfo: model.SyncInfo{
 			NetworkId:       networkId,

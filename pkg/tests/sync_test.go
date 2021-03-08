@@ -71,33 +71,11 @@ func TestSync(t *testing.T) {
 	t.Run("check deployments is placeholder", testCheckDeploymentsPlaceholder(&deployments, []bool{false}))
 	t.Run("check deployments is marked delete", testCheckDeploymentsMarkedDelete(&deployments, []bool{false}))
 
-	definitions := []model.ProcessDefinition{}
-	t.Run("get deployments", testGetDefinitions(config.ApiPort, networkId, &definitions))
-	t.Run("check definitions is placeholder", testCheckDefinitionsPlaceholder(&deployments, []bool{false}))
-	t.Run("check definitions is marked delete", testCheckDefinitionsMarkedDelete(&definitions, []bool{false}))
+	t.Run("check process definitions", testCheckProcessDefinitions(config, networkId))
 
 	t.Run("start deployment", testStartDeployment(config.ApiPort, networkId, &deployments, 0))
 
-	instances := []model.ProcessInstance{}
-	t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
-	t.Run("check instance is placeholder", testCheckInstancesPlaceholder(&instances, []bool{true}))
-	t.Run("check deployments is marked delete", testCheckInstancesMarkedDelete(&instances, []bool{false}))
-
-	time.Sleep(5 * time.Second)
-	t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
-	t.Run("check instance is placeholder", testCheckInstancesPlaceholder(&instances, []bool{false}))
-	t.Run("check instance is marked delete", testCheckInstancesMarkedDelete(&instances, []bool{false}))
-
-	t.Run("stop instance", testDeleteInstances(config.ApiPort, networkId, &instances, 0))
-
-	t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
-	t.Run("check instance is placeholder", testCheckInstancesPlaceholder(&instances, []bool{false}))
-	t.Run("check deployments is marked delete", testCheckInstancesMarkedDelete(&instances, []bool{true}))
-
-	time.Sleep(5 * time.Second)
-	t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
-	t.Run("check instance is placeholder", testCheckInstancesPlaceholder(&instances, []bool{}))
-	t.Run("check deployments is marked delete", testCheckInstancesMarkedDelete(&instances, []bool{}))
+	t.Run("check instance and history", testCheckInstancesAndHistory(config, networkId))
 
 	t.Run("stop deployment", testRemoveDeployment(config.ApiPort, networkId, &deployments, 0))
 
@@ -109,6 +87,115 @@ func TestSync(t *testing.T) {
 	t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
 	t.Run("check deployments is placeholder", testCheckDeploymentsPlaceholder(&deployments, []bool{}))
 	t.Run("check deployments is marked delete", testCheckDeploymentsMarkedDelete(&deployments, []bool{}))
+}
+
+func testCheckProcessDefinitions(config configuration.Config, networkId string) func(t *testing.T) {
+	return func(t *testing.T) {
+		definitions := []model.ProcessDefinition{}
+		t.Run("get definitions", testGetDefinitions(config.ApiPort, networkId, &definitions))
+		t.Run("check definitions is placeholder", testCheckDefinitionsPlaceholder(&definitions, []bool{false}))
+		t.Run("check definitions is marked delete", testCheckDefinitionsMarkedDelete(&definitions, []bool{false}))
+	}
+}
+
+func testCheckInstances(config configuration.Config, networkId string) func(t *testing.T) {
+	return func(t *testing.T) {
+		instances := []model.ProcessInstance{}
+		t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+		t.Run("check instance is placeholder", testCheckInstancesPlaceholder(&instances, []bool{true}))
+		t.Run("check instance is marked delete", testCheckInstancesMarkedDelete(&instances, []bool{false}))
+
+		time.Sleep(5 * time.Second)
+		t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+		t.Run("check instance is placeholder", testCheckInstancesPlaceholder(&instances, []bool{false}))
+		t.Run("check instance is marked delete", testCheckInstancesMarkedDelete(&instances, []bool{false}))
+
+		t.Run("stop instance", testDeleteInstances(config.ApiPort, networkId, &instances, 0))
+
+		t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+		t.Run("check instance is placeholder", testCheckInstancesPlaceholder(&instances, []bool{false}))
+		t.Run("check instance is marked delete", testCheckInstancesMarkedDelete(&instances, []bool{true}))
+
+		time.Sleep(5 * time.Second)
+		t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+		t.Run("check instance is placeholder", testCheckInstancesPlaceholder(&instances, []bool{}))
+		t.Run("check instance is marked delete", testCheckInstancesMarkedDelete(&instances, []bool{}))
+	}
+}
+
+func testCheckInstancesAndHistory(config configuration.Config, networkId string) func(t *testing.T) {
+	return func(t *testing.T) {
+		instances := []model.ProcessInstance{}
+		t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+		t.Run("check instance is placeholder", testCheckInstancesPlaceholder(&instances, []bool{true}))
+		t.Run("check instance is marked delete", testCheckInstancesMarkedDelete(&instances, []bool{false}))
+
+		historicInstances := []model.HistoricProcessInstance{}
+		t.Run("get historic instances", testGetHistoricInstances(config.ApiPort, networkId, &historicInstances))
+		t.Run("check historic instance is placeholder", testCheckHistoricInstancesPlaceholder(&historicInstances, []bool{true}))
+		t.Run("check historic instance is marked delete", testCheckHistoricInstancesMarkedDelete(&historicInstances, []bool{false}))
+
+		time.Sleep(5 * time.Second)
+
+		t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+		t.Run("check instance is placeholder", testCheckInstancesPlaceholder(&instances, []bool{false}))
+		t.Run("check instance is marked delete", testCheckInstancesMarkedDelete(&instances, []bool{false}))
+
+		t.Run("get historicInstances", testGetHistoricInstances(config.ApiPort, networkId, &historicInstances))
+		t.Run("check historic instance is placeholder", testCheckHistoricInstancesPlaceholder(&historicInstances, []bool{false}))
+		t.Run("check historic instance is marked delete", testCheckHistoricInstancesMarkedDelete(&historicInstances, []bool{false}))
+
+		t.Run("stop instance", testDeleteInstances(config.ApiPort, networkId, &instances, 0))
+
+		t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+		t.Run("check instance is placeholder", testCheckInstancesPlaceholder(&instances, []bool{false}))
+		t.Run("check instance is marked delete", testCheckInstancesMarkedDelete(&instances, []bool{true}))
+
+		time.Sleep(5 * time.Second)
+		t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+		t.Run("check instance is placeholder", testCheckInstancesPlaceholder(&instances, []bool{}))
+		t.Run("check instance is marked delete", testCheckInstancesMarkedDelete(&instances, []bool{}))
+
+		t.Run("get historic instances", testGetHistoricInstances(config.ApiPort, networkId, &historicInstances))
+		t.Run("check historic instance is placeholder", testCheckHistoricInstancesPlaceholder(&historicInstances, []bool{false}))
+		t.Run("check historic instance is marked delete", testCheckHistoricInstancesMarkedDelete(&historicInstances, []bool{false}))
+
+		t.Run("remove historic instance", testDeleteHistoricInstances(config.ApiPort, networkId, &historicInstances, 0))
+
+		t.Run("get historic instances", testGetHistoricInstances(config.ApiPort, networkId, &historicInstances))
+		t.Run("check historic instance is placeholder", testCheckHistoricInstancesPlaceholder(&historicInstances, []bool{false}))
+		t.Run("check historic instance is marked delete", testCheckHistoricInstancesMarkedDelete(&historicInstances, []bool{true}))
+
+		time.Sleep(5 * time.Second)
+		t.Run("get historic instances", testGetHistoricInstances(config.ApiPort, networkId, &historicInstances))
+		t.Run("check historic instance is placeholder", testCheckHistoricInstancesPlaceholder(&historicInstances, []bool{}))
+		t.Run("check historic instance is marked delete", testCheckHistoricInstancesMarkedDelete(&historicInstances, []bool{}))
+	}
+}
+
+func testCheckHistoricInstances(config configuration.Config, networkId string) func(t *testing.T) {
+	return func(t *testing.T) {
+		historicInstances := []model.HistoricProcessInstance{}
+		t.Run("get historic instances", testGetHistoricInstances(config.ApiPort, networkId, &historicInstances))
+		t.Run("check historic instance is placeholder", testCheckHistoricInstancesPlaceholder(&historicInstances, []bool{true}))
+		t.Run("check historic instance is marked delete", testCheckHistoricInstancesMarkedDelete(&historicInstances, []bool{false}))
+
+		time.Sleep(5 * time.Second)
+		t.Run("get historicInstances", testGetHistoricInstances(config.ApiPort, networkId, &historicInstances))
+		t.Run("check historic instance is placeholder", testCheckHistoricInstancesPlaceholder(&historicInstances, []bool{false}))
+		t.Run("check historic instance is marked delete", testCheckHistoricInstancesMarkedDelete(&historicInstances, []bool{false}))
+
+		t.Run("stop historic instance", testDeleteHistoricInstances(config.ApiPort, networkId, &historicInstances, 0))
+
+		t.Run("get historic instances", testGetHistoricInstances(config.ApiPort, networkId, &historicInstances))
+		t.Run("check historic instance is placeholder", testCheckHistoricInstancesPlaceholder(&historicInstances, []bool{false}))
+		t.Run("check historic instance is marked delete", testCheckHistoricInstancesMarkedDelete(&historicInstances, []bool{true}))
+
+		time.Sleep(5 * time.Second)
+		t.Run("get historic instances", testGetHistoricInstances(config.ApiPort, networkId, &historicInstances))
+		t.Run("check historic instance is placeholder", testCheckHistoricInstancesPlaceholder(&historicInstances, []bool{}))
+		t.Run("check historic instance is marked delete", testCheckHistoricInstancesMarkedDelete(&historicInstances, []bool{}))
+	}
 }
 
 func testRemoveDeployment(port string, networkId string, list *[]model.Deployment, index int) func(t *testing.T) {
@@ -239,6 +326,104 @@ func testGetInstances(port string, networkId string, result *[]model.ProcessInst
 	}
 }
 
+func testDeleteHistoricInstances(port string, networkId string, list *[]model.HistoricProcessInstance, index int) func(t *testing.T) {
+	return func(t *testing.T) {
+		if index >= len(*list) {
+			t.Error(len(*list), index)
+			return
+		}
+		instance := (*list)[index]
+		req, err := http.NewRequest("DELETE", "http://localhost:"+port+"/history/process-instances/"+networkId+"/"+instance.Id, nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode >= 300 {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(resp.Body)
+			err = errors.New(buf.String())
+		}
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
+}
+
+func testCheckHistoricInstancesMarkedDelete(list *[]model.HistoricProcessInstance, bools []bool) func(t *testing.T) {
+	return func(t *testing.T) {
+		if len(*list) != len(bools) {
+			temp, _ := json.Marshal(*list)
+			t.Error(len(*list), string(temp))
+			return
+		}
+		for i, b := range bools {
+			element := (*list)[i]
+			if element.MarkedForDelete != b {
+				temp, _ := json.Marshal(element)
+				t.Error(string(temp))
+				return
+			}
+		}
+	}
+}
+
+func testCheckHistoricInstancesPlaceholder(list *[]model.HistoricProcessInstance, bools []bool) func(t *testing.T) {
+	return func(t *testing.T) {
+		if len(*list) != len(bools) {
+			temp, _ := json.Marshal(*list)
+			t.Error(bools, len(*list), string(temp))
+			return
+		}
+		for i, b := range bools {
+			element := (*list)[i]
+			if element.IsPlaceholder != b {
+				temp, _ := json.Marshal(element)
+				t.Error(string(temp))
+				return
+			}
+		}
+	}
+}
+
+func testGetHistoricInstances(port string, networkId string, result *[]model.HistoricProcessInstance) func(t *testing.T) {
+	return func(t *testing.T) {
+		req, err := http.NewRequest("GET", "http://localhost:"+port+"/history/process-instances?network_id="+networkId, nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode >= 300 {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(resp.Body)
+			err = errors.New(buf.String())
+		}
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		temp := []model.HistoricProcessInstance{}
+		err = json.NewDecoder(resp.Body).Decode(&temp)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		*result = temp
+	}
+}
+
 func testStartDeployment(port string, networkId string, list *[]model.Deployment, index int) func(t *testing.T) {
 	return func(t *testing.T) {
 		if index >= len(*list) {
@@ -287,7 +472,7 @@ func testCheckDefinitionsMarkedDelete(list *[]model.ProcessDefinition, bools []b
 	}
 }
 
-func testCheckDefinitionsPlaceholder(list *[]model.Deployment, bools []bool) func(t *testing.T) {
+func testCheckDefinitionsPlaceholder(list *[]model.ProcessDefinition, bools []bool) func(t *testing.T) {
 	return func(t *testing.T) {
 		if len(*list) != len(bools) {
 			temp, _ := json.Marshal(*list)

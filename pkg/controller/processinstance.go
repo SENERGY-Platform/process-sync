@@ -76,12 +76,16 @@ func (this *Controller) ApiDeleteProcessInstance(networkId string, id string) (e
 	if err != nil {
 		return
 	}
-	err = this.mgw.SendProcessStopCommand(networkId, id)
-	if err != nil {
-		return
+	if current.IsPlaceholder {
+		err = this.db.RemoveProcessInstance(networkId, id)
+	} else {
+		err = this.mgw.SendProcessStopCommand(networkId, id)
+		if err != nil {
+			return
+		}
+		current.MarkedForDelete = true
+		err = this.db.SaveProcessInstance(current)
 	}
-	current.MarkedForDelete = true
-	err = this.db.SaveProcessInstance(current)
 	return
 }
 
