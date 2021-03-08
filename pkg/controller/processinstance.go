@@ -76,7 +76,7 @@ func (this *Controller) ApiDeleteProcessInstance(networkId string, id string) (e
 	if err != nil {
 		return
 	}
-	err = this.mgw.SendProcessHistoryDeleteCommand(networkId, id)
+	err = this.mgw.SendProcessStopCommand(networkId, id)
 	if err != nil {
 		return
 	}

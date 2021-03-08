@@ -228,12 +228,18 @@ func (this *Mgw) sendObj(topic string, message interface{}) error {
 	if err != nil {
 		return err
 	}
+	if this.debug {
+		log.Println("DEBUG: send", topic, string(msg))
+	}
 	token := this.mqtt.Publish(topic, 2, false, msg)
 	token.Wait()
 	return token.Error()
 }
 
 func (this *Mgw) sendStr(topic string, message string) error {
+	if this.debug {
+		log.Println("DEBUG: send", topic, message)
+	}
 	token := this.mqtt.Publish(topic, 2, false, message)
 	token.Wait()
 	return token.Error()

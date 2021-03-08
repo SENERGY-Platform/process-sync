@@ -86,7 +86,7 @@ func TestSync(t *testing.T) {
 	time.Sleep(5 * time.Second)
 	t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
 	t.Run("check instance is placeholder", testCheckInstancesPlaceholder(&instances, []bool{false}))
-	t.Run("check deployments is marked delete", testCheckInstancesMarkedDelete(&instances, []bool{false}))
+	t.Run("check instance is marked delete", testCheckInstancesMarkedDelete(&instances, []bool{false}))
 
 	t.Run("stop instance", testDeleteInstances(config.ApiPort, networkId, &instances, 0))
 
@@ -174,13 +174,15 @@ func testDeleteInstances(port string, networkId string, list *[]model.ProcessIns
 func testCheckInstancesMarkedDelete(list *[]model.ProcessInstance, bools []bool) func(t *testing.T) {
 	return func(t *testing.T) {
 		if len(*list) != len(bools) {
-			t.Error(len(*list), *list)
+			temp, _ := json.Marshal(*list)
+			t.Error(len(*list), string(temp))
 			return
 		}
 		for i, b := range bools {
 			element := (*list)[i]
 			if element.MarkedForDelete != b {
-				t.Error(element)
+				temp, _ := json.Marshal(element)
+				t.Error(string(temp))
 				return
 			}
 		}
@@ -190,13 +192,15 @@ func testCheckInstancesMarkedDelete(list *[]model.ProcessInstance, bools []bool)
 func testCheckInstancesPlaceholder(list *[]model.ProcessInstance, bools []bool) func(t *testing.T) {
 	return func(t *testing.T) {
 		if len(*list) != len(bools) {
-			t.Error(len(*list), *list)
+			temp, _ := json.Marshal(*list)
+			t.Error(len(*list), string(temp))
 			return
 		}
 		for i, b := range bools {
 			element := (*list)[i]
 			if element.IsPlaceholder != b {
-				t.Error(element)
+				temp, _ := json.Marshal(element)
+				t.Error(string(temp))
 				return
 			}
 		}
@@ -268,13 +272,15 @@ func testStartDeployment(port string, networkId string, list *[]model.Deployment
 func testCheckDefinitionsMarkedDelete(list *[]model.ProcessDefinition, bools []bool) func(t *testing.T) {
 	return func(t *testing.T) {
 		if len(*list) != len(bools) {
-			t.Error(len(*list), *list)
+			temp, _ := json.Marshal(*list)
+			t.Error(len(*list), string(temp))
 			return
 		}
 		for i, b := range bools {
 			element := (*list)[i]
 			if element.MarkedForDelete != b {
-				t.Error(element)
+				temp, _ := json.Marshal(element)
+				t.Error(string(temp))
 				return
 			}
 		}
@@ -284,13 +290,15 @@ func testCheckDefinitionsMarkedDelete(list *[]model.ProcessDefinition, bools []b
 func testCheckDefinitionsPlaceholder(list *[]model.Deployment, bools []bool) func(t *testing.T) {
 	return func(t *testing.T) {
 		if len(*list) != len(bools) {
-			t.Error(len(*list), *list)
+			temp, _ := json.Marshal(*list)
+			t.Error(len(*list), string(temp))
 			return
 		}
 		for i, b := range bools {
 			element := (*list)[i]
 			if element.IsPlaceholder != b {
-				t.Error(element)
+				temp, _ := json.Marshal(element)
+				t.Error(string(temp))
 				return
 			}
 		}
