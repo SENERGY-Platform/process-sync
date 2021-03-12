@@ -65,5 +65,8 @@ func (this *Controller) ApiReadProcessDefinition(networkId string, id string) (r
 func (this *Controller) ApiListProcessDefinitions(networkIds []string, limit int64, offset int64, sort string) (result []model.ProcessDefinition, err error, errCode int) {
 	result, err = this.db.ListProcessDefinitions(networkIds, limit, offset, sort)
 	errCode = this.SetErrCode(err)
+	if result == nil {
+		result = []model.ProcessDefinition{}
+	}
 	return
 }

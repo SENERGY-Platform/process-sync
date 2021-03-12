@@ -94,6 +94,9 @@ func (this *Controller) ApiDeleteDeployment(networkId string, deploymentId strin
 func (this *Controller) ApiListDeployments(networkIds []string, limit int64, offset int64, sort string) (result []model.Deployment, err error, errCode int) {
 	result, err = this.db.ListDeployments(networkIds, limit, offset, sort)
 	errCode = this.SetErrCode(err)
+	if result == nil {
+		result = []model.Deployment{}
+	}
 	return
 }
 

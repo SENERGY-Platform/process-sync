@@ -96,5 +96,8 @@ func (this *Controller) ApiDeleteHistoricProcessInstance(networkId string, id st
 func (this *Controller) ApiListHistoricProcessInstance(networkIds []string, limit int64, offset int64, sort string) (result []model.HistoricProcessInstance, err error, errCode int) {
 	result, err = this.db.ListHistoricProcessInstances(networkIds, limit, offset, sort)
 	errCode = this.SetErrCode(err)
+	if result == nil {
+		result = []model.HistoricProcessInstance{}
+	}
 	return
 }

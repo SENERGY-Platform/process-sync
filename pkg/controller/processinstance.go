@@ -92,5 +92,8 @@ func (this *Controller) ApiDeleteProcessInstance(networkId string, id string) (e
 func (this *Controller) ApiListProcessInstances(networkIds []string, limit int64, offset int64, sort string) (result []model.ProcessInstance, err error, errCode int) {
 	result, err = this.db.ListProcessInstances(networkIds, limit, offset, sort)
 	errCode = this.SetErrCode(err)
+	if result == nil {
+		result = []model.ProcessInstance{}
+	}
 	return
 }
