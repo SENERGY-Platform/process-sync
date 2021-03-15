@@ -52,4 +52,8 @@ type Database interface {
 	RemoveUnknownIncidents(networkId string, knownIds []string) error
 	ReadIncident(networkId string, incidentId string) (incident model.Incident, err error)
 	ListIncidents(networkIds []string, processInstanceId string, limit int64, offset int64, sort string) (incident []model.Incident, err error)
+	RemoveIncidentOfInstance(networkId string, instanceId string) error
+	RemoveIncidentOfDefinition(networkId string, definitionId string) error
+	RemoveIncidentOfNotInstances(networkId string, notInstanceIds []string) error
+	RemoveIncidentOfNotDefinitions(networkId string, notDefinitionIds []string) error
 }

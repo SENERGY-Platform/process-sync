@@ -51,10 +51,20 @@ func (this *Controller) DeleteProcessInstance(networkId string, instanceId strin
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
+	err = this.db.RemoveIncidentOfInstance(networkId, instanceId)
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+	}
 }
 
 func (this *Controller) DeleteUnknownProcessInstances(networkId string, knownIds []string) {
 	err := this.db.RemoveUnknownProcessInstances(networkId, knownIds)
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+	}
+	err = this.db.RemoveIncidentOfNotInstances(networkId, knownIds)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()

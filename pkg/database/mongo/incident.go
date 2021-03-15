@@ -31,6 +31,7 @@ var incidentIdKey string
 var incidentTimeKey string
 var incidentNetworkIdKey string
 var incidentProcessInstanceIdKey string
+var incidentProcessDefinitionIdKey string
 
 func init() {
 	prepareCollection(func(config configuration.Config) string {
@@ -41,6 +42,10 @@ func init() {
 			{
 				FieldName: "Incident.ProcessInstanceId",
 				Key:       &incidentProcessInstanceIdKey,
+			},
+			{
+				FieldName: "Incident.ProcessDefinitionId",
+				Key:       &incidentProcessDefinitionIdKey,
 			},
 			{
 				FieldName: "Incident.Id",
@@ -67,6 +72,12 @@ func init() {
 				Unique: false,
 				Asc:    true,
 				Keys:   []*string{&incidentNetworkIdKey, &incidentProcessInstanceIdKey},
+			},
+			{
+				Name:   "incidentbynetworkanddefinition",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&incidentNetworkIdKey, &incidentProcessDefinitionIdKey},
 			},
 			{
 				Name:   "incidentcompoundindex",
@@ -102,6 +113,50 @@ func (this *Mongo) RemoveIncident(networkId string, incidentId string) error {
 		bson.M{
 			incidentIdKey:        incidentId,
 			incidentNetworkIdKey: networkId,
+		})
+	return err
+}
+
+func (this *Mongo) RemoveIncidentOfInstance(networkId string, instanceId string) error {
+	ctx, _ := this.getTimeoutContext()
+	_, err := this.incidentCollection().DeleteMany(
+		ctx,
+		bson.M{
+			incidentNetworkIdKey:         networkId,
+			incidentProcessInstanceIdKey: instanceId,
+		})
+	return err
+}
+
+func (this *Mongo) RemoveIncidentOfDefinition(networkId string, definitionId string) error {
+	ctx, _ := this.getTimeoutContext()
+	_, err := this.incidentCollection().DeleteMany(
+		ctx,
+		bson.M{
+			incidentNetworkIdKey:           networkId,
+			incidentProcessDefinitionIdKey: definitionId,
+		})
+	return err
+}
+
+func (this *Mongo) RemoveIncidentOfNotInstances(networkId string, notInstanceIds []string) error {
+	ctx, _ := this.getTimeoutContext()
+	_, err := this.incidentCollection().DeleteMany(
+		ctx,
+		bson.M{
+			incidentNetworkIdKey:         networkId,
+			incidentProcessInstanceIdKey: bson.M{"$nin": notInstanceIds},
+		})
+	return err
+}
+
+func (this *Mongo) RemoveIncidentOfNotDefinitions(networkId string, notDefinitionIds []string) error {
+	ctx, _ := this.getTimeoutContext()
+	_, err := this.incidentCollection().DeleteMany(
+		ctx,
+		bson.M{
+			incidentNetworkIdKey:           networkId,
+			incidentProcessDefinitionIdKey: bson.M{"$nin": notDefinitionIds},
 		})
 	return err
 }

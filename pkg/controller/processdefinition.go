@@ -46,10 +46,20 @@ func (this *Controller) DeleteProcessDefinition(networkId string, definitionId s
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
+	err = this.db.RemoveIncidentOfDefinition(networkId, definitionId)
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+	}
 }
 
 func (this *Controller) DeleteUnknownProcessDefinitions(networkId string, knownIds []string) {
 	err := this.db.RemoveUnknownProcessDefinitions(networkId, knownIds)
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+	}
+	err = this.db.RemoveIncidentOfNotDefinitions(networkId, knownIds)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
