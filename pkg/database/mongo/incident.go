@@ -30,6 +30,7 @@ import (
 var incidentIdKey string
 var incidentTimeKey string
 var incidentNetworkIdKey string
+var incidentProcessInstanceIdKey string
 
 func init() {
 	prepareCollection(func(config configuration.Config) string {
@@ -37,6 +38,10 @@ func init() {
 	},
 		model.Incident{},
 		[]KeyMapping{
+			{
+				FieldName: "Incident.ProcessInstanceId",
+				Key:       &incidentProcessInstanceIdKey,
+			},
 			{
 				FieldName: "Incident.Id",
 				Key:       &incidentIdKey,
@@ -56,6 +61,12 @@ func init() {
 				Unique: false,
 				Asc:    true,
 				Keys:   []*string{&incidentNetworkIdKey},
+			},
+			{
+				Name:   "incidentbynetworkandinstance",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&incidentNetworkIdKey, &incidentProcessInstanceIdKey},
 			},
 			{
 				Name:   "incidentcompoundindex",
@@ -128,7 +139,7 @@ func (this *Mongo) ReadIncident(networkId string, incidentId string) (incident m
 	return incident, err
 }
 
-func (this *Mongo) ListIncidents(networkIds []string, limit int64, offset int64, sort string) (result []model.Incident, err error) {
+func (this *Mongo) ListIncidents(networkIds []string, processInstanceId string, limit int64, offset int64, sort string) (result []model.Incident, err error) {
 	opt := options.Find()
 	opt.SetLimit(limit)
 	opt.SetSkip(offset)
@@ -147,8 +158,13 @@ func (this *Mongo) ListIncidents(networkIds []string, limit int64, offset int64,
 	}
 	opt.SetSort(bsonx.Doc{{sortby, bsonx.Int32(direction)}})
 
+	query := bson.M{incidentNetworkIdKey: bson.M{"$in": networkIds}}
+	if processInstanceId != "" {
+		query[incidentProcessInstanceIdKey] = processInstanceId
+	}
+
 	ctx, _ := this.getTimeoutContext()
-	cursor, err := this.incidentCollection().Find(ctx, bson.M{incidentNetworkIdKey: bson.M{"$in": networkIds}}, opt)
+	cursor, err := this.incidentCollection().Find(ctx, query, opt)
 	if err != nil {
 		return nil, err
 	}

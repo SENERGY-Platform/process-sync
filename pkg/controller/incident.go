@@ -70,8 +70,8 @@ func (this *Controller) ApiDeleteIncident(networkId string, id string) (err erro
 	return
 }
 
-func (this *Controller) ApiListIncidents(networkIds []string, limit int64, offset int64, sort string) (result []model.Incident, err error, errCode int) {
-	result, err = this.db.ListIncidents(networkIds, limit, offset, sort)
+func (this *Controller) ApiListIncidents(networkIds []string, processInstanceId string, limit int64, offset int64, sort string) (result []model.Incident, err error, errCode int) {
+	result, err = this.db.ListIncidents(networkIds, processInstanceId, limit, offset, sort)
 	errCode = this.SetErrCode(err)
 	if result == nil {
 		result = []model.Incident{}

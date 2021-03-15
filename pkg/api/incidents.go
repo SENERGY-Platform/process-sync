@@ -100,6 +100,8 @@ func IncidentEndpoints(config configuration.Config, ctrl *controller.Controller,
 			return
 		}
 
+		instanceId := request.URL.Query().Get("process_instance_id")
+
 		networkIdsStr := request.URL.Query().Get("network_id")
 		if networkIdsStr == "" {
 			http.Error(writer, "expect network_id query parameter", http.StatusBadRequest)
@@ -111,7 +113,7 @@ func IncidentEndpoints(config configuration.Config, ctrl *controller.Controller,
 			http.Error(writer, err.Error(), errCode)
 			return
 		}
-		result, err, errCode := ctrl.ApiListIncidents(networkIds, limit, offset, sort)
+		result, err, errCode := ctrl.ApiListIncidents(networkIds, instanceId, limit, offset, sort)
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
 			return
