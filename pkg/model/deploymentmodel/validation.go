@@ -29,6 +29,9 @@ func (this Deployment) Validate() (err error) {
 	if this.Name == "" {
 		return errors.New("missing deployment name")
 	}
+	if this.Diagram.XmlRaw == "" {
+		return errors.New("missing deployment xml_raw")
+	}
 	engineAccess, err := xmlContainsEngineAccess(this.Diagram.XmlRaw)
 	if err != nil {
 		return err
@@ -38,6 +41,12 @@ func (this Deployment) Validate() (err error) {
 	}
 	if this.Diagram.XmlDeployed == "" {
 		return errors.New("missing deployment xml")
+	}
+	for _, element := range this.Elements {
+		err = element.Validate()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -67,4 +76,37 @@ func xmlContainsEngineAccess(xml string) (triesAccess bool, err error) {
 		}
 	}
 	return false, nil
+}
+
+func (this Element) Validate() error {
+	if this.BpmnId == "" {
+		return errors.New("missing bpmn element id")
+	}
+	if this.Task != nil {
+		if (this.Task.Selection.SelectedDeviceGroupId == nil || *this.Task.Selection.SelectedDeviceGroupId == "") &&
+			(this.Task.Selection.SelectedDeviceId == nil || *this.Task.Selection.SelectedDeviceId == "") {
+			return errors.New("missing device/device-group selection in task")
+		}
+	}
+	if this.Task != nil &&
+		this.Task.Selection.SelectedDeviceId != nil &&
+		*this.Task.Selection.SelectedDeviceId == "" &&
+		(this.Task.Selection.SelectedServiceId == nil || *this.Task.Selection.SelectedServiceId == "") {
+		return errors.New("missing service selection in task")
+	}
+	if this.MessageEvent != nil {
+		if this.MessageEvent.Selection.SelectedDeviceGroupId != nil {
+			if *this.MessageEvent.Selection.SelectedDeviceGroupId == "" {
+				return errors.New("invalid device-group selection in event")
+			}
+		} else {
+			if this.MessageEvent.Selection.SelectedDeviceId == nil || *this.MessageEvent.Selection.SelectedDeviceId == "" {
+				return errors.New("missing device selection in event")
+			}
+			if this.MessageEvent.Selection.SelectedServiceId == nil || *this.MessageEvent.Selection.SelectedServiceId == "" {
+				return errors.New("missing service selection in event")
+			}
+		}
+	}
+	return nil
 }

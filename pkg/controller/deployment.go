@@ -133,7 +133,6 @@ func (this *Controller) ApiListDeployments(networkIds []string, limit int64, off
 }
 
 func (this *Controller) ApiCreateDeployment(networkId string, deployment deploymentmodel.Deployment) (err error, errCode int) {
-	this.removeUnusedElementsFromDeployment(&deployment)
 	err = deployment.Validate()
 	if err != nil {
 		return err, http.StatusBadRequest
@@ -234,10 +233,4 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 		},
 	})
 	return
-}
-
-func (this *Controller) removeUnusedElementsFromDeployment(deployment *deploymentmodel.Deployment) {
-	deployment.Id = ""
-	deployment.Elements = nil
-	deployment.Diagram.XmlRaw = ""
 }

@@ -650,6 +650,7 @@ func testDeployProcess(port string, networkId string) func(t *testing.T) {
 			Diagram: deploymentmodel.Diagram{
 				XmlDeployed: deploymentExampleXml,
 				Svg:         "<svg></svg>",
+				XmlRaw:      deploymentExampleXml,
 			},
 			Executable: true,
 		})
