@@ -47,8 +47,29 @@ func (this *Controller) UpdateDeployment(networkId string, deployment camundamod
 	}
 }
 
+func (this *Controller) UpdateDeploymentMetadata(networkId string, metadata model.Metadata) {
+	err := this.db.SaveDeploymentMetadata(model.DeploymentMetadata{
+		Metadata: metadata,
+		SyncInfo: model.SyncInfo{
+			NetworkId:       networkId,
+			IsPlaceholder:   false,
+			MarkedForDelete: false,
+			SyncDate:        configuration.TimeNow(),
+		},
+	})
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+	}
+}
+
 func (this *Controller) DeleteDeployment(networkId string, deploymentId string) {
 	err := this.db.RemoveDeployment(networkId, deploymentId)
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+	}
+	err = this.db.RemoveDeploymentMetadata(networkId, deploymentId)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
@@ -57,6 +78,11 @@ func (this *Controller) DeleteDeployment(networkId string, deploymentId string) 
 
 func (this *Controller) DeleteUnknownDeployments(networkId string, knownIds []string) {
 	err := this.db.RemoveUnknownDeployments(networkId, knownIds)
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+	}
+	err = this.db.RemoveUnknownDeploymentMetadata(networkId, knownIds)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()

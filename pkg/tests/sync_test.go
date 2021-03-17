@@ -40,16 +40,17 @@ func TestSync(t *testing.T) {
 	defer cancel()
 
 	config := configuration.Config{
-		Debug:                            true,
-		MqttClientId:                     "",
-		MqttCleanSession:                 true,
-		MqttGroupId:                      "",
-		MongoTable:                       "processes",
-		MongoProcessDefinitionCollection: "process_definition",
-		MongoDeploymentCollection:        "deployments",
-		MongoProcessHistoryCollection:    "histories",
-		MongoIncidentCollection:          "incidents",
-		MongoProcessInstanceCollection:   "instances",
+		Debug:                             true,
+		MqttClientId:                      "",
+		MqttCleanSession:                  true,
+		MqttGroupId:                       "",
+		MongoTable:                        "processes",
+		MongoProcessDefinitionCollection:  "process_definition",
+		MongoDeploymentCollection:         "deployments",
+		MongoProcessHistoryCollection:     "histories",
+		MongoIncidentCollection:           "incidents",
+		MongoProcessInstanceCollection:    "instances",
+		MongoDeploymentMetadataCollection: "deployment_metadata",
 	}
 
 	networkId := "test-network-id"

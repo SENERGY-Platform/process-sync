@@ -97,7 +97,7 @@ func (this *Mongo) SaveDeployment(deployment model.Deployment) error {
 
 func (this *Mongo) RemoveDeployment(networkId string, deploymentId string) error {
 	ctx, _ := this.getTimeoutContext()
-	_, err := this.deploymentCollection().DeleteOne(
+	_, err := this.deploymentCollection().DeleteMany(
 		ctx,
 		bson.M{
 			deploymentIdKey:        deploymentId,

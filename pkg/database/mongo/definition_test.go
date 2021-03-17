@@ -41,14 +41,15 @@ func TestDefinition(t *testing.T) {
 	}
 
 	config := configuration.Config{
-		Debug:                            true,
-		MongoUrl:                         "mongodb://localhost:" + mongoPort,
-		MongoTable:                       "processes",
-		MongoProcessDefinitionCollection: "process_definition",
-		MongoDeploymentCollection:        "deployments",
-		MongoProcessHistoryCollection:    "histories",
-		MongoIncidentCollection:          "incidents",
-		MongoProcessInstanceCollection:   "instances",
+		Debug:                             true,
+		MongoUrl:                          "mongodb://localhost:" + mongoPort,
+		MongoTable:                        "processes",
+		MongoProcessDefinitionCollection:  "process_definition",
+		MongoDeploymentCollection:         "deployments",
+		MongoProcessHistoryCollection:     "histories",
+		MongoIncidentCollection:           "incidents",
+		MongoProcessInstanceCollection:    "instances",
+		MongoDeploymentMetadataCollection: "deployment_metadata",
 	}
 
 	db, err := New(config)

@@ -33,20 +33,21 @@ type Config struct {
 
 	MongoUrl string `json:"mongo_url"`
 
-	MqttPw                           string `json:"mqtt_pw"`
-	MqttUser                         string `json:"mqtt_user"`
-	MqttClientId                     string `json:"mqtt_client_id"`
-	MqttBroker                       string `json:"mqtt_broker"`
-	MqttCleanSession                 bool   `json:"mqtt_clean_session"`
-	MqttGroupId                      string `json:"mqtt_group_id"` //optional
-	ApiPort                          string `json:"api_port"`
-	MongoTable                       string `json:"mongo_table"`
-	MongoProcessDefinitionCollection string `json:"mongo_process_definition_collection"`
-	MongoDeploymentCollection        string `json:"mongo_deployment_collection"`
-	MongoProcessHistoryCollection    string `json:"mongo_process_history_collection"`
-	MongoIncidentCollection          string `json:"mongo_incident_collection"`
-	MongoProcessInstanceCollection   string `json:"mongo_process_instance_collection"`
-	PermissionsUrl                   string `json:"permissions_url"`
+	MqttPw                            string `json:"mqtt_pw"`
+	MqttUser                          string `json:"mqtt_user"`
+	MqttClientId                      string `json:"mqtt_client_id"`
+	MqttBroker                        string `json:"mqtt_broker"`
+	MqttCleanSession                  bool   `json:"mqtt_clean_session"`
+	MqttGroupId                       string `json:"mqtt_group_id"` //optional
+	ApiPort                           string `json:"api_port"`
+	MongoTable                        string `json:"mongo_table"`
+	MongoProcessDefinitionCollection  string `json:"mongo_process_definition_collection"`
+	MongoDeploymentCollection         string `json:"mongo_deployment_collection"`
+	MongoDeploymentMetadataCollection string `json:"mongo_deployment_metadata_collection"`
+	MongoProcessHistoryCollection     string `json:"mongo_process_history_collection"`
+	MongoIncidentCollection           string `json:"mongo_incident_collection"`
+	MongoProcessInstanceCollection    string `json:"mongo_process_instance_collection"`
+	PermissionsUrl                    string `json:"permissions_url"`
 }
 
 //loads config from json in location and used environment variables (e.g ZookeeperUrl --> ZOOKEEPER_URL)

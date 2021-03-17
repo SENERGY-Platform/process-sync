@@ -18,6 +18,7 @@ package model
 
 import (
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
+	"github.com/SENERGY-Platform/process-sync/pkg/model/deploymentmodel"
 	"time"
 )
 
@@ -26,6 +27,17 @@ type SyncInfo struct {
 	IsPlaceholder   bool      `json:"is_placeholder"`
 	MarkedForDelete bool      `json:"marked_for_delete"`
 	SyncDate        time.Time `json:"sync_date"`
+}
+
+type Metadata struct {
+	CamundaDeploymentId string                           `json:"camunda_deployment_id"`
+	ProcessParameter    map[string]camundamodel.Variable `json:"process_parameter"`
+	DeploymentModel     deploymentmodel.Deployment       `json:"deployment_model"`
+}
+
+type DeploymentMetadata struct {
+	Metadata
+	SyncInfo
 }
 
 type Deployment struct {

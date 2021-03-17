@@ -18,6 +18,7 @@ package mgw
 
 import (
 	"encoding/json"
+	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/deploymentmodel"
 	paho "github.com/eclipse/paho.mqtt.golang"
@@ -38,6 +39,21 @@ func (this *Mgw) handleDeploymentUpdate(message paho.Message) {
 		debug.PrintStack()
 	}
 	this.handler.UpdateDeployment(networkId, deployment)
+}
+
+func (this *Mgw) handleDeploymentMetadata(message paho.Message) {
+	metadata := model.Metadata{}
+	err := json.Unmarshal(message.Payload(), &metadata)
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+	}
+	networkId, err := this.getNetworkId(message.Topic())
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+	}
+	this.handler.UpdateDeploymentMetadata(networkId, metadata)
 }
 
 func (this *Mgw) handleDeploymentDelete(message paho.Message) {

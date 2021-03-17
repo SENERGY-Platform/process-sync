@@ -56,4 +56,9 @@ type Database interface {
 	RemoveIncidentOfDefinition(networkId string, definitionId string) error
 	RemoveIncidentOfNotInstances(networkId string, notInstanceIds []string) error
 	RemoveIncidentOfNotDefinitions(networkId string, notDefinitionIds []string) error
+
+	SaveDeploymentMetadata(metadata model.DeploymentMetadata) error
+	RemoveUnknownDeploymentMetadata(networkId string, knownIds []string) error
+	RemoveDeploymentMetadata(networkId string, deploymentId string) error
+	ReadDeploymentMetadata(networkId string, deploymentId string) (metadata model.DeploymentMetadata, err error)
 }

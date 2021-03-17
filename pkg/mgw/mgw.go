@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	paho "github.com/eclipse/paho.mqtt.golang"
 	"log"
@@ -50,6 +51,7 @@ type Handler interface {
 	UpdateProcessInstance(networkId string, instance camundamodel.ProcessInstance)
 	DeleteProcessInstance(networkId string, instanceId string)
 	DeleteUnknownProcessInstances(networkId string, knownIds []string)
+	UpdateDeploymentMetadata(networkId string, metadata model.Metadata)
 }
 
 func New(config configuration.Config, ctx context.Context, handler Handler) (*Mgw, error) {
@@ -117,6 +119,12 @@ func (this *Mgw) subscribe() {
 			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
 		}
 		this.handleDeploymentKnown(message)
+	})
+	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", deploymentTopic, "metadata"), 2, func(client paho.Client, message paho.Message) {
+		if this.debug {
+			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
+		}
+		this.handleDeploymentMetadata(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", incidentTopic), 2, func(client paho.Client, message paho.Message) {
 		if this.debug {
