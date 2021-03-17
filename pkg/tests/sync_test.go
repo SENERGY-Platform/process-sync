@@ -74,6 +74,9 @@ func TestSync(t *testing.T) {
 
 	t.Run("check process definitions", testCheckProcessDefinitions(config, networkId))
 
+	deploymentsPreDelete := deployments
+	t.Run("check process metadata", testCheckProcessMetadata(config, networkId, &deploymentsPreDelete, 0, true))
+
 	t.Run("start deployment", testStartDeployment(config.ApiPort, networkId, &deployments, 0))
 
 	t.Run("check instance and history", testCheckInstancesAndHistory(config, networkId))
@@ -88,6 +91,8 @@ func TestSync(t *testing.T) {
 	t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
 	t.Run("check deployments is placeholder", testCheckDeploymentsPlaceholder(&deployments, []bool{}))
 	t.Run("check deployments is marked delete", testCheckDeploymentsMarkedDelete(&deployments, []bool{}))
+
+	t.Run("check process metadata after delete", testCheckProcessMetadata(config, networkId, &deploymentsPreDelete, 0, false))
 }
 
 func testCheckProcessDefinitions(config configuration.Config, networkId string) func(t *testing.T) {
@@ -96,6 +101,55 @@ func testCheckProcessDefinitions(config configuration.Config, networkId string) 
 		t.Run("get definitions", testGetDefinitions(config.ApiPort, networkId, &definitions))
 		t.Run("check definitions is placeholder", testCheckDefinitionsPlaceholder(&definitions, []bool{false}))
 		t.Run("check definitions is marked delete", testCheckDefinitionsMarkedDelete(&definitions, []bool{false}))
+	}
+}
+
+func testCheckProcessMetadata(config configuration.Config, networkId string, list *[]model.Deployment, index int, expectedExistence bool) func(t *testing.T) {
+	return func(t *testing.T) {
+		if index >= len(*list) {
+			t.Error(len(*list), index)
+			return
+		}
+		deployment := (*list)[index]
+		req, err := http.NewRequest("GET", "http://localhost:"+config.ApiPort+"/deployments/"+networkId+"/"+deployment.Id+"/metadata", nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer resp.Body.Close()
+		exists := true
+		if resp.StatusCode >= 300 {
+			exists = false
+		}
+		if exists != expectedExistence {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(resp.Body)
+			t.Error(exists, expectedExistence, resp.StatusCode, buf.String())
+			return
+		}
+
+		if expectedExistence {
+			temp := model.DeploymentMetadata{}
+			err = json.NewDecoder(resp.Body).Decode(&temp)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if temp.NetworkId != networkId {
+				t.Error(temp.NetworkId, networkId, temp)
+			}
+			if temp.CamundaDeploymentId != deployment.Id {
+				t.Error(temp.CamundaDeploymentId, deployment.Id, temp)
+			}
+			if temp.DeploymentModel.Name != deployment.Name {
+				t.Error(temp.DeploymentModel.Name, deployment.Name, temp)
+			}
+		}
 	}
 }
 

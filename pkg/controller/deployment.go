@@ -95,6 +95,12 @@ func (this *Controller) ApiReadDeployment(networkId string, deploymentId string)
 	return
 }
 
+func (this *Controller) ApiReadDeploymentMetadata(networkId string, deploymentId string) (result model.DeploymentMetadata, err error, errCode int) {
+	result, err = this.db.ReadDeploymentMetadata(networkId, deploymentId)
+	errCode = this.SetErrCode(err)
+	return
+}
+
 func (this *Controller) ApiDeleteDeployment(networkId string, deploymentId string) (err error, errCode int) {
 	defer func() {
 		errCode = this.SetErrCode(err)

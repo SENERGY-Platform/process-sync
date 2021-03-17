@@ -56,6 +56,27 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 		return
 	})
 
+	router.GET(resource+"/:networkId/:deploymentId/metadata", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		networkId := params.ByName("networkId")
+		deploymentId := params.ByName("deploymentId")
+		err, errCode := ctrl.ApiCheckAccess(request, networkId, "rx")
+		if err != nil {
+			http.Error(writer, err.Error(), errCode)
+			return
+		}
+		result, err, errCode := ctrl.ApiReadDeploymentMetadata(networkId, deploymentId)
+		if err != nil {
+			http.Error(writer, err.Error(), errCode)
+			return
+		}
+		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+		err = json.NewEncoder(writer).Encode(result)
+		if err != nil {
+			log.Println("ERROR: unable to encode response", err)
+		}
+		return
+	})
+
 	router.GET(resource+"/:networkId/:deploymentId/start", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 		networkId := params.ByName("networkId")
 		deploymentId := params.ByName("deploymentId")
