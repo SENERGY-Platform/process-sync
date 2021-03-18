@@ -24,6 +24,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -85,7 +86,10 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 			http.Error(writer, err.Error(), errCode)
 			return
 		}
-		err, errCode = ctrl.ApiStartDeployment(networkId, deploymentId)
+
+		inputs := parseQueryParameter(request.URL.Query())
+
+		err, errCode = ctrl.ApiStartDeployment(networkId, deploymentId, inputs)
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
 			return
@@ -192,4 +196,21 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 		}
 		return
 	})
+}
+
+func parseQueryParameter(query url.Values) (result map[string]interface{}) {
+	if len(query) == 0 {
+		return map[string]interface{}{}
+	}
+	result = map[string]interface{}{}
+	for key, _ := range query {
+		var val interface{}
+		temp := query.Get(key)
+		err := json.Unmarshal([]byte(temp), &val)
+		if err != nil {
+			val = temp
+		}
+		result[key] = val
+	}
+	return result
 }

@@ -88,6 +88,9 @@ func (this *Mgw) SendDeploymentDeleteCommand(networkId string, deploymentId stri
 	return this.sendStr(this.getCommandTopic(networkId, deploymentTopic, "delete"), deploymentId)
 }
 
-func (this *Mgw) SendDeploymentStartCommand(networkId string, deploymentId string) error {
-	return this.sendStr(this.getCommandTopic(networkId, deploymentTopic, "start"), deploymentId)
+func (this *Mgw) SendDeploymentStartCommand(networkId string, deploymentId string, parameter map[string]interface{}) error {
+	return this.sendObj(this.getCommandTopic(networkId, deploymentTopic, "start"), model.StartMessage{
+		DeploymentId: deploymentId,
+		Parameter:    parameter,
+	})
 }

@@ -64,3 +64,8 @@ type ProcessInstance struct {
 	camundamodel.ProcessInstance
 	SyncInfo
 }
+
+type StartMessage struct {
+	DeploymentId string                 `json:"deployment_id"`
+	Parameter    map[string]interface{} `json:"parameter"`
+}
