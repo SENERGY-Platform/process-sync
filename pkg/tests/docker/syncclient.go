@@ -24,7 +24,7 @@ import (
 	"time"
 )
 
-func MgwProcessSyncClient(ctx context.Context, wg *sync.WaitGroup, camundaDb string, camundaUrl string, mqttUrl string, mqttClientId, networkId string) (err error) {
+func MgwProcessSyncClient(ctx context.Context, wg *sync.WaitGroup, camundaDb, camundaUrl, mqttUrl, mqttClientId, networkId, deploymentMetadataStorage string) (err error) {
 	pool, err := dockertest.NewPool("")
 	if err != nil {
 		return err
@@ -36,6 +36,7 @@ func MgwProcessSyncClient(ctx context.Context, wg *sync.WaitGroup, camundaDb str
 		"MQTT_CLIENT_ID=" + mqttClientId,
 		"NETWORK_ID=" + networkId,
 		"DEBUG=true",
+		"DEPLOYMENT_METADATA_STORAGE=" + deploymentMetadataStorage,
 	})
 	if err != nil {
 		return err

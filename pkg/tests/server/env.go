@@ -51,10 +51,11 @@ func Env(ctx context.Context, wg *sync.WaitGroup, initConf configuration.Config,
 	}
 	config.MqttBroker = "tcp://" + mqttip + ":1883"
 
-	mongoPort, _, err := docker.Mongo(ctx, wg)
+	mongoPort, mongoIp, err := docker.Mongo(ctx, wg)
 	config.MongoUrl = "mongodb://localhost:" + mongoPort
+	clientMetadataStorageUrl := "mongodb://" + mongoIp + ":27017/metadata"
 
-	err = docker.MgwProcessSyncClient(ctx, wg, camundaDb, camundaUrl, config.MqttBroker, "mgw-test-sync-client", networkId)
+	err = docker.MgwProcessSyncClient(ctx, wg, camundaDb, camundaUrl, config.MqttBroker, "mgw-test-sync-client", networkId, clientMetadataStorageUrl)
 	if err != nil {
 		return config, err
 	}
