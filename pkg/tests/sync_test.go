@@ -63,6 +63,9 @@ func TestSync(t *testing.T) {
 	t.Run("deploy process", testDeployProcess(config.ApiPort, networkId))
 
 	deployments := []model.Deployment{}
+	t.Run("search deployments", testFindDeployments(config.ApiPort, "test", networkId, &deployments))
+	t.Run("check deployments search", testCheckDeploymentsPlaceholder(&deployments, []bool{true}))
+
 	t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
 	t.Run("check deployments is placeholder", testCheckDeploymentsPlaceholder(&deployments, []bool{true}))
 	t.Run("check deployments is marked delete", testCheckDeploymentsMarkedDelete(&deployments, []bool{false}))
@@ -612,6 +615,38 @@ func testCheckDeploymentsPlaceholder(deployments *[]model.Deployment, bools []bo
 func testGetDeployments(port string, networkId string, result *[]model.Deployment) func(t *testing.T) {
 	return func(t *testing.T) {
 		req, err := http.NewRequest("GET", "http://localhost:"+port+"/deployments?network_id="+networkId, nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode >= 300 {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(resp.Body)
+			err = errors.New(buf.String())
+		}
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		temp := []model.Deployment{}
+		err = json.NewDecoder(resp.Body).Decode(&temp)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		*result = temp
+	}
+}
+
+func testFindDeployments(port string, searchtext string, networkId string, result *[]model.Deployment) func(t *testing.T) {
+	return func(t *testing.T) {
+		req, err := http.NewRequest("GET", "http://localhost:"+port+"/deployments?network_id="+networkId+"&search="+searchtext, nil)
 		if err != nil {
 			t.Error(err)
 			return

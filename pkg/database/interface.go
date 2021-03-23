@@ -25,6 +25,7 @@ type Database interface {
 	RemoveUnknownDeployments(networkId string, knownIds []string) error
 	ReadDeployment(networkId string, deploymentId string) (deployment model.Deployment, err error)
 	ListDeployments(networkIds []string, limit int64, offset int64, sort string) (deployment []model.Deployment, err error)
+	SearchDeployments(networkIds []string, search string, limit int64, offset int64, sort string) ([]model.Deployment, error)
 
 	SaveHistoricProcessInstance(historicProcessInstance model.HistoricProcessInstance) error
 	RemoveHistoricProcessInstance(networkId string, historicProcessInstanceId string) error

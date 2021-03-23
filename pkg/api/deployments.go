@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
+	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/deploymentmodel"
 	"github.com/julienschmidt/httprouter"
 	"log"
@@ -150,6 +151,7 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 	})
 
 	router.GET(resource, func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		search := request.URL.Query().Get("search")
 		sort := request.URL.Query().Get("sort")
 		if sort == "" {
 			sort = "id.asc"
@@ -184,7 +186,12 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 			http.Error(writer, err.Error(), errCode)
 			return
 		}
-		result, err, errCode := ctrl.ApiListDeployments(networkIds, limit, offset, sort)
+		result := []model.Deployment{}
+		if search == "" {
+			result, err, errCode = ctrl.ApiListDeployments(networkIds, limit, offset, sort)
+		} else {
+			result, err, errCode = ctrl.ApiSearchDeployments(networkIds, search, limit, offset, sort)
+		}
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
 			return

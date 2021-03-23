@@ -69,6 +69,15 @@ func (this *Mongo) ensureIndex(collection *mongo.Collection, indexname string, i
 	return err
 }
 
+func (this *Mongo) ensureTextIndex(collection *mongo.Collection, indexname string, indexKey string) error {
+	ctx, _ := this.getTimeoutContext()
+	_, err := collection.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bsonx.Doc{{indexKey, bsonx.String("text")}},
+		Options: options.Index().SetName(indexname),
+	})
+	return err
+}
+
 func (this *Mongo) ensureCompoundIndex(collection *mongo.Collection, indexname string, asc bool, unique bool, indexKeys ...string) error {
 	ctx, _ := this.getTimeoutContext()
 	var direction int32 = -1
@@ -137,10 +146,11 @@ type KeyMapping struct {
 }
 
 type IndexDesc struct {
-	Name   string
-	Unique bool
-	Asc    bool
-	Keys   []*string
+	Name        string
+	Unique      bool
+	Asc         bool
+	Keys        []*string
+	IsTextIndex bool
 }
 
 func prepareCollection(mongoCollectionName func(config configuration.Config) string, structure interface{}, keyMappings []KeyMapping, indexes []IndexDesc) {
@@ -165,7 +175,12 @@ func prepareCollection(mongoCollectionName func(config configuration.Config) str
 			}
 			log.Println("ensure index for", collectionName, index.Name, keys)
 			if len(keys) == 1 {
-				err := db.ensureIndex(collection, index.Name, keys[0], index.Asc, index.Unique)
+				var err error
+				if index.IsTextIndex {
+					err = db.ensureTextIndex(collection, index.Name, keys[0])
+				} else {
+					err = db.ensureIndex(collection, index.Name, keys[0], index.Asc, index.Unique)
+				}
 				if err != nil {
 					return err
 				}

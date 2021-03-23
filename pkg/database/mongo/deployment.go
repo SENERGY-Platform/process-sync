@@ -24,6 +24,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
+	"log"
 	"strings"
 )
 
@@ -56,6 +57,13 @@ func init() {
 			},
 		},
 		[]IndexDesc{
+			{
+				Name:        "deployment_name_index",
+				Keys:        []*string{&deploymentNameKey},
+				Asc:         true,
+				Unique:      false,
+				IsTextIndex: true,
+			},
 			{
 				Name:   "deploymentplaceholderindex",
 				Unique: false,
@@ -171,6 +179,51 @@ func (this *Mongo) ListDeployments(networkIds []string, limit int64, offset int6
 
 	ctx, _ := this.getTimeoutContext()
 	cursor, err := this.deploymentCollection().Find(ctx, bson.M{deploymentNetworkIdKey: bson.M{"$in": networkIds}}, opt)
+	if err != nil {
+		return nil, err
+	}
+	for cursor.Next(ctx) {
+		element := model.Deployment{}
+		err = cursor.Decode(&element)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, element)
+	}
+	err = cursor.Err()
+	return
+}
+
+func (this *Mongo) SearchDeployments(networkIds []string, search string, limit int64, offset int64, sort string) (result []model.Deployment, err error) {
+	if this.config.Debug {
+		log.Println("DEBUG: search for deployment", search)
+	}
+	opt := options.Find()
+	opt.SetLimit(limit)
+	opt.SetSkip(offset)
+
+	parts := strings.Split(sort, ".")
+	sortby := definitionIdKey
+	switch parts[0] {
+	case "id":
+		sortby = deploymentIdKey
+	case "name":
+		sortby = deploymentNameKey
+	}
+	direction := int32(1)
+	if len(parts) > 1 && parts[1] == "desc" {
+		direction = int32(-1)
+	}
+	opt.SetSort(bsonx.Doc{{sortby, bsonx.Int32(direction)}})
+
+	ctx, _ := this.getTimeoutContext()
+	cursor, err := this.deploymentCollection().Find(
+		ctx,
+		bson.M{
+			deploymentNetworkIdKey: bson.M{"$in": networkIds},
+			"$text":                bson.M{"$search": search},
+		},
+		opt)
 	if err != nil {
 		return nil, err
 	}

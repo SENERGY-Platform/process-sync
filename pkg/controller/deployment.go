@@ -132,6 +132,15 @@ func (this *Controller) ApiListDeployments(networkIds []string, limit int64, off
 	return
 }
 
+func (this *Controller) ApiSearchDeployments(networkIds []string, search string, limit int64, offset int64, sort string) (result []model.Deployment, err error, errCode int) {
+	result, err = this.db.SearchDeployments(networkIds, search, limit, offset, sort)
+	errCode = this.SetErrCode(err)
+	if result == nil {
+		result = []model.Deployment{}
+	}
+	return
+}
+
 func (this *Controller) ApiCreateDeployment(networkId string, deployment deploymentmodel.Deployment) (err error, errCode int) {
 	err = deployment.Validate()
 	if err != nil {
