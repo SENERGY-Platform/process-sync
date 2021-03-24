@@ -100,6 +100,16 @@ func HistoryEndpoints(config configuration.Config, ctrl *controller.Controller, 
 			return
 		}
 
+		withTotal := false
+		extendedQueryParam := request.URL.Query().Get("with_total")
+		if extendedQueryParam != "" {
+			withTotal, err = strconv.ParseBool(extendedQueryParam)
+		}
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		networkIdsStr := request.URL.Query().Get("network_id")
 		if networkIdsStr == "" {
 			http.Error(writer, "expect network_id query parameter", http.StatusBadRequest)
@@ -111,13 +121,23 @@ func HistoryEndpoints(config configuration.Config, ctrl *controller.Controller, 
 			http.Error(writer, err.Error(), errCode)
 			return
 		}
-		result, err, errCode := ctrl.ApiListHistoricProcessInstance(networkIds, limit, offset, sort)
+		result, total, err, errCode := ctrl.ApiListHistoricProcessInstance(networkIds, limit, offset, sort)
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
 			return
 		}
+
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-		err = json.NewEncoder(writer).Encode(result)
+
+		if withTotal {
+			err = json.NewEncoder(writer).Encode(map[string]interface{}{
+				"data":  result,
+				"total": total,
+			})
+		} else {
+			err = json.NewEncoder(writer).Encode(result)
+		}
+
 		if err != nil {
 			log.Println("ERROR: unable to encode response", err)
 		}

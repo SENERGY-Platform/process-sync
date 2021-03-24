@@ -179,7 +179,6 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 		extendedQueryParam := request.URL.Query().Get("extended")
 		if extendedQueryParam != "" {
 			extended, err = strconv.ParseBool(extendedQueryParam)
-
 		}
 		if err != nil {
 			http.Error(writer, err.Error(), http.StatusBadRequest)

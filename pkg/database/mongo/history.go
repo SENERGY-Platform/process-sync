@@ -134,7 +134,7 @@ func (this *Mongo) ReadHistoricProcessInstance(networkId string, historicProcess
 	return historicProcessInstance, err
 }
 
-func (this *Mongo) ListHistoricProcessInstances(networkIds []string, limit int64, offset int64, sort string) (result []model.HistoricProcessInstance, err error) {
+func (this *Mongo) ListHistoricProcessInstances(networkIds []string, limit int64, offset int64, sort string) (result []model.HistoricProcessInstance, total int64, err error) {
 	opt := options.Find()
 	opt.SetLimit(limit)
 	opt.SetSkip(offset)
@@ -152,15 +152,21 @@ func (this *Mongo) ListHistoricProcessInstances(networkIds []string, limit int64
 	opt.SetSort(bsonx.Doc{{sortby, bsonx.Int32(direction)}})
 
 	ctx, _ := this.getTimeoutContext()
-	cursor, err := this.processHistoryCollection().Find(ctx, bson.M{historyNetworkIdKey: bson.M{"$in": networkIds}}, opt)
+	filter := bson.M{historyNetworkIdKey: bson.M{"$in": networkIds}}
+	collection := this.processHistoryCollection()
+	total, err = collection.CountDocuments(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, total, err
+	}
+	cursor, err := collection.Find(ctx, filter, opt)
+	if err != nil {
+		return nil, total, err
 	}
 	for cursor.Next(ctx) {
 		element := model.HistoricProcessInstance{}
 		err = cursor.Decode(&element)
 		if err != nil {
-			return nil, err
+			return nil, total, err
 		}
 		result = append(result, element)
 	}
