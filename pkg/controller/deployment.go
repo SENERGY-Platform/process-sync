@@ -244,6 +244,7 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 	return
 }
 
+//TODO: read metadata and definitions with one request by supplying the mongodb query with a list of deployment ids
 func (this *Controller) ExtendDeployments(deployments []model.Deployment) (result []model.ExtendedDeployment) {
 	for _, deployment := range deployments {
 		if deployment.IsPlaceholder {
@@ -253,9 +254,14 @@ func (this *Controller) ExtendDeployments(deployments []model.Deployment) (resul
 		definition, err := this.db.GetDefinitionByDeploymentId(deployment.NetworkId, deployment.Id)
 		if err != nil {
 			result = append(result, model.ExtendedDeployment{Deployment: deployment, Error: err.Error()})
-		} else {
-			result = append(result, model.ExtendedDeployment{Deployment: deployment, Diagram: definition.Diagram, DefinitionId: definition.Id})
+			break
 		}
+		metadata, err := this.db.ReadDeploymentMetadata(deployment.NetworkId, deployment.Id)
+		if err != nil {
+			result = append(result, model.ExtendedDeployment{Deployment: deployment, Error: err.Error()})
+			break
+		}
+		result = append(result, model.ExtendedDeployment{Deployment: deployment, Diagram: metadata.DeploymentModel.Diagram.Svg, DefinitionId: definition.Id})
 	}
 	return
 }
