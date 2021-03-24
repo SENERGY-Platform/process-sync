@@ -69,3 +69,10 @@ type StartMessage struct {
 	DeploymentId string                 `json:"deployment_id"`
 	Parameter    map[string]interface{} `json:"parameter"`
 }
+
+type ExtendedDeployment struct {
+	Deployment
+	Diagram      string `json:"diagram"`
+	DefinitionId string `json:"definition_id"`
+	Error        string `json:"error"`
+}

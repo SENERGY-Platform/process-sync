@@ -175,6 +175,17 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 			return
 		}
 
+		extended := false
+		extendedQueryParam := request.URL.Query().Get("extended")
+		if extendedQueryParam != "" {
+			extended, err = strconv.ParseBool(extendedQueryParam)
+
+		}
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		networkIdsStr := request.URL.Query().Get("network_id")
 		if networkIdsStr == "" {
 			http.Error(writer, "expect network_id query parameter", http.StatusBadRequest)
@@ -186,16 +197,23 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 			http.Error(writer, err.Error(), errCode)
 			return
 		}
-		result := []model.Deployment{}
+		deployments := []model.Deployment{}
 		if search == "" {
-			result, err, errCode = ctrl.ApiListDeployments(networkIds, limit, offset, sort)
+			deployments, err, errCode = ctrl.ApiListDeployments(networkIds, limit, offset, sort)
 		} else {
-			result, err, errCode = ctrl.ApiSearchDeployments(networkIds, search, limit, offset, sort)
+			deployments, err, errCode = ctrl.ApiSearchDeployments(networkIds, search, limit, offset, sort)
 		}
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
 			return
 		}
+		var result interface{}
+		if extended {
+			result = ctrl.ExtendDeployments(deployments)
+		} else {
+			result = deployments
+		}
+
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {
