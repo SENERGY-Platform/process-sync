@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
+	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
@@ -110,6 +111,12 @@ func HistoryEndpoints(config configuration.Config, ctrl *controller.Controller, 
 			return
 		}
 
+		query := model.HistoryQuery{
+			State:               request.URL.Query().Get("state"),
+			ProcessDefinitionId: request.URL.Query().Get("processDefinitionId"),
+			Search:              request.URL.Query().Get("search"),
+		}
+
 		networkIdsStr := request.URL.Query().Get("network_id")
 		if networkIdsStr == "" {
 			http.Error(writer, "expect network_id query parameter", http.StatusBadRequest)
@@ -121,7 +128,7 @@ func HistoryEndpoints(config configuration.Config, ctrl *controller.Controller, 
 			http.Error(writer, err.Error(), errCode)
 			return
 		}
-		result, total, err, errCode := ctrl.ApiListHistoricProcessInstance(networkIds, limit, offset, sort)
+		result, total, err, errCode := ctrl.ApiListHistoricProcessInstance(networkIds, query, limit, offset, sort)
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
 			return

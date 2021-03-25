@@ -32,7 +32,7 @@ type Database interface {
 	RemovePlaceholderHistoricProcessInstances(id string) error
 	RemoveUnknownHistoricProcessInstances(networkId string, knownIds []string) error
 	ReadHistoricProcessInstance(networkId string, historicProcessInstanceId string) (historicProcessInstance model.HistoricProcessInstance, err error)
-	ListHistoricProcessInstances(networkIds []string, limit int64, offset int64, sort string) (historicProcessInstance []model.HistoricProcessInstance, total int64, err error)
+	ListHistoricProcessInstances(networkIds []string, query model.HistoryQuery, limit int64, offset int64, sort string) (historicProcessInstance []model.HistoricProcessInstance, total int64, err error)
 
 	SaveProcessInstance(processInstance model.ProcessInstance) error
 	RemoveProcessInstance(networkId string, processInstanceId string) error

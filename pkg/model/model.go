@@ -76,3 +76,9 @@ type ExtendedDeployment struct {
 	DefinitionId string `json:"definition_id"`
 	Error        string `json:"error"`
 }
+
+type HistoryQuery struct {
+	State               string
+	ProcessDefinitionId string
+	Search              string
+}

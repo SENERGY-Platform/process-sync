@@ -30,6 +30,9 @@ import (
 var historyIdKey string
 var historyNetworkIdKey string
 var historyPlaceholderKey string
+var historyEndTimeKey string
+var historyProcessDefinitionKey string
+var historyNameKey string
 
 func init() {
 	prepareCollection(func(config configuration.Config) string {
@@ -49,25 +52,56 @@ func init() {
 				FieldName: "SyncInfo.NetworkId",
 				Key:       &historyNetworkIdKey,
 			},
+			{
+				FieldName: "HistoricProcessInstance.EndTime",
+				Key:       &historyEndTimeKey,
+			},
+			{
+				FieldName: "HistoricProcessInstance.ProcessDefinitionId",
+				Key:       &historyProcessDefinitionKey,
+			},
+			{
+				FieldName: "HistoricProcessInstance.ProcessDefinitionName",
+				Key:       &historyNameKey,
+			},
 		},
 		[]IndexDesc{
 			{
-				Name:   "historyplaceholderindex",
+				Name:   "history_placeholder_index",
 				Unique: false,
 				Asc:    true,
-				Keys:   []*string{&instancePlaceholderKey},
+				Keys:   []*string{&historyPlaceholderKey},
 			},
 			{
-				Name:   "historynetworkindex",
+				Name:   "history_network_index",
 				Unique: false,
 				Asc:    true,
 				Keys:   []*string{&historyNetworkIdKey},
 			},
 			{
-				Name:   "historycompoundindex",
+				Name:   "history_compound_index",
 				Unique: false,
 				Asc:    true,
 				Keys:   []*string{&historyIdKey, &historyNetworkIdKey},
+			},
+			{
+				Name:   "history_end_time_index",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&historyEndTimeKey},
+			},
+			{
+				Name:   "history_process_definition_index",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&historyProcessDefinitionKey},
+			},
+			{
+				Name:        "history_search_name_index",
+				Keys:        []*string{&historyNameKey},
+				Asc:         true,
+				Unique:      false,
+				IsTextIndex: true,
 			},
 		},
 	)
@@ -134,7 +168,7 @@ func (this *Mongo) ReadHistoricProcessInstance(networkId string, historicProcess
 	return historicProcessInstance, err
 }
 
-func (this *Mongo) ListHistoricProcessInstances(networkIds []string, limit int64, offset int64, sort string) (result []model.HistoricProcessInstance, total int64, err error) {
+func (this *Mongo) ListHistoricProcessInstances(networkIds []string, query model.HistoryQuery, limit int64, offset int64, sort string) (result []model.HistoricProcessInstance, total int64, err error) {
 	opt := options.Find()
 	opt.SetLimit(limit)
 	opt.SetSkip(offset)
@@ -152,7 +186,24 @@ func (this *Mongo) ListHistoricProcessInstances(networkIds []string, limit int64
 	opt.SetSort(bsonx.Doc{{sortby, bsonx.Int32(direction)}})
 
 	ctx, _ := this.getTimeoutContext()
+
 	filter := bson.M{historyNetworkIdKey: bson.M{"$in": networkIds}}
+
+	if query.State == "finished" {
+		filter[historyEndTimeKey] = bson.M{"$ne": ""}
+	}
+	if query.State == "unfinished" {
+		filter[historyEndTimeKey] = ""
+	}
+
+	if query.ProcessDefinitionId != "" {
+		filter[historyProcessDefinitionKey] = query.ProcessDefinitionId
+	}
+
+	if query.Search != "" {
+		filter["$text"] = bson.M{"$search": query.Search}
+	}
+
 	collection := this.processHistoryCollection()
 	total, err = collection.CountDocuments(ctx, filter)
 	if err != nil {
