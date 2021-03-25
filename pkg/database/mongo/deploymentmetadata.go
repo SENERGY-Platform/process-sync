@@ -114,3 +114,24 @@ func (this *Mongo) RemoveDeploymentMetadata(networkId string, deploymentId strin
 		})
 	return err
 }
+
+func (this *Mongo) GetDeploymentMetadataOfDeploymentIdList(networkId string, deploymentIds []string) (result map[string]model.DeploymentMetadata, err error) {
+	result = map[string]model.DeploymentMetadata{}
+	ctx, _ := this.getTimeoutContext()
+	cursor, err := this.deploymentMetadataCollection().Find(ctx, bson.M{
+		metadataNetworkIdKey:           networkId,
+		metadataCamundaDeploymentIdKey: bson.M{"$in": deploymentIds}})
+	if err != nil {
+		return nil, err
+	}
+	for cursor.Next(ctx) {
+		element := model.DeploymentMetadata{}
+		err = cursor.Decode(&element)
+		if err != nil {
+			return nil, err
+		}
+		result[element.CamundaDeploymentId] = element
+	}
+	err = cursor.Err()
+	return
+}

@@ -196,3 +196,24 @@ func (this *Mongo) GetDefinitionByDeploymentId(networkId string, deploymentId st
 	}
 	return processDefinition, err
 }
+
+func (this *Mongo) GetDefinitionsOfDeploymentIdList(networkId string, deploymentIds []string) (result map[string]model.ProcessDefinition, err error) {
+	result = map[string]model.ProcessDefinition{}
+	ctx, _ := this.getTimeoutContext()
+	cursor, err := this.processDefinitionCollection().Find(ctx, bson.M{
+		definitionNetworkIdKey:  networkId,
+		definitionDeploymentKey: bson.M{"$in": deploymentIds}})
+	if err != nil {
+		return nil, err
+	}
+	for cursor.Next(ctx) {
+		element := model.ProcessDefinition{}
+		err = cursor.Decode(&element)
+		if err != nil {
+			return nil, err
+		}
+		result[element.DeploymentId] = element
+	}
+	err = cursor.Err()
+	return
+}

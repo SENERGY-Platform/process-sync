@@ -76,6 +76,7 @@ func TestSync(t *testing.T) {
 	t.Run("check deployments is marked delete", testCheckDeploymentsMarkedDelete(&deployments, []bool{false}))
 
 	t.Run("check process definitions", testCheckProcessDefinitions(config, networkId))
+	t.Run("check extended deployment", testCheckExtendedDeployment(config, networkId, 1))
 
 	deploymentsPreDelete := deployments
 	t.Run("check process metadata", testCheckProcessMetadata(config, networkId, &deploymentsPreDelete, 0, true))
@@ -96,6 +97,57 @@ func TestSync(t *testing.T) {
 	t.Run("check deployments is marked delete", testCheckDeploymentsMarkedDelete(&deployments, []bool{}))
 
 	t.Run("check process metadata after delete", testCheckProcessMetadata(config, networkId, &deploymentsPreDelete, 0, false))
+}
+
+func testCheckExtendedDeployment(config configuration.Config, networkId string, count int) func(t *testing.T) {
+	return func(t *testing.T) {
+		req, err := http.NewRequest("GET", "http://localhost:"+config.ApiPort+"/deployments?extended=true&network_id="+networkId, nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode >= 300 {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(resp.Body)
+			err = errors.New(buf.String())
+		}
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		result := []model.ExtendedDeployment{}
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		if len(result) != count {
+			t.Error(result)
+			return
+		}
+
+		for _, element := range result {
+			if element.Error != "" {
+				t.Error(element.Error)
+				return
+			}
+			if element.DefinitionId == "" {
+				t.Error(element)
+				return
+			}
+			if element.Diagram != "<svg></svg>" {
+				t.Error(element.Diagram, element)
+				return
+			}
+		}
+	}
 }
 
 func testCheckProcessDefinitions(config configuration.Config, networkId string) func(t *testing.T) {

@@ -62,4 +62,7 @@ type Database interface {
 	RemoveUnknownDeploymentMetadata(networkId string, knownIds []string) error
 	RemoveDeploymentMetadata(networkId string, deploymentId string) error
 	ReadDeploymentMetadata(networkId string, deploymentId string) (metadata model.DeploymentMetadata, err error)
+
+	GetDeploymentMetadataOfDeploymentIdList(networkId string, deploymentIds []string) (map[string]model.DeploymentMetadata, error)
+	GetDefinitionsOfDeploymentIdList(networkId string, deploymentIds []string) (map[string]model.ProcessDefinition, error)
 }

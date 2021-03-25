@@ -244,24 +244,44 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 	return
 }
 
-//TODO: read metadata and definitions with one request by supplying the mongodb query with a list of deployment ids
 func (this *Controller) ExtendDeployments(deployments []model.Deployment) (result []model.ExtendedDeployment) {
+	deploymentIds := map[string][]string{} //key = network_id
+	for _, deployment := range deployments {
+		if !deployment.IsPlaceholder {
+			deploymentIds[deployment.NetworkId] = append(deploymentIds[deployment.NetworkId], deployment.Id)
+		}
+	}
+	metadataResult := map[string]map[string]model.DeploymentMetadata{}   // key 1 = network_id; kex 2 = deployment_id
+	definitionsResult := map[string]map[string]model.ProcessDefinition{} // key 1 = network_id; kex 2 = deployment_id
+	errors := map[string]error{}
+	for networkId, ids := range deploymentIds {
+		var err error
+		metadataResult[networkId], err = this.db.GetDeploymentMetadataOfDeploymentIdList(networkId, ids)
+		if err != nil {
+			errors[networkId] = err
+		}
+		definitionsResult[networkId], err = this.db.GetDefinitionsOfDeploymentIdList(networkId, ids)
+		if err != nil {
+			errors[networkId] = err
+		}
+	}
 	for _, deployment := range deployments {
 		if deployment.IsPlaceholder {
 			result = append(result, model.ExtendedDeployment{Deployment: deployment, Diagram: constructionSvg})
 			break
 		}
-		definition, err := this.db.GetDefinitionByDeploymentId(deployment.NetworkId, deployment.Id)
+		element := model.ExtendedDeployment{Deployment: deployment}
+		err := errors[deployment.NetworkId]
 		if err != nil {
-			result = append(result, model.ExtendedDeployment{Deployment: deployment, Error: err.Error()})
-			break
+			element.Error = err.Error()
+		} else {
+			definition := definitionsResult[deployment.NetworkId][deployment.Id]
+			element.DefinitionId = definition.Id
+
+			metadata := metadataResult[deployment.NetworkId][deployment.Id]
+			element.Diagram = metadata.DeploymentModel.Diagram.Svg
 		}
-		metadata, err := this.db.ReadDeploymentMetadata(deployment.NetworkId, deployment.Id)
-		if err != nil {
-			result = append(result, model.ExtendedDeployment{Deployment: deployment, Error: err.Error()})
-			break
-		}
-		result = append(result, model.ExtendedDeployment{Deployment: deployment, Diagram: metadata.DeploymentModel.Diagram.Svg, DefinitionId: definition.Id})
+		result = append(result, element)
 	}
 	return
 }
