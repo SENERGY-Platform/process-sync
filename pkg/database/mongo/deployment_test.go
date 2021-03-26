@@ -185,3 +185,75 @@ func testListDeployments(db *Mongo, networkIds []string, expected []model.Deploy
 		}
 	}
 }
+
+func TestDeploymentSearch(t *testing.T) {
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	mongoPort, _, err := docker.Mongo(ctx, wg)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	config := configuration.Config{
+		Debug:                             true,
+		MongoUrl:                          "mongodb://localhost:" + mongoPort,
+		MongoTable:                        "processes",
+		MongoProcessDefinitionCollection:  "process_definition",
+		MongoDeploymentCollection:         "deployments",
+		MongoProcessHistoryCollection:     "histories",
+		MongoIncidentCollection:           "incidents",
+		MongoProcessInstanceCollection:    "instances",
+		MongoDeploymentMetadataCollection: "deployment_metadata",
+	}
+
+	db, err := New(config)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	ids := []string{"mgw_notify_test", "mgw-notify-test", "mgw:notify:test", "mgw notify test", "mgw,notify,test", "mgw.notify.test", "mgw;notify;test", "mgw(notify)test"}
+	for _, id := range ids {
+		t.Run("create "+id, testCreateDeployment(db, "n1", id, false))
+	}
+
+	t.Run("create something that shouldn't be found", testCreateDeployment(db, "n1", "something", false))
+
+	t.Run("find notify", testFindDeployment(db, "n1", "notify", ids))
+	t.Run("find test", testFindDeployment(db, "n1", "test", ids))
+	t.Run("find mgw", testFindDeployment(db, "n1", "mgw", ids))
+}
+
+func testFindDeployment(db *Mongo, networkId string, search string, expectedIds []string) func(t *testing.T) {
+	return func(t *testing.T) {
+		actual, err := db.SearchDeployments([]string{networkId}, search, 10, 0, "id")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		foundIds := map[string]bool{}
+		for _, depl := range actual {
+			foundIds[depl.Id] = true
+		}
+
+		expectedIdMap := map[string]bool{}
+		for _, id := range expectedIds {
+			expectedIdMap[id] = true
+			if !foundIds[id] {
+				t.Error("missing id in result:", id)
+			}
+		}
+
+		for _, depl := range actual {
+			if !expectedIdMap[depl.Id] {
+				t.Error("unexpected id in result:", depl.Id)
+			}
+		}
+	}
+}
