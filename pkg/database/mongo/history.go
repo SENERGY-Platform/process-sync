@@ -21,9 +21,11 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
+	"regexp"
 	"strings"
 )
 
@@ -201,7 +203,7 @@ func (this *Mongo) ListHistoricProcessInstances(networkIds []string, query model
 	}
 
 	if query.Search != "" {
-		filter["$text"] = bson.M{"$search": query.Search}
+		filter[historyNameKey] = primitive.Regex{Pattern: regexp.QuoteMeta(query.Search), Options: "i"}
 	}
 
 	collection := this.processHistoryCollection()

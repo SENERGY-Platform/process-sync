@@ -21,10 +21,12 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
 	"log"
+	"regexp"
 	"strings"
 )
 
@@ -221,7 +223,7 @@ func (this *Mongo) SearchDeployments(networkIds []string, search string, limit i
 		ctx,
 		bson.M{
 			deploymentNetworkIdKey: bson.M{"$in": networkIds},
-			"$text":                bson.M{"$search": search},
+			deploymentNameKey:      primitive.Regex{Pattern: regexp.QuoteMeta(search), Options: "i"},
 		},
 		opt)
 	if err != nil {
