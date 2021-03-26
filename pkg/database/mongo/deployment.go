@@ -32,38 +32,55 @@ var deploymentIdKey string
 var deploymentNameKey string
 var deploymentNetworkIdKey string
 var deploymentPlaceholderKey string
+var searchKey string
+
+type DeploymentWithSearch struct {
+	model.Deployment
+	Search string `json:"search"`
+}
 
 func init() {
 	prepareCollection(func(config configuration.Config) string {
 		return config.MongoDeploymentCollection
 	},
-		model.Deployment{},
+		DeploymentWithSearch{},
 		[]KeyMapping{
 			{
-				FieldName: "Deployment.Id",
+				FieldName: "Search",
+				Key:       &searchKey,
+			},
+			{
+				FieldName: "Deployment.Deployment.Id",
 				Key:       &deploymentIdKey,
 			},
 			{
-				FieldName: "Deployment.Name",
+				FieldName: "Deployment.Deployment.Name",
 				Key:       &deploymentNameKey,
 			},
 			{
-				FieldName: "SyncInfo.NetworkId",
+				FieldName: "Deployment.SyncInfo.NetworkId",
 				Key:       &deploymentNetworkIdKey,
 			},
 			{
-				FieldName: "SyncInfo.IsPlaceholder",
+				FieldName: "Deployment.SyncInfo.IsPlaceholder",
 				Key:       &deploymentPlaceholderKey,
 			},
 		},
 		[]IndexDesc{
 			{
-				Name:        "deployment_name_index",
-				Keys:        []*string{&deploymentNameKey},
-				Asc:         true,
-				Unique:      false,
+				Name:        "search_index",
+				Keys:        []*string{&searchKey},
 				IsTextIndex: true,
 			},
+
+			{
+				Name:   "deployment_name_index",
+				Keys:   []*string{&deploymentNameKey},
+				Asc:    true,
+				Unique: false,
+				//IsTextIndex: true,
+			},
+
 			{
 				Name:   "deploymentplaceholderindex",
 				Unique: false,
@@ -91,6 +108,12 @@ func (this *Mongo) deploymentCollection() *mongo.Collection {
 }
 
 func (this *Mongo) SaveDeployment(deployment model.Deployment) error {
+	search := strings.ReplaceAll(deployment.Name, "_", " ")
+	search = strings.ReplaceAll(search, ".", " ")
+	element := DeploymentWithSearch{
+		Deployment: deployment,
+		Search:     search,
+	}
 	ctx, _ := this.getTimeoutContext()
 	_, err := this.deploymentCollection().ReplaceOne(
 		ctx,
@@ -98,7 +121,7 @@ func (this *Mongo) SaveDeployment(deployment model.Deployment) error {
 			deploymentIdKey:        deployment.Id,
 			deploymentNetworkIdKey: deployment.NetworkId,
 		},
-		deployment,
+		element,
 		options.Replace().SetUpsert(true))
 	return err
 }
@@ -151,10 +174,12 @@ func (this *Mongo) ReadDeployment(networkId string, deploymentId string) (deploy
 	if err != nil {
 		return
 	}
-	err = result.Decode(&deployment)
+	element := DeploymentWithSearch{}
+	err = result.Decode(&element)
 	if err == mongo.ErrNoDocuments {
 		return deployment, database.ErrNotFound
 	}
+	deployment = element.Deployment
 	return deployment, err
 }
 
@@ -183,12 +208,12 @@ func (this *Mongo) ListDeployments(networkIds []string, limit int64, offset int6
 		return nil, err
 	}
 	for cursor.Next(ctx) {
-		element := model.Deployment{}
+		element := DeploymentWithSearch{}
 		err = cursor.Decode(&element)
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, element)
+		result = append(result, element.Deployment)
 	}
 	err = cursor.Err()
 	return
@@ -228,12 +253,12 @@ func (this *Mongo) SearchDeployments(networkIds []string, search string, limit i
 		return nil, err
 	}
 	for cursor.Next(ctx) {
-		element := model.Deployment{}
+		element := DeploymentWithSearch{}
 		err = cursor.Decode(&element)
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, element)
+		result = append(result, element.Deployment)
 	}
 	err = cursor.Err()
 	return
