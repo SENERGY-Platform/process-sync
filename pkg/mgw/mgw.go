@@ -216,7 +216,7 @@ func (this *Mgw) getBaseTopic(networkId string) string {
 }
 
 func (this *Mgw) getCommandTopic(networkId string, entity string, subcommand ...string) (topic string) {
-	topic = this.getBaseTopic(networkId) + "/" + entity + "/cmd"
+	topic = this.getBaseTopic(networkId) + "/cmd/" + entity
 	for _, sub := range subcommand {
 		topic = topic + "/" + sub
 	}
@@ -224,7 +224,7 @@ func (this *Mgw) getCommandTopic(networkId string, entity string, subcommand ...
 }
 
 func (this *Mgw) getStateTopic(networkId string, entity string, substate ...string) (topic string) {
-	topic = this.getBaseTopic(networkId) + "/" + entity
+	topic = this.getBaseTopic(networkId) + "/state/" + entity
 	for _, sub := range substate {
 		topic = topic + "/" + sub
 	}
