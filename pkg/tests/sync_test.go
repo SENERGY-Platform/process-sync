@@ -25,6 +25,7 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/deploymentmodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/tests/server"
+	paho "github.com/eclipse/paho.mqtt.golang"
 	"net/http"
 	"net/url"
 	"sync"
@@ -97,6 +98,75 @@ func TestSync(t *testing.T) {
 	t.Run("check deployments is marked delete", testCheckDeploymentsMarkedDelete(&deployments, []bool{}))
 
 	t.Run("check process metadata after delete", testCheckProcessMetadata(config, networkId, &deploymentsPreDelete, 0, false))
+}
+
+func TestKnown(t *testing.T) {
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	config := configuration.Config{
+		Debug:                             true,
+		MqttClientId:                      "",
+		MqttCleanSession:                  true,
+		MqttGroupId:                       "",
+		MongoTable:                        "processes",
+		MongoProcessDefinitionCollection:  "process_definition",
+		MongoDeploymentCollection:         "deployments",
+		MongoProcessHistoryCollection:     "histories",
+		MongoIncidentCollection:           "incidents",
+		MongoProcessInstanceCollection:    "instances",
+		MongoDeploymentMetadataCollection: "deployment_metadata",
+	}
+
+	networkId := "test-network-id"
+	config, err := server.Env(ctx, wg, config, networkId)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	time.Sleep(2 * time.Second)
+
+	t.Run("deploy process 1", testDeployProcess(config.ApiPort, networkId))
+	t.Run("deploy process 2", testDeployProcess(config.ApiPort, networkId))
+
+	deployments := []model.Deployment{}
+
+	time.Sleep(5 * time.Second)
+	t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
+	t.Run("check deployments is placeholder", testCheckDeploymentsPlaceholder(&deployments, []bool{false, false}))
+	t.Run("check deployments is marked delete", testCheckDeploymentsMarkedDelete(&deployments, []bool{false, false}))
+
+	//send 'known' message
+	t.Run("send known message", func(t *testing.T) {
+		options := paho.NewClientOptions().
+			SetPassword(config.MqttPw).
+			SetUsername(config.MqttUser).
+			SetAutoReconnect(true).
+			AddBroker(config.MqttBroker)
+
+		mqtt := paho.NewClient(options)
+		if token := mqtt.Connect(); token.Wait() && token.Error() != nil {
+			t.Error("Error on MqttStart.Connect(): ", token.Error())
+			return
+		}
+		payload, _ := json.Marshal([]string{deployments[0].Id})
+		token := mqtt.Publish("processes/"+networkId+"/state/deployment/known", 2, false, payload)
+		if token.Wait() && token.Error() != nil {
+			t.Error("Error on Publish: ", token.Error())
+			return
+		}
+	})
+
+	time.Sleep(2 * time.Second)
+
+	//check result after 'known' message
+	t.Run("get deployments after known", testGetDeployments(config.ApiPort, networkId, &deployments))
+	t.Run("check deployments is placeholder after known", testCheckDeploymentsPlaceholder(&deployments, []bool{false}))
+	t.Run("check deployments is marked delete after known", testCheckDeploymentsMarkedDelete(&deployments, []bool{false}))
 }
 
 func testCheckExtendedDeployment(config configuration.Config, networkId string, count int) func(t *testing.T) {

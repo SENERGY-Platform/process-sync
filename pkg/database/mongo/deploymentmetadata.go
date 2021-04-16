@@ -73,7 +73,7 @@ func (this *Mongo) SaveDeploymentMetadata(metadata model.DeploymentMetadata) err
 
 func (this *Mongo) RemoveUnknownDeploymentMetadata(networkId string, knownIds []string) error {
 	ctx, _ := this.getTimeoutContext()
-	_, err := this.deploymentCollection().DeleteMany(
+	_, err := this.deploymentMetadataCollection().DeleteMany(
 		ctx,
 		bson.M{
 			metadataCamundaDeploymentIdKey: bson.M{"$nin": knownIds},
