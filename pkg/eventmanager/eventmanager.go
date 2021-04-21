@@ -31,9 +31,12 @@ import (
 
 func GetAnalyticsDeploymentsForMessageEvents(conf configuration.Config, token string, deployment deploymentmodel.Deployment) (result []model.AnalyticsRecord, err error) {
 	var eventConfig = &config.ConfigStruct{
-		MarshallerUrl: conf.MarshallerUrl,
-		PermSearchUrl: conf.PermissionsUrl,
-		Debug:         conf.Debug,
+		MarshallerUrl:    conf.MarshallerUrl,
+		PermSearchUrl:    conf.PermissionsUrl,
+		Debug:            conf.Debug,
+		AuthClientId:     "ignore",
+		AuthClientSecret: "ignore",
+		AuthEndpoint:     "ignore",
 	}
 	analyticsRecorder := &AnalyticsRecorder{}
 	deviceRepo := devices.NewWithAuth(eventConfig, TokenAuth(token))
