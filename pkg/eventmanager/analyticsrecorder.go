@@ -41,7 +41,18 @@ func (this *AnalyticsRecorder) DeployGroup(label string, user string, desc event
 
 func (this *AnalyticsRecorder) Deploy(label string, user string, deploymentId string, flowId string, eventId string, deviceId string, serviceId string, value string, path string, castFrom string, castTo string) (pipelineId string, err error) {
 	this.Records = append(this.Records, model.AnalyticsRecord{
-		DeviceEvent: &model.DeviceEventAnalyticsRecord{},
+		DeviceEvent: &model.DeviceEventAnalyticsRecord{
+			Label:        label,
+			FlowId:       flowId,
+			EventId:      eventId,
+			DeploymentId: deploymentId,
+			DeviceId:     deviceId,
+			ServiceId:    serviceId,
+			Value:        value,
+			Path:         path,
+			CastFrom:     castFrom,
+			CastTo:       castTo,
+		},
 	})
 	return "placeholder", nil
 }
