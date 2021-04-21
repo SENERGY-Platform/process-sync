@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
-	"github.com/SENERGY-Platform/process-sync/pkg/model/deploymentmodel"
 	paho "github.com/eclipse/paho.mqtt.golang"
 	"log"
 	"runtime/debug"
@@ -80,7 +79,7 @@ func (this *Mgw) handleDeploymentKnown(message paho.Message) {
 	this.handler.DeleteUnknownDeployments(networkId, knownIds)
 }
 
-func (this *Mgw) SendDeploymentCommand(networkId string, deployment deploymentmodel.Deployment) error {
+func (this *Mgw) SendDeploymentCommand(networkId string, deployment model.DeploymentWithAnalyticsRecords) error {
 	return this.sendObj(this.getCommandTopic(networkId, deploymentTopic), deployment)
 }
 

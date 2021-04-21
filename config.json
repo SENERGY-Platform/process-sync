@@ -15,5 +15,6 @@
     "mongo_process_history_collection": "process_history",
     "mongo_incident_collection": "incidents",
     "mongo_process_instance_collection": "process_instances",
-    "permissions_url": ""
+    "permissions_url": "",
+    "marshaller_url": ""
 }

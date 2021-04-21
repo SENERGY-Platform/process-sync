@@ -64,7 +64,7 @@ func Env(ctx context.Context, wg *sync.WaitGroup, initConf configuration.Config,
 	if err != nil {
 		return config, err
 	}
-	ctrl, err := controller.New(config, ctx, db, mocks.Security())
+	ctrl, err := controller.New(config, ctx, db, mocks.Security(), nil)
 
 	err = api.Start(config, ctx, ctrl)
 	if err != nil {

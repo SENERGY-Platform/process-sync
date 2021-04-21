@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package executionmodel
+package eventmanager
 
-type Configurable struct {
-	CharacteristicId string                            `json:"characteristic_id"`
-	Values           []ConfigurableCharacteristicValue `json:"values"`
-}
+import (
+	"github.com/SENERGY-Platform/event-deployment/lib/auth"
+)
 
-type ConfigurableCharacteristicValue struct {
-	Label string `json:"label"`
-	Path  string `json:"path"`
-	Value string `json:"value"`
+type TokenAuth string
+
+func (this TokenAuth) Ensure() (token auth.AuthToken, err error) {
+	return auth.AuthToken(this), nil
 }

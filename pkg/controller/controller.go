@@ -19,19 +19,29 @@ package controller
 import (
 	"context"
 	"errors"
+	"github.com/SENERGY-Platform/process-deployment/lib/config"
+	"github.com/SENERGY-Platform/process-deployment/lib/devices"
+	"github.com/SENERGY-Platform/process-deployment/lib/model/devicemodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/database/mongo"
 	"github.com/SENERGY-Platform/process-sync/pkg/mgw"
 	"github.com/SENERGY-Platform/process-sync/pkg/security"
+	jwt_http_router "github.com/SmartEnergyPlatform/jwt-http-router"
 	"net/http"
 )
 
 type Controller struct {
-	config   configuration.Config
-	mgw      *mgw.Mgw
-	db       database.Database
-	security Security
+	config     configuration.Config
+	mgw        *mgw.Mgw
+	db         database.Database
+	security   Security
+	devicerepo Devices
+}
+
+type Devices interface {
+	GetDevice(token jwt_http_router.JwtImpersonate, id string) (devicemodel.Device, error, int)
+	GetService(token jwt_http_router.JwtImpersonate, id string) (devicemodel.Service, error, int)
 }
 
 type Security interface {
@@ -39,16 +49,20 @@ type Security interface {
 	CheckMultiple(token string, kind string, ids []string, rights string) (result map[string]bool, err error)
 }
 
-func NewDefault(config configuration.Config, ctx context.Context) (ctrl *Controller, err error) {
-	db, err := mongo.New(config)
+func NewDefault(conf configuration.Config, ctx context.Context) (ctrl *Controller, err error) {
+	db, err := mongo.New(conf)
 	if err != nil {
 		return ctrl, err
 	}
-	return New(config, ctx, db, security.New(config))
+	d, err := devices.Factory.New(context.Background(), &config.ConfigStruct{DeviceRepoUrl: conf.DeviceRepoUrl})
+	if err != nil {
+		return ctrl, err
+	}
+	return New(conf, ctx, db, security.New(conf), d)
 }
 
-func New(config configuration.Config, ctx context.Context, db database.Database, security Security) (ctrl *Controller, err error) {
-	ctrl = &Controller{config: config, db: db, security: security}
+func New(config configuration.Config, ctx context.Context, db database.Database, security Security, devicerepo Devices) (ctrl *Controller, err error) {
+	ctrl = &Controller{config: config, db: db, security: security, devicerepo: devicerepo}
 	if err != nil {
 		return ctrl, err
 	}

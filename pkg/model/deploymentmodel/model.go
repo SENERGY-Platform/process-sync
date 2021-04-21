@@ -16,7 +16,7 @@
 
 package deploymentmodel
 
-import "github.com/SENERGY-Platform/process-sync/pkg/model/executionmodel"
+import "github.com/SENERGY-Platform/process-deployment/lib/model/executionmodel"
 
 type Deployment struct {
 	Id          string    `json:"id"`

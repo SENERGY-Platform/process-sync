@@ -111,12 +111,12 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 			http.Error(writer, err.Error(), http.StatusBadRequest)
 			return
 		}
-		err, errCode := ctrl.ApiCheckAccess(request, networkId, "a")
+		token, err, errCode := ctrl.ApiCheckAccessReturnToken(request, networkId, "a")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
 			return
 		}
-		err, errCode = ctrl.ApiCreateDeployment(networkId, deployment)
+		err, errCode = ctrl.ApiCreateDeployment(token, networkId, deployment)
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
 			return

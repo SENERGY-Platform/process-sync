@@ -33,6 +33,18 @@ func (this *Controller) ApiCheckAccess(request *http.Request, networkId string, 
 	return nil, http.StatusOK
 }
 
+func (this *Controller) ApiCheckAccessReturnToken(request *http.Request, networkId string, rights string) (token string, err error, errCode int) {
+	token = request.Header.Get("Authorization")
+	allowed, err := this.security.CheckBool(token, "hubs", networkId, rights)
+	if err != nil {
+		return token, err, http.StatusInternalServerError
+	}
+	if !allowed {
+		return token, errors.New("not allowed"), http.StatusForbidden
+	}
+	return token, nil, http.StatusOK
+}
+
 func (this *Controller) ApiCheckAccessMultiple(request *http.Request, networkIds []string, rights string) (err error, errCode int) {
 	token := request.Header.Get("Authorization")
 	allowed, err := this.security.CheckMultiple(token, "hubs", networkIds, rights)

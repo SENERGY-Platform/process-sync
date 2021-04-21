@@ -17,10 +17,14 @@
 package controller
 
 import (
+	"encoding/json"
+	eventmanagermodel "github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel/v2"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/eventmanager"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/deploymentmodel"
+	jwt_http_router "github.com/SmartEnergyPlatform/jwt-http-router"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -141,7 +145,7 @@ func (this *Controller) ApiSearchDeployments(networkIds []string, search string,
 	return
 }
 
-func (this *Controller) ApiCreateDeployment(networkId string, deployment deploymentmodel.Deployment) (err error, errCode int) {
+func (this *Controller) ApiCreateDeployment(token string, networkId string, deployment deploymentmodel.Deployment) (err error, errCode int) {
 	err = deployment.Validate()
 	if err != nil {
 		return err, http.StatusBadRequest
@@ -149,7 +153,13 @@ func (this *Controller) ApiCreateDeployment(networkId string, deployment deploym
 	defer func() {
 		errCode = this.SetErrCode(err)
 	}()
-	err = this.mgw.SendDeploymentCommand(networkId, deployment)
+
+	withAnalytics, err := this.deploymentModelWithAnalyticsRecords(token, deployment)
+	if err != nil {
+		return err, errCode
+	}
+
+	err = this.mgw.SendDeploymentCommand(networkId, withAnalytics)
 	if err != nil {
 		return
 	}
@@ -283,6 +293,99 @@ func (this *Controller) ExtendDeployments(deployments []model.Deployment) (resul
 		}
 		result = append(result, element)
 	}
+	return
+}
+
+func (this *Controller) deploymentModelWithAnalyticsRecords(token string, deployment deploymentmodel.Deployment) (result model.DeploymentWithAnalyticsRecords, err error) {
+	result.Deployment = deployment
+	if this.config.DeviceRepoUrl == "" || this.config.MarshallerUrl == "" {
+		log.Println("WARNING: deploymentModelWithAnalyticsRecords() not enabled; add config values for DeviceRepoUrl and MarshallerUrl")
+		return
+	}
+	eventManagerDeployment, err := deploymentToEventManagerDeployment(deployment)
+	if err != nil {
+		return result, err
+	}
+	result.AnalyticsRecords, err = eventmanager.GetAnalyticsDeploymentsForMessageEvents(this.config, token, eventManagerDeployment)
+	if err != nil {
+		return result, err
+	}
+	result.DeviceIdToLocalId = map[string]string{}
+	result.ServiceIdToLocalId = map[string]string{}
+	for _, record := range result.AnalyticsRecords {
+		if record.DeviceEvent != nil {
+			if _, ok := result.ServiceIdToLocalId[record.DeviceEvent.ServiceId]; !ok {
+				service, err, _ := this.devicerepo.GetService(jwt_http_router.JwtImpersonate(token), record.DeviceEvent.ServiceId)
+				if err != nil {
+					return result, err
+				}
+				result.ServiceIdToLocalId[record.DeviceEvent.ServiceId] = service.LocalId
+			}
+			if _, ok := result.DeviceIdToLocalId[record.DeviceEvent.DeviceId]; !ok {
+				device, err, _ := this.devicerepo.GetDevice(jwt_http_router.JwtImpersonate(token), record.DeviceEvent.DeviceId)
+				if err != nil {
+					return result, err
+				}
+				result.DeviceIdToLocalId[record.DeviceEvent.DeviceId] = device.LocalId
+			}
+		}
+		if record.GroupEvent != nil {
+			for _, serviceId := range record.GroupEvent.ServiceIds {
+				if _, ok := result.ServiceIdToLocalId[serviceId]; !ok {
+					service, err, _ := this.devicerepo.GetService(jwt_http_router.JwtImpersonate(token), serviceId)
+					if err != nil {
+						return result, err
+					}
+					result.ServiceIdToLocalId[serviceId] = service.LocalId
+				}
+			}
+			for _, deviceId := range record.GroupEvent.Desc.DeviceIds {
+				if _, ok := result.DeviceIdToLocalId[deviceId]; !ok {
+					device, err, _ := this.devicerepo.GetDevice(jwt_http_router.JwtImpersonate(token), deviceId)
+					if err != nil {
+						return result, err
+					}
+					result.DeviceIdToLocalId[deviceId] = device.LocalId
+				}
+			}
+		}
+	}
+	for _, element := range deployment.Elements {
+		var selection deploymentmodel.Selection
+		if element.MessageEvent != nil {
+			selection = element.MessageEvent.Selection
+		}
+		if element.Task != nil {
+			selection = element.Task.Selection
+		}
+		if selection.SelectedDeviceId != nil {
+			if _, ok := result.DeviceIdToLocalId[*selection.SelectedDeviceId]; !ok {
+				device, err, _ := this.devicerepo.GetDevice(jwt_http_router.JwtImpersonate(token), *selection.SelectedDeviceId)
+				if err != nil {
+					return result, err
+				}
+				result.DeviceIdToLocalId[*selection.SelectedDeviceId] = device.LocalId
+			}
+		}
+		if selection.SelectedServiceId != nil {
+			if _, ok := result.ServiceIdToLocalId[*selection.SelectedServiceId]; !ok {
+				service, err, _ := this.devicerepo.GetService(jwt_http_router.JwtImpersonate(token), *selection.SelectedServiceId)
+				if err != nil {
+					return result, err
+				}
+				result.ServiceIdToLocalId[*selection.SelectedServiceId] = service.LocalId
+			}
+		}
+	}
+	return result, nil
+}
+
+func deploymentToEventManagerDeployment(deployment deploymentmodel.Deployment) (result eventmanagermodel.Deployment, err error) {
+	t, err := json.Marshal(deployment)
+	if err != nil {
+		return result, err
+	}
+	err = json.Unmarshal(t, &result)
 	return
 }
 
