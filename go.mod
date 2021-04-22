@@ -3,7 +3,7 @@ module github.com/SENERGY-Platform/process-sync
 go 1.16
 
 require (
-	github.com/SENERGY-Platform/event-deployment v0.0.0-20210421063911-bd2feeb348ce
+	github.com/SENERGY-Platform/event-deployment v0.0.0-20210422083203-f906e60a551f
 	github.com/SENERGY-Platform/process-deployment v0.0.0-20210420113012-3576ee756b24
 	github.com/SmartEnergyPlatform/jwt-http-router v0.0.0-20190722084820-0e1fe0dc7a07
 	github.com/beevik/etree v1.1.0

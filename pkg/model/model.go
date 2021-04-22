@@ -86,9 +86,9 @@ type HistoryQuery struct {
 
 type DeploymentWithAnalyticsRecords struct {
 	deploymentmodel.Deployment
-	AnalyticsRecords   []AnalyticsRecord `json:"analytics_records,omitempty"`
-	DeviceIdToLocalId  map[string]string `json:"device_id_to_local_id,omitempty"`
-	ServiceIdToLocalId map[string]string `json:"service_id_to_local_id,omitempty"`
+	AnalyticsRecords   []AnalyticsRecord `json:"analytics_records"`
+	DeviceIdToLocalId  map[string]string `json:"device_id_to_local_id"`
+	ServiceIdToLocalId map[string]string `json:"service_id_to_local_id"`
 }
 
 type DeviceEventAnalyticsRecord struct {

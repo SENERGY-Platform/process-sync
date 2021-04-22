@@ -61,7 +61,7 @@ func TestSync(t *testing.T) {
 		return
 	}
 
-	t.Run("deploy process", testDeployProcess(config.ApiPort, networkId))
+	t.Run("deploy process", testDeployExampleProcess(config.ApiPort, networkId))
 
 	deployments := []model.Deployment{}
 	t.Run("search deployments", testFindDeployments(config.ApiPort, "test", networkId, &deployments))
@@ -130,8 +130,8 @@ func TestKnown(t *testing.T) {
 
 	time.Sleep(2 * time.Second)
 
-	t.Run("deploy process 1", testDeployProcess(config.ApiPort, networkId))
-	t.Run("deploy process 2", testDeployProcess(config.ApiPort, networkId))
+	t.Run("deploy process 1", testDeployExampleProcess(config.ApiPort, networkId))
+	t.Run("deploy process 2", testDeployExampleProcess(config.ApiPort, networkId))
 
 	deployments := []model.Deployment{}
 
@@ -798,16 +798,20 @@ func testFindDeployments(port string, searchtext string, networkId string, resul
 	}
 }
 
-func testDeployProcess(port string, networkId string) func(t *testing.T) {
+func testDeployExampleProcess(port string, networkId string) func(t *testing.T) {
+	return testDeployProcess(port, networkId, deploymentExampleXml)
+}
+
+func testDeployProcess(port string, networkId string, xml string) func(t *testing.T) {
 	return func(t *testing.T) {
 		requestBody := new(bytes.Buffer)
 		err := json.NewEncoder(requestBody).Encode(deploymentmodel.Deployment{
 			Name:        "test-deployment-name",
 			Description: "test-description",
 			Diagram: deploymentmodel.Diagram{
-				XmlDeployed: deploymentExampleXml,
+				XmlDeployed: xml,
 				Svg:         "<svg></svg>",
-				XmlRaw:      deploymentExampleXml,
+				XmlRaw:      xml,
 			},
 			Executable: true,
 		})

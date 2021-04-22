@@ -18,10 +18,14 @@ package server
 
 import (
 	"context"
+	"github.com/SENERGY-Platform/event-deployment/lib/config"
+	"github.com/SENERGY-Platform/event-deployment/lib/devices"
+	"github.com/SENERGY-Platform/event-deployment/lib/interfaces"
 	"github.com/SENERGY-Platform/process-sync/pkg/api"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 	"github.com/SENERGY-Platform/process-sync/pkg/database/mongo"
+	"github.com/SENERGY-Platform/process-sync/pkg/eventmanager"
 	"github.com/SENERGY-Platform/process-sync/pkg/tests/docker"
 	"github.com/SENERGY-Platform/process-sync/pkg/tests/mocks"
 	"sync"
@@ -72,4 +76,45 @@ func Env(ctx context.Context, wg *sync.WaitGroup, initConf configuration.Config,
 	}
 
 	return config, nil
+}
+
+func EnvForEventsCheck(ctx context.Context, wg *sync.WaitGroup, initConf configuration.Config, networkId string) (conf configuration.Config, err error) {
+	conf = initConf
+	conf.ApiPort, err = docker.GetFreePortStr()
+	if err != nil {
+		return conf, err
+	}
+	conf.DeviceRepoUrl = "placeholder"
+	conf.MarshallerUrl = "placeholder"
+	conf.PermissionsUrl = "placeholder"
+
+	_, mqttip, err := docker.Mqtt(ctx, wg)
+	if err != nil {
+		return conf, err
+	}
+	conf.MqttBroker = "tcp://" + mqttip + ":1883"
+
+	mongoPort, _, err := docker.Mongo(ctx, wg)
+	conf.MongoUrl = "mongodb://localhost:" + mongoPort
+
+	db, err := mongo.New(conf)
+	if err != nil {
+		return conf, err
+	}
+
+	d := &mocks.Devices{}
+
+	eventmanager.MarshallerFactory = &mocks.Marshaller{}
+	eventmanager.DevicesFactory = func(config.Config, devices.Auth) interfaces.Devices {
+		return d
+	}
+
+	ctrl, err := controller.New(conf, ctx, db, mocks.Security(), d)
+
+	err = api.Start(conf, ctx, ctrl)
+	if err != nil {
+		return conf, err
+	}
+
+	return conf, nil
 }

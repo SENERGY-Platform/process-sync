@@ -49,8 +49,7 @@ type Config struct {
 	MongoProcessInstanceCollection    string `json:"mongo_process_instance_collection"`
 	PermissionsUrl                    string `json:"permissions_url"`
 	MarshallerUrl                     string `json:"marshaller_url"`
-	DeviceRepoUrl                     string `json:"device_repo_url
-"`
+	DeviceRepoUrl                     string `json:"device_repo_url"`
 }
 
 //loads config from json in location and used environment variables (e.g ZookeeperUrl --> ZOOKEEPER_URL)

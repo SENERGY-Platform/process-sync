@@ -386,6 +386,10 @@ func deploymentToEventManagerDeployment(deployment deploymentmodel.Deployment) (
 		return result, err
 	}
 	err = json.Unmarshal(t, &result)
+	if err != nil {
+		return result, err
+	}
+	result.Id = "placeholder"
 	return
 }
 
