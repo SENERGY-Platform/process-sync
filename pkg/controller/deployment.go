@@ -348,6 +348,17 @@ func (this *Controller) deploymentModelWithAnalyticsRecords(token string, deploy
 					result.DeviceIdToLocalId[deviceId] = device.LocalId
 				}
 			}
+			for _, deviceIdList := range record.GroupEvent.ServiceToDeviceIdsMapping {
+				for _, deviceId := range deviceIdList {
+					if _, ok := result.DeviceIdToLocalId[deviceId]; !ok {
+						device, err, _ := this.devicerepo.GetDevice(jwt_http_router.JwtImpersonate(token), deviceId)
+						if err != nil {
+							return result, err
+						}
+						result.DeviceIdToLocalId[deviceId] = device.LocalId
+					}
+				}
+			}
 		}
 	}
 	for _, element := range deployment.Elements {
