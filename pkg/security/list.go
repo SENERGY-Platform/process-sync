@@ -31,12 +31,11 @@ type ListElement struct {
 	Name string `json:"name"`
 }
 
-func (this *Security) List(token string, resource string, limit string, offset string, rights string, sort string) (result []ListElement, err error) {
+func (this *Security) List(token string, resource string, limit string, offset string, rights string) (result []ListElement, err error) {
 	params := strings.Join([]string{
 		"rights=" + rights,
 		"limit=" + limit,
 		"offset=" + offset,
-		"sort=" + sort,
 	}, "&")
 	req, err := http.NewRequest("GET", this.config.PermissionsUrl+"/v3/resources/"+url.QueryEscape(resource)+"?"+params, nil)
 	if err != nil {

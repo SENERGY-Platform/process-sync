@@ -27,7 +27,7 @@ import (
 
 func (this *Controller) ApiListNetworks(request *http.Request) (result []security.ListElement, err error, errCode int) {
 	token := request.Header.Get("Authorization")
-	all, err := this.security.List(token, "hubs", "10000", "0", "r", "id.asc")
+	all, err := this.security.List(token, "hubs", "10000", "0", "r")
 	if err != nil {
 		return result, err, http.StatusInternalServerError
 	}
@@ -36,6 +36,9 @@ func (this *Controller) ApiListNetworks(request *http.Request) (result []securit
 	for _, element := range all {
 		allIds = append(allIds, element.Id)
 		hubIndex[element.Id] = element
+	}
+	if len(allIds) == 0 {
+		return []security.ListElement{}, nil, http.StatusOK
 	}
 	filteredIds, err := this.db.FilterNetworkIds(allIds)
 	if err != nil {

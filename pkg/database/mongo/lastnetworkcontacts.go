@@ -120,6 +120,9 @@ func (this *Mongo) RemoveOldElements(maxAge time.Duration) (err error) {
 	if err != nil {
 		return err
 	}
+	if len(networkIds) == 0 {
+		return nil
+	}
 	ctx, _ := this.getTimeoutContext()
 	_, err = this.processDefinitionCollection().DeleteMany(ctx, bson.M{definitionNetworkIdKey: bson.M{"$in": networkIds}})
 	if err != nil {
