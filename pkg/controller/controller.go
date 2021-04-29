@@ -26,12 +26,9 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/database/mongo"
 	"github.com/SENERGY-Platform/process-sync/pkg/mgw"
-	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/security"
 	jwt_http_router "github.com/SmartEnergyPlatform/jwt-http-router"
-	"log"
 	"net/http"
-	"runtime/debug"
 	"time"
 )
 
@@ -51,6 +48,7 @@ type Devices interface {
 type Security interface {
 	CheckBool(token string, kind string, id string, rights string) (allowed bool, err error)
 	CheckMultiple(token string, kind string, ids []string, rights string) (result map[string]bool, err error)
+	List(token string, resource string, limit string, offset string, rights string, sort string) (result []security.ListElement, err error)
 }
 
 func NewDefault(conf configuration.Config, ctx context.Context) (ctrl *Controller, err error) {
@@ -100,15 +98,4 @@ func (this *Controller) SetErrCode(err error) int {
 
 func (this *Controller) RemoveOldEntities(maxAge time.Duration) error {
 	return this.db.RemoveOldElements(maxAge)
-}
-
-func (this *Controller) LogNetworkInteraction(networkId string) {
-	err := this.db.SaveLastContact(model.LastNetworkContact{
-		NetworkId: networkId,
-		Time:      time.Now(),
-	})
-	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
-	}
 }

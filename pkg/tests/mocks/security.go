@@ -16,13 +16,20 @@
 
 package mocks
 
-import "github.com/SENERGY-Platform/process-sync/pkg/controller"
+import (
+	"github.com/SENERGY-Platform/process-sync/pkg/controller"
+	"github.com/SENERGY-Platform/process-sync/pkg/security"
+)
 
 func Security() (result controller.Security) {
 	return &SecurityMock{}
 }
 
 type SecurityMock struct{}
+
+func (this *SecurityMock) List(token string, resource string, limit string, offset string, rights string, sort string) (result []security.ListElement, err error) {
+	panic("implement me")
+}
 
 func (this *SecurityMock) CheckBool(token string, kind string, id string, rights string) (allowed bool, err error) {
 	return true, nil

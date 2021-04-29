@@ -62,6 +62,8 @@ func TestSync(t *testing.T) {
 		return
 	}
 
+	time.Sleep(1 * time.Second)
+
 	t.Run("deploy process", testDeployExampleProcess(config.ApiPort, networkId))
 
 	deployments := []model.Deployment{}
