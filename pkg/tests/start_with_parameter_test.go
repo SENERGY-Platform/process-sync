@@ -63,6 +63,8 @@ func TestStartWithParameter(t *testing.T) {
 		return
 	}
 
+	time.Sleep(1 * time.Second)
+
 	t.Run("deploy process", testDeployProcessWithParameter(config.ApiPort, networkId))
 
 	deployments := []model.Deployment{}
