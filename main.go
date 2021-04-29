@@ -55,10 +55,41 @@ func main() {
 		log.Fatal("FATAL:", err)
 	}
 
+	if config.CleanupInterval != "" && config.CleanupInterval != "-" && config.CleanupMaxAge != "" && config.CleanupMaxAge != "-" {
+		go cleanup(ctx, ctrl, config)
+	}
+
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 	sig := <-shutdown
 	log.Println("received shutdown signal", sig)
 	cancel()
 	time.Sleep(1 * time.Second) //give connections time to close gracefully
+}
+
+func cleanup(ctx context.Context, ctrl *controller.Controller, config configuration.Config) {
+	cleanupInterval, err := time.ParseDuration(config.CleanupInterval)
+	if err != nil {
+		log.Println("WARNING: invalid CleanupInterval", config.CleanupInterval, err)
+		return
+	}
+	maxAge, err := time.ParseDuration(config.CleanupMaxAge)
+	if err != nil {
+		log.Println("WARNING: invalid CleanupMaxAge", config.CleanupMaxAge, err)
+		return
+	}
+
+	err = ctrl.RemoveOldEntities(maxAge)
+	log.Println("WARNING: RemoveOldEntities() ->", err)
+
+	t := time.NewTicker(cleanupInterval)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+			err = ctrl.RemoveOldEntities(maxAge)
+			log.Println("WARNING: RemoveOldEntities() ->", err)
+		}
+	}
 }

@@ -52,6 +52,7 @@ type Handler interface {
 	DeleteProcessInstance(networkId string, instanceId string)
 	DeleteUnknownProcessInstances(networkId string, knownIds []string)
 	UpdateDeploymentMetadata(networkId string, metadata model.Metadata)
+	LogNetworkInteraction(networkId string)
 }
 
 func New(config configuration.Config, ctx context.Context, handler Handler) (*Mgw, error) {

@@ -36,6 +36,7 @@ func (this *Mgw) handleHistoricProcessInstanceUpdate(message paho.Message) {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
+	this.handler.LogNetworkInteraction(networkId)
 	this.handler.UpdateHistoricProcessInstance(networkId, historicProcessInstance)
 }
 
@@ -45,6 +46,7 @@ func (this *Mgw) handleHistoricProcessInstanceDelete(message paho.Message) {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
+	this.handler.LogNetworkInteraction(networkId)
 	this.handler.DeleteHistoricProcessInstance(networkId, string(message.Payload()))
 }
 
@@ -60,6 +62,7 @@ func (this *Mgw) handleHistoricProcessInstanceKnown(message paho.Message) {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
+	this.handler.LogNetworkInteraction(networkId)
 	this.handler.DeleteUnknownHistoricProcessInstances(networkId, knownIds)
 }
 

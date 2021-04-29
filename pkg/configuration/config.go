@@ -51,6 +51,9 @@ type Config struct {
 	PermissionsUrl                    string `json:"permissions_url"`
 	MarshallerUrl                     string `json:"marshaller_url"`
 	DeviceRepoUrl                     string `json:"device_repo_url"`
+
+	CleanupMaxAge   string `json:"cleanup_max_age"`
+	CleanupInterval string `json:"cleanup_interval"`
 }
 
 //loads config from json in location and used environment variables (e.g ZookeeperUrl --> ZOOKEEPER_URL)

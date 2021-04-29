@@ -26,9 +26,13 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/database/mongo"
 	"github.com/SENERGY-Platform/process-sync/pkg/mgw"
+	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/security"
 	jwt_http_router "github.com/SmartEnergyPlatform/jwt-http-router"
+	"log"
 	"net/http"
+	"runtime/debug"
+	"time"
 )
 
 type Controller struct {
@@ -91,5 +95,20 @@ func (this *Controller) SetErrCode(err error) int {
 		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError
+	}
+}
+
+func (this *Controller) RemoveOldEntities(maxAge time.Duration) error {
+	return this.db.RemoveOldElements(maxAge)
+}
+
+func (this *Controller) LogNetworkInteraction(networkId string) {
+	err := this.db.SaveLastContact(model.LastNetworkContact{
+		NetworkId: networkId,
+		Time:      time.Now(),
+	})
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
 	}
 }

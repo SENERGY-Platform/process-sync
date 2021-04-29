@@ -37,6 +37,7 @@ func (this *Mgw) handleDeploymentUpdate(message paho.Message) {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
+	this.handler.LogNetworkInteraction(networkId)
 	this.handler.UpdateDeployment(networkId, deployment)
 }
 
@@ -52,6 +53,7 @@ func (this *Mgw) handleDeploymentMetadata(message paho.Message) {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
+	this.handler.LogNetworkInteraction(networkId)
 	this.handler.UpdateDeploymentMetadata(networkId, metadata)
 }
 
@@ -61,6 +63,7 @@ func (this *Mgw) handleDeploymentDelete(message paho.Message) {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
+	this.handler.LogNetworkInteraction(networkId)
 	this.handler.DeleteDeployment(networkId, string(message.Payload()))
 }
 
@@ -76,6 +79,7 @@ func (this *Mgw) handleDeploymentKnown(message paho.Message) {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
+	this.handler.LogNetworkInteraction(networkId)
 	this.handler.DeleteUnknownDeployments(networkId, knownIds)
 }
 

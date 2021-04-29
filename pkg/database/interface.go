@@ -16,7 +16,10 @@
 
 package database
 
-import "github.com/SENERGY-Platform/process-sync/pkg/model"
+import (
+	"github.com/SENERGY-Platform/process-sync/pkg/model"
+	"time"
+)
 
 type Database interface {
 	SaveDeployment(deployment model.Deployment) error
@@ -65,4 +68,9 @@ type Database interface {
 
 	GetDeploymentMetadataOfDeploymentIdList(networkId string, deploymentIds []string) (map[string]model.DeploymentMetadata, error)
 	GetDefinitionsOfDeploymentIdList(networkId string, deploymentIds []string) (map[string]model.ProcessDefinition, error)
+
+	SaveLastContact(lastContact model.LastNetworkContact) error
+	FilterNetworkIds(networkIds []string) (result []string, err error)
+	GetOldNetworkIds(maxAge time.Duration) (result []string, err error)
+	RemoveOldElements(maxAge time.Duration) (err error)
 }

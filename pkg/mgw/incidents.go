@@ -36,6 +36,7 @@ func (this *Mgw) handleIncidentUpdate(message paho.Message) {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
+	this.handler.LogNetworkInteraction(networkId)
 	this.handler.UpdateIncident(networkId, incident)
 }
 
@@ -45,6 +46,7 @@ func (this *Mgw) handleIncidentDelete(message paho.Message) {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
+	this.handler.LogNetworkInteraction(networkId)
 	this.handler.DeleteIncident(networkId, string(message.Payload()))
 }
 
@@ -60,5 +62,6 @@ func (this *Mgw) handleIncidentKnown(message paho.Message) {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
+	this.handler.LogNetworkInteraction(networkId)
 	this.handler.DeleteUnknownIncidents(networkId, knownIds)
 }
