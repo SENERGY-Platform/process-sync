@@ -80,8 +80,9 @@ func cleanup(ctx context.Context, ctrl *controller.Controller, config configurat
 	}
 
 	err = ctrl.RemoveOldEntities(maxAge)
-	log.Println("WARNING: RemoveOldEntities() ->", err)
-
+	if err != nil {
+		log.Println("WARNING: RemoveOldEntities() ->", err)
+	}
 	t := time.NewTicker(cleanupInterval)
 	for {
 		select {
@@ -89,7 +90,9 @@ func cleanup(ctx context.Context, ctrl *controller.Controller, config configurat
 			return
 		case <-t.C:
 			err = ctrl.RemoveOldEntities(maxAge)
-			log.Println("WARNING: RemoveOldEntities() ->", err)
+			if err != nil {
+				log.Println("WARNING: RemoveOldEntities() ->", err)
+			}
 		}
 	}
 }
