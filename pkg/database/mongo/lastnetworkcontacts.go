@@ -22,6 +22,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
 	"time"
 )
 
@@ -120,6 +121,7 @@ func (this *Mongo) RemoveOldElements(maxAge time.Duration) (err error) {
 	if err != nil {
 		return err
 	}
+	log.Println("remove old elements:", networkIds)
 	if len(networkIds) == 0 {
 		return nil
 	}
