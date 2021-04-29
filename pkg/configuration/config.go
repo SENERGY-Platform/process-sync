@@ -47,6 +47,7 @@ type Config struct {
 	MongoProcessHistoryCollection     string `json:"mongo_process_history_collection"`
 	MongoIncidentCollection           string `json:"mongo_incident_collection"`
 	MongoProcessInstanceCollection    string `json:"mongo_process_instance_collection"`
+	MongoLastNetworkContactCollection string `json:"mongo_last_network_contact_collection"`
 	PermissionsUrl                    string `json:"permissions_url"`
 	MarshallerUrl                     string `json:"marshaller_url"`
 	DeviceRepoUrl                     string `json:"device_repo_url"`

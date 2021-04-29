@@ -52,6 +52,7 @@ func TestMsgEvents(t *testing.T) {
 		MongoIncidentCollection:           "incidents",
 		MongoProcessInstanceCollection:    "instances",
 		MongoDeploymentMetadataCollection: "deployment_metadata",
+		MongoLastNetworkContactCollection: "last_network_collection",
 	}
 
 	networkId := "test-network-id"

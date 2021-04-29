@@ -30,6 +30,11 @@ type SyncInfo struct {
 	SyncDate        time.Time `json:"sync_date"`
 }
 
+type LastNetworkContact struct {
+	NetworkId string    `json:"network_id"`
+	Time      time.Time `json:"time"`
+}
+
 type Metadata struct {
 	CamundaDeploymentId string                           `json:"camunda_deployment_id"`
 	ProcessParameter    map[string]camundamodel.Variable `json:"process_parameter"`

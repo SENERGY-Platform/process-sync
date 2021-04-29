@@ -50,6 +50,7 @@ func TestDeployment(t *testing.T) {
 		MongoIncidentCollection:           "incidents",
 		MongoProcessInstanceCollection:    "instances",
 		MongoDeploymentMetadataCollection: "deployment_metadata",
+		MongoLastNetworkContactCollection: "last_network_collection",
 	}
 
 	db, err := New(config)
