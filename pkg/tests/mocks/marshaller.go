@@ -37,10 +37,17 @@ func (this *Marshaller) FindPathOptions(deviceTypeIds []string, functionId strin
 			{
 				ServiceId: "sid1",
 				JsonPath:  []string{"path.to.chid2"},
+				PathToCharacteristicId: map[string]string{
+					"path.to.chid2": "cid1",
+				},
 			},
 			{
 				ServiceId: "sid2",
 				JsonPath:  []string{"path.to.chid3", "path.to.chid4"},
+				PathToCharacteristicId: map[string]string{
+					"path.to.chid3": "cid2",
+					"path.to.chid4": "cid3",
+				},
 			},
 		}
 	}

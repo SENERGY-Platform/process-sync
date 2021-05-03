@@ -27,7 +27,7 @@ func Security() (result controller.Security) {
 
 type SecurityMock struct{}
 
-func (this *SecurityMock) List(token string, resource string, limit string, offset string, rights string, sort string) (result []security.ListElement, err error) {
+func (this *SecurityMock) List(token string, resource string, limit string, offset string, rights string) (result []security.ListElement, err error) {
 	panic("implement me")
 }
 

@@ -26,14 +26,15 @@ type AnalyticsRecorder struct {
 	Records []model.AnalyticsRecord
 }
 
-func (this *AnalyticsRecorder) DeployGroup(label string, user string, desc eventmodel.GroupEventDescription, serviceIds []string, serviceToDeviceIdsMapping map[string][]string, serviceToPathMapping map[string]string) (pipelineId string, err error) {
+func (this *AnalyticsRecorder) DeployGroup(label string, user string, desc eventmodel.GroupEventDescription, serviceIds []string, serviceToDeviceIdsMapping map[string][]string, serviceToPathMapping map[string]string, serviceToPathAndCharacteristic map[string][]eventmodel.PathAndCharacteristic) (pipelineId string, err error) {
 	this.Records = append(this.Records, model.AnalyticsRecord{
 		GroupEvent: &model.GroupEventAnalyticsRecord{
-			Label:                     label,
-			Desc:                      desc,
-			ServiceIds:                serviceIds,
-			ServiceToDeviceIdsMapping: serviceToDeviceIdsMapping,
-			ServiceToPathMapping:      serviceToPathMapping,
+			Label:                          label,
+			Desc:                           desc,
+			ServiceIds:                     serviceIds,
+			ServiceToDeviceIdsMapping:      serviceToDeviceIdsMapping,
+			ServiceToPathMapping:           serviceToPathMapping,
+			ServiceToPathAndCharacteristic: serviceToPathAndCharacteristic,
 		},
 	})
 	return "placeholder", nil
@@ -57,7 +58,7 @@ func (this *AnalyticsRecorder) Deploy(label string, user string, deploymentId st
 	return "placeholder", nil
 }
 
-func (this *AnalyticsRecorder) UpdateGroupDeployment(pipelineId string, label string, owner string, desc eventmodel.GroupEventDescription, serviceIds []string, serviceToDeviceIdsMapping map[string][]string, serviceToPathMapping map[string]string) (err error) {
+func (this *AnalyticsRecorder) UpdateGroupDeployment(pipelineId string, label string, owner string, desc eventmodel.GroupEventDescription, serviceIds []string, serviceToDeviceIdsMapping map[string][]string, serviceToPathMapping map[string]string, serviceToPathAndCharacteristic map[string][]eventmodel.PathAndCharacteristic) (err error) {
 	return errors.New("updates not supported")
 }
 

@@ -110,11 +110,12 @@ type DeviceEventAnalyticsRecord struct {
 }
 
 type GroupEventAnalyticsRecord struct {
-	Label                     string                           `json:"label"`
-	Desc                      eventmodel.GroupEventDescription `json:"desc"`
-	ServiceIds                []string                         `json:"service_ids"`
-	ServiceToDeviceIdsMapping map[string][]string              `json:"service_to_device_ids_mapping"`
-	ServiceToPathMapping      map[string]string                `json:"service_to_path_mapping"`
+	Label                          string                                        `json:"label"`
+	Desc                           eventmodel.GroupEventDescription              `json:"desc"`
+	ServiceIds                     []string                                      `json:"service_ids"`
+	ServiceToDeviceIdsMapping      map[string][]string                           `json:"service_to_device_ids_mapping"`
+	ServiceToPathMapping           map[string]string                             `json:"service_to_path_mapping"`
+	ServiceToPathAndCharacteristic map[string][]eventmodel.PathAndCharacteristic `json:"service_to_path_and_characteristic"`
 }
 
 type AnalyticsRecord struct {

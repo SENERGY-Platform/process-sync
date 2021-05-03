@@ -12,6 +12,8 @@ github.com/SENERGY-Platform/event-deployment v0.0.0-20210421063911-bd2feeb348ce 
 github.com/SENERGY-Platform/event-deployment v0.0.0-20210421063911-bd2feeb348ce/go.mod h1:pnvXM3hK2UUZXEnrPWyb6H06T7Giz4XTNTmL6VuCfDA=
 github.com/SENERGY-Platform/event-deployment v0.0.0-20210422083203-f906e60a551f h1:dpTsA7tVf6dKLmzNkP2EC+vP1LVZ169DyX9GGfeW6E8=
 github.com/SENERGY-Platform/event-deployment v0.0.0-20210422083203-f906e60a551f/go.mod h1:pnvXM3hK2UUZXEnrPWyb6H06T7Giz4XTNTmL6VuCfDA=
+github.com/SENERGY-Platform/event-deployment v0.0.0-20210503091818-57c7bfb89035 h1:cQENlYjjqRGgtQirm+0Vh5LAr4hl09ugpkAr+uWnpxw=
+github.com/SENERGY-Platform/event-deployment v0.0.0-20210503091818-57c7bfb89035/go.mod h1:pnvXM3hK2UUZXEnrPWyb6H06T7Giz4XTNTmL6VuCfDA=
 github.com/SENERGY-Platform/process-deployment v0.0.0-20210315101604-2b4269d06924/go.mod h1:eyvM8814tTDPxzl/eQNIajW2NXGcyFWmBUx35+87xdI=
 github.com/SENERGY-Platform/process-deployment v0.0.0-20210420113012-3576ee756b24 h1:i5c6gMbymXLE4UFl95VrZ37szXE8REwzSarrDfWnoP4=
 github.com/SENERGY-Platform/process-deployment v0.0.0-20210420113012-3576ee756b24/go.mod h1:eyvM8814tTDPxzl/eQNIajW2NXGcyFWmBUx35+87xdI=
