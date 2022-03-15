@@ -51,6 +51,7 @@ type Config struct {
 	PermissionsUrl                    string `json:"permissions_url"`
 	MarshallerUrl                     string `json:"marshaller_url"`
 	DeviceRepoUrl                     string `json:"device_repo_url"`
+	AnalyticsEnvelopePrefix           string `json:"analytics_envelope_prefix"`
 
 	CleanupMaxAge   string `json:"cleanup_max_age"`
 	CleanupInterval string `json:"cleanup_interval"`

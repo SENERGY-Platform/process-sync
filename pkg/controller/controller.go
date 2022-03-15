@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"errors"
+	"github.com/SENERGY-Platform/process-deployment/lib/auth"
 	"github.com/SENERGY-Platform/process-deployment/lib/config"
 	"github.com/SENERGY-Platform/process-deployment/lib/devices"
 	"github.com/SENERGY-Platform/process-deployment/lib/model/devicemodel"
@@ -27,7 +28,6 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/database/mongo"
 	"github.com/SENERGY-Platform/process-sync/pkg/mgw"
 	"github.com/SENERGY-Platform/process-sync/pkg/security"
-	jwt_http_router "github.com/SmartEnergyPlatform/jwt-http-router"
 	"net/http"
 	"time"
 )
@@ -41,8 +41,8 @@ type Controller struct {
 }
 
 type Devices interface {
-	GetDevice(token jwt_http_router.JwtImpersonate, id string) (devicemodel.Device, error, int)
-	GetService(token jwt_http_router.JwtImpersonate, id string) (devicemodel.Service, error, int)
+	GetDevice(token auth.Token, id string) (devicemodel.Device, error, int)
+	GetService(token auth.Token, id string) (devicemodel.Service, error, int)
 }
 
 type Security interface {

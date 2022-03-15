@@ -810,6 +810,8 @@ func testDeployProcess(port string, networkId string, xml string) func(t *testin
 	return func(t *testing.T) {
 		requestBody := new(bytes.Buffer)
 		err := json.NewEncoder(requestBody).Encode(deploymentmodel.Deployment{
+			Version:     deploymentmodel.CurrentVersion,
+			Id:          "test-id",
 			Name:        "test-deployment-name",
 			Description: "test-description",
 			Diagram: deploymentmodel.Diagram{

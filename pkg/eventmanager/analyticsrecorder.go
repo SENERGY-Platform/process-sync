@@ -18,32 +18,34 @@ package eventmanager
 
 import (
 	"errors"
+	"github.com/SENERGY-Platform/event-deployment/lib/auth"
 	eventmodel "github.com/SENERGY-Platform/event-deployment/lib/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"strings"
 )
 
 type AnalyticsRecorder struct {
-	Records []model.AnalyticsRecord
+	Records        []model.AnalyticsRecord
+	EnvelopePrefix string
 }
 
-func (this *AnalyticsRecorder) DeployGroup(label string, user string, desc eventmodel.GroupEventDescription, serviceIds []string, serviceToDeviceIdsMapping map[string][]string, serviceToPathMapping map[string]string, serviceToPathAndCharacteristic map[string][]eventmodel.PathAndCharacteristic) (pipelineId string, err error) {
+func (this *AnalyticsRecorder) DeployGroup(token auth.AuthToken, label string, user string, desc eventmodel.GroupEventDescription, serviceIds []string, serviceToDeviceIdsMapping map[string][]string, serviceToPathMapping map[string]string, serviceToPathAndCharacteristic map[string][]eventmodel.PathAndCharacteristic) (pipelineId string, err error) {
 	this.Records = append(this.Records, model.AnalyticsRecord{
 		GroupEvent: &model.GroupEventAnalyticsRecord{
 			Label:                                    label,
 			Desc:                                     desc,
 			ServiceIds:                               serviceIds,
 			ServiceToDeviceIdsMapping:                serviceToDeviceIdsMapping,
-			ServiceToPathMapping:                     removePrefixFromMap(serviceToPathMapping),
+			ServiceToPathMapping:                     this.removePrefixFromMap(serviceToPathMapping),
 			ServiceToPathWithPrefixMapping:           serviceToPathMapping,
-			ServiceToPathAndCharacteristic:           removePrefixFromServiceToPathAndCharacteristic(serviceToPathAndCharacteristic),
+			ServiceToPathAndCharacteristic:           this.removePrefixFromServiceToPathAndCharacteristic(serviceToPathAndCharacteristic),
 			ServiceToPathWithPrefixAndCharacteristic: serviceToPathAndCharacteristic,
 		},
 	})
 	return "placeholder", nil
 }
 
-func (this *AnalyticsRecorder) Deploy(label string, user string, deploymentId string, flowId string, eventId string, deviceId string, serviceId string, value string, path string, castFrom string, castTo string) (pipelineId string, err error) {
+func (this *AnalyticsRecorder) Deploy(token auth.AuthToken, label string, user string, deploymentId string, flowId string, eventId string, deviceId string, serviceId string, value string, path string, castFrom string, castTo string) (pipelineId string, err error) {
 	this.Records = append(this.Records, model.AnalyticsRecord{
 		DeviceEvent: &model.DeviceEventAnalyticsRecord{
 			Label:          label,
@@ -54,7 +56,7 @@ func (this *AnalyticsRecorder) Deploy(label string, user string, deploymentId st
 			ServiceId:      serviceId,
 			Value:          value,
 			PathWithPrefix: path,
-			Path:           removePrefix(path),
+			Path:           this.removePrefix(path),
 			CastFrom:       castFrom,
 			CastTo:         castTo,
 		},
@@ -62,11 +64,11 @@ func (this *AnalyticsRecorder) Deploy(label string, user string, deploymentId st
 	return "placeholder", nil
 }
 
-func (this *AnalyticsRecorder) UpdateGroupDeployment(pipelineId string, label string, owner string, desc eventmodel.GroupEventDescription, serviceIds []string, serviceToDeviceIdsMapping map[string][]string, serviceToPathMapping map[string]string, serviceToPathAndCharacteristic map[string][]eventmodel.PathAndCharacteristic) (err error) {
+func (this *AnalyticsRecorder) UpdateGroupDeployment(token auth.AuthToken, pipelineId string, label string, owner string, desc eventmodel.GroupEventDescription, serviceIds []string, serviceToDeviceIdsMapping map[string][]string, serviceToPathMapping map[string]string, serviceToPathAndCharacteristic map[string][]eventmodel.PathAndCharacteristic) (err error) {
 	return errors.New("updates not supported")
 }
 
-func (this *AnalyticsRecorder) DeployImport(label string, user string, desc eventmodel.GroupEventDescription, topic string, path string, castFrom string, castTo string) (pipelineId string, err error) {
+func (this *AnalyticsRecorder) DeployImport(token auth.AuthToken, label string, user string, desc eventmodel.GroupEventDescription, topic string, path string, castFrom string, castTo string) (pipelineId string, err error) {
 	return "", errors.New("imports not supported")
 }
 
@@ -92,9 +94,7 @@ func (this *AnalyticsRecorder) GetEventStates(userId string, eventIds []string) 
 	return
 }
 
-const envelopePrefix = "value."
-
-func removePrefix(path string) string {
+func (this *AnalyticsRecorder) removePrefix(path string) string {
 	parts := strings.Split(path, ".")
 	if len(parts) >= 2 {
 		return strings.Join(parts[1:], ".")
@@ -103,20 +103,20 @@ func removePrefix(path string) string {
 	}
 }
 
-func removePrefixFromMap(m map[string]string) map[string]string {
+func (this *AnalyticsRecorder) removePrefixFromMap(m map[string]string) map[string]string {
 	result := map[string]string{}
 	for key, value := range m {
-		result[key] = removePrefix(strings.TrimPrefix(value, envelopePrefix))
+		result[key] = this.removePrefix(strings.TrimPrefix(value, this.EnvelopePrefix))
 	}
 	return result
 }
 
-func removePrefixFromServiceToPathAndCharacteristic(serviceToPathAndCharacteristic map[string][]eventmodel.PathAndCharacteristic) map[string][]eventmodel.PathAndCharacteristic {
+func (this *AnalyticsRecorder) removePrefixFromServiceToPathAndCharacteristic(serviceToPathAndCharacteristic map[string][]eventmodel.PathAndCharacteristic) map[string][]eventmodel.PathAndCharacteristic {
 	result := map[string][]eventmodel.PathAndCharacteristic{}
 	for key, list := range serviceToPathAndCharacteristic {
 		for _, element := range list {
 			result[key] = append(result[key], eventmodel.PathAndCharacteristic{
-				JsonPath:         removePrefix(strings.TrimPrefix(element.JsonPath, envelopePrefix)),
+				JsonPath:         this.removePrefix(strings.TrimPrefix(element.JsonPath, this.EnvelopePrefix)),
 				CharacteristicId: element.CharacteristicId,
 			})
 		}

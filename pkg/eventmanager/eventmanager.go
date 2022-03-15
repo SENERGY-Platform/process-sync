@@ -23,40 +23,31 @@ import (
 	"github.com/SENERGY-Platform/event-deployment/lib/devices"
 	"github.com/SENERGY-Platform/event-deployment/lib/events"
 	"github.com/SENERGY-Platform/event-deployment/lib/interfaces"
-	"github.com/SENERGY-Platform/event-deployment/lib/marshaller"
-	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel/v2"
+	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"net/http"
 )
 
-var DefaultMarshallerFactory interfaces.MarshallerFactory = marshaller.Factory
 var DefaultDevicesFactory func(config config.Config, auth devices.Auth) interfaces.Devices = func(config config.Config, auth devices.Auth) interfaces.Devices {
 	return devices.NewWithAuth(config, auth)
 }
 
-var MarshallerFactory interfaces.MarshallerFactory = DefaultMarshallerFactory
 var DevicesFactory func(config config.Config, auth devices.Auth) interfaces.Devices = DefaultDevicesFactory
 
 func GetAnalyticsDeploymentsForMessageEvents(conf configuration.Config, token string, deployment deploymentmodel.Deployment) (result []model.AnalyticsRecord, err error) {
 	var eventConfig = &config.ConfigStruct{
-		MarshallerUrl:    conf.MarshallerUrl,
 		PermSearchUrl:    conf.PermissionsUrl,
 		Debug:            conf.Debug,
 		AuthClientId:     "ignore",
 		AuthClientSecret: "ignore",
 		AuthEndpoint:     "ignore",
 	}
-	analyticsRecorder := &AnalyticsRecorder{}
+	analyticsRecorder := &AnalyticsRecorder{EnvelopePrefix: conf.AnalyticsEnvelopePrefix}
 	deviceRepo := DevicesFactory(eventConfig, TokenAuth(token))
-	m, err := MarshallerFactory.New(context.Background(), eventConfig)
-	if err != nil {
-		return result, err
-	}
 	eventsInterface, err := events.Factory.New(context.Background(),
 		eventConfig,
 		analyticsRecorder,
-		m,
 		deviceRepo,
 		ImportsPlaceholder{},
 	)

@@ -18,13 +18,13 @@ package controller
 
 import (
 	"encoding/json"
-	eventmanagermodel "github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel/v2"
+	"github.com/SENERGY-Platform/process-deployment/lib/auth"
+	eventmanagermodel "github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/eventmanager"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/deploymentmodel"
-	jwt_http_router "github.com/SmartEnergyPlatform/jwt-http-router"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -146,7 +146,7 @@ func (this *Controller) ApiSearchDeployments(networkIds []string, search string,
 }
 
 func (this *Controller) ApiCreateDeployment(token string, networkId string, deployment deploymentmodel.Deployment) (err error, errCode int) {
-	err = deployment.Validate()
+	err = deployment.Validate(deploymentmodel.ValidatePublish)
 	if err != nil {
 		return err, http.StatusBadRequest
 	}
@@ -315,14 +315,14 @@ func (this *Controller) deploymentModelWithAnalyticsRecords(token string, deploy
 	for _, record := range result.AnalyticsRecords {
 		if record.DeviceEvent != nil {
 			if _, ok := result.ServiceIdToLocalId[record.DeviceEvent.ServiceId]; !ok {
-				service, err, _ := this.devicerepo.GetService(jwt_http_router.JwtImpersonate(token), record.DeviceEvent.ServiceId)
+				service, err, _ := this.devicerepo.GetService(auth.Token{Token: token}, record.DeviceEvent.ServiceId)
 				if err != nil {
 					return result, err
 				}
 				result.ServiceIdToLocalId[record.DeviceEvent.ServiceId] = service.LocalId
 			}
 			if _, ok := result.DeviceIdToLocalId[record.DeviceEvent.DeviceId]; !ok {
-				device, err, _ := this.devicerepo.GetDevice(jwt_http_router.JwtImpersonate(token), record.DeviceEvent.DeviceId)
+				device, err, _ := this.devicerepo.GetDevice(auth.Token{Token: token}, record.DeviceEvent.DeviceId)
 				if err != nil {
 					return result, err
 				}
@@ -332,7 +332,7 @@ func (this *Controller) deploymentModelWithAnalyticsRecords(token string, deploy
 		if record.GroupEvent != nil {
 			for _, serviceId := range record.GroupEvent.ServiceIds {
 				if _, ok := result.ServiceIdToLocalId[serviceId]; !ok {
-					service, err, _ := this.devicerepo.GetService(jwt_http_router.JwtImpersonate(token), serviceId)
+					service, err, _ := this.devicerepo.GetService(auth.Token{Token: token}, serviceId)
 					if err != nil {
 						return result, err
 					}
@@ -341,7 +341,7 @@ func (this *Controller) deploymentModelWithAnalyticsRecords(token string, deploy
 			}
 			for _, deviceId := range record.GroupEvent.Desc.DeviceIds {
 				if _, ok := result.DeviceIdToLocalId[deviceId]; !ok {
-					device, err, _ := this.devicerepo.GetDevice(jwt_http_router.JwtImpersonate(token), deviceId)
+					device, err, _ := this.devicerepo.GetDevice(auth.Token{Token: token}, deviceId)
 					if err != nil {
 						return result, err
 					}
@@ -351,7 +351,7 @@ func (this *Controller) deploymentModelWithAnalyticsRecords(token string, deploy
 			for _, deviceIdList := range record.GroupEvent.ServiceToDeviceIdsMapping {
 				for _, deviceId := range deviceIdList {
 					if _, ok := result.DeviceIdToLocalId[deviceId]; !ok {
-						device, err, _ := this.devicerepo.GetDevice(jwt_http_router.JwtImpersonate(token), deviceId)
+						device, err, _ := this.devicerepo.GetDevice(auth.Token{Token: token}, deviceId)
 						if err != nil {
 							return result, err
 						}
@@ -371,7 +371,7 @@ func (this *Controller) deploymentModelWithAnalyticsRecords(token string, deploy
 		}
 		if selection.SelectedDeviceId != nil {
 			if _, ok := result.DeviceIdToLocalId[*selection.SelectedDeviceId]; !ok {
-				device, err, _ := this.devicerepo.GetDevice(jwt_http_router.JwtImpersonate(token), *selection.SelectedDeviceId)
+				device, err, _ := this.devicerepo.GetDevice(auth.Token{Token: token}, *selection.SelectedDeviceId)
 				if err != nil {
 					return result, err
 				}
@@ -380,7 +380,7 @@ func (this *Controller) deploymentModelWithAnalyticsRecords(token string, deploy
 		}
 		if selection.SelectedServiceId != nil {
 			if _, ok := result.ServiceIdToLocalId[*selection.SelectedServiceId]; !ok {
-				service, err, _ := this.devicerepo.GetService(jwt_http_router.JwtImpersonate(token), *selection.SelectedServiceId)
+				service, err, _ := this.devicerepo.GetService(auth.Token{Token: token}, *selection.SelectedServiceId)
 				if err != nil {
 					return result, err
 				}

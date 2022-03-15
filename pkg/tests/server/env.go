@@ -104,7 +104,6 @@ func EnvForEventsCheck(ctx context.Context, wg *sync.WaitGroup, initConf configu
 
 	d := &mocks.Devices{}
 
-	eventmanager.MarshallerFactory = &mocks.Marshaller{}
 	eventmanager.DevicesFactory = func(config.Config, devices.Auth) interfaces.Devices {
 		return d
 	}
