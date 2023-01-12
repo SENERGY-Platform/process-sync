@@ -61,3 +61,34 @@ func (this *Security) List(token string, resource string, limit string, offset s
 	}
 	return result, nil
 }
+
+func (this *Security) ListElements(token string, resource string, limit string, offset string, rights string, result interface{}) (err error) {
+	params := strings.Join([]string{
+		"rights=" + rights,
+		"limit=" + limit,
+		"offset=" + offset,
+	}, "&")
+	req, err := http.NewRequest("GET", this.config.PermissionsUrl+"/v3/resources/"+url.QueryEscape(resource)+"?"+params, nil)
+	if err != nil {
+		debug.PrintStack()
+		return err
+	}
+	req.Header.Set("Authorization", token)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		debug.PrintStack()
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(resp.Body)
+		return errors.New(buf.String())
+	}
+	err = json.NewDecoder(resp.Body).Decode(result)
+	if err != nil {
+		debug.PrintStack()
+		return err
+	}
+	return nil
+}

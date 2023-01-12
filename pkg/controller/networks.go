@@ -18,27 +18,34 @@ package controller
 
 import (
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
-	"github.com/SENERGY-Platform/process-sync/pkg/security"
 	"log"
 	"net/http"
 	"runtime/debug"
 	"time"
 )
 
-func (this *Controller) ApiListNetworks(request *http.Request) (result []security.ListElement, err error, errCode int) {
+type SearchHub struct {
+	Id             string   `json:"id"`
+	Name           string   `json:"name"`
+	DeviceLocalIds []string `json:"device_local_ids"`
+	DeviceIds      []string `json:"device_ids"`
+}
+
+func (this *Controller) ApiListNetworks(request *http.Request) (result []SearchHub, err error, errCode int) {
 	token := request.Header.Get("Authorization")
-	all, err := this.security.List(token, "hubs", "10000", "0", "r")
+	all := []SearchHub{}
+	err = this.security.ListElements(token, "hubs", "10000", "0", "r", &all)
 	if err != nil {
 		return result, err, http.StatusInternalServerError
 	}
 	allIds := []string{}
-	hubIndex := map[string]security.ListElement{}
+	hubIndex := map[string]SearchHub{}
 	for _, element := range all {
 		allIds = append(allIds, element.Id)
 		hubIndex[element.Id] = element
 	}
 	if len(allIds) == 0 {
-		return []security.ListElement{}, nil, http.StatusOK
+		return []SearchHub{}, nil, http.StatusOK
 	}
 	filteredIds, err := this.db.FilterNetworkIds(allIds)
 	if err != nil {

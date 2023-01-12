@@ -49,6 +49,7 @@ type Security interface {
 	CheckBool(token string, kind string, id string, rights string) (allowed bool, err error)
 	CheckMultiple(token string, kind string, ids []string, rights string) (result map[string]bool, err error)
 	List(token string, resource string, limit string, offset string, rights string) (result []security.ListElement, err error)
+	ListElements(token string, resource string, limit string, offset string, rights string, result interface{}) (err error)
 }
 
 func NewDefault(conf configuration.Config, ctx context.Context) (ctrl *Controller, err error) {
