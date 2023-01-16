@@ -25,6 +25,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+var metadataDeploymentIdKey string
 var metadataCamundaDeploymentIdKey string
 var metadataNetworkIdKey string
 
@@ -34,6 +35,10 @@ func init() {
 	},
 		model.DeploymentMetadata{},
 		[]KeyMapping{
+			{
+				FieldName: "Metadata.DeploymentModel.Id",
+				Key:       &metadataDeploymentIdKey,
+			},
 			{
 				FieldName: "Metadata.CamundaDeploymentId",
 				Key:       &metadataCamundaDeploymentIdKey,
@@ -49,6 +54,18 @@ func init() {
 				Unique: false,
 				Asc:    true,
 				Keys:   []*string{&metadataCamundaDeploymentIdKey, &metadataNetworkIdKey},
+			},
+			{
+				Name:   "deploymen_metadata_deployment_network_id_index",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&metadataDeploymentIdKey, &metadataNetworkIdKey},
+			},
+			{
+				Name:   "deploymen_metadata_deployment_id_index",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&metadataDeploymentIdKey},
 			},
 		},
 	)
@@ -102,6 +119,34 @@ func (this *Mongo) ReadDeploymentMetadata(networkId string, deploymentId string)
 		return metadata, database.ErrNotFound
 	}
 	return metadata, err
+}
+
+func (this *Mongo) ListDeploymentMetadata(query model.MetadataQuery) (result []model.DeploymentMetadata, err error) {
+	ctx, _ := this.getTimeoutContext()
+	filter := bson.M{}
+	if query.DeploymentId != nil {
+		filter[metadataDeploymentIdKey] = *query.DeploymentId
+	}
+	if query.CamundaDeploymentId != nil {
+		filter[metadataCamundaDeploymentIdKey] = *query.CamundaDeploymentId
+	}
+	if query.NetworkId != nil {
+		filter[metadataNetworkIdKey] = *query.NetworkId
+	}
+	cursor, err := this.deploymentMetadataCollection().Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	for cursor.Next(ctx) {
+		element := model.DeploymentMetadata{}
+		err = cursor.Decode(&element)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, element)
+	}
+	err = cursor.Err()
+	return
 }
 
 func (this *Mongo) RemoveDeploymentMetadata(networkId string, deploymentId string) error {

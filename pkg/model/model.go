@@ -125,3 +125,9 @@ type AnalyticsRecord struct {
 	DeviceEvent *DeviceEventAnalyticsRecord `json:"device_event"`
 	GroupEvent  *GroupEventAnalyticsRecord  `json:"group_event"`
 }
+
+type MetadataQuery struct {
+	NetworkId           *string `json:"network_id"`
+	CamundaDeploymentId *string `json:"camunda_deployment_id"`
+	DeploymentId        *string `json:"deployment_id"`
+}
