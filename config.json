@@ -21,5 +21,8 @@
     "analytics_envelope_prefix": "",
 
     "cleanup_max_age": "730h",
-    "cleanup_interval": "24h"
+    "cleanup_interval": "24h",
+
+    "kafka_url": "",
+    "process_deployment_done_topic": "process-deployment-done"
 }

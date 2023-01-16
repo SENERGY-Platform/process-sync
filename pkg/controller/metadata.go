@@ -16,8 +16,58 @@
 
 package controller
 
-import "github.com/SENERGY-Platform/process-sync/pkg/model"
+import (
+	"encoding/json"
+	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/model"
+	"log"
+	"runtime/debug"
+)
 
 func (this *Controller) ListDeploymentMetadata(query model.MetadataQuery) (result []model.DeploymentMetadata, err error) {
 	return this.db.ListDeploymentMetadata(query)
+}
+
+func (this *Controller) UpdateDeploymentMetadata(networkId string, metadata model.Metadata) {
+	err := this.db.SaveDeploymentMetadata(model.DeploymentMetadata{
+		Metadata: metadata,
+		SyncInfo: model.SyncInfo{
+			NetworkId:       networkId,
+			IsPlaceholder:   false,
+			MarkedForDelete: false,
+			SyncDate:        configuration.TimeNow(),
+		},
+	})
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+	}
+	this.notifyProcessDeploymentDone(metadata.DeploymentModel.Id)
+}
+
+type DoneNotification struct {
+	Command string `json:"command"`
+	Id      string `json:"id"`
+	Handler string `json:"handler"`
+}
+
+func (this *Controller) notifyProcessDeploymentDone(id string) {
+	if this.deploymentDoneNotifier != nil {
+		msg, err := json.Marshal(DoneNotification{
+			Command: "PUT",
+			Id:      id,
+			Handler: "github.com/SENERGY-Platform/process-sync",
+		})
+		if err != nil {
+			log.Println("ERROR:", err)
+			debug.PrintStack()
+			return
+		}
+		err = this.deploymentDoneNotifier.Produce(id, msg)
+		if err != nil {
+			log.Println("ERROR:", err)
+			debug.PrintStack()
+			return
+		}
+	}
 }

@@ -22,10 +22,12 @@ import (
 	"github.com/SENERGY-Platform/process-deployment/lib/auth"
 	"github.com/SENERGY-Platform/process-deployment/lib/config"
 	"github.com/SENERGY-Platform/process-deployment/lib/devices"
+	"github.com/SENERGY-Platform/process-deployment/lib/interfaces"
 	"github.com/SENERGY-Platform/process-deployment/lib/model/devicemodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/database/mongo"
+	"github.com/SENERGY-Platform/process-sync/pkg/kafka"
 	"github.com/SENERGY-Platform/process-sync/pkg/mgw"
 	"github.com/SENERGY-Platform/process-sync/pkg/security"
 	"net/http"
@@ -33,11 +35,12 @@ import (
 )
 
 type Controller struct {
-	config     configuration.Config
-	mgw        *mgw.Mgw
-	db         database.Database
-	security   Security
-	devicerepo Devices
+	config                 configuration.Config
+	mgw                    *mgw.Mgw
+	db                     database.Database
+	security               Security
+	devicerepo             Devices
+	deploymentDoneNotifier interfaces.Producer
 }
 
 type Devices interface {
@@ -68,6 +71,12 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 	ctrl = &Controller{config: config, db: db, security: security, devicerepo: devicerepo}
 	if err != nil {
 		return ctrl, err
+	}
+	if config.KafkaUrl != "" && config.KafkaUrl != "-" {
+		ctrl.deploymentDoneNotifier, err = kafka.NewProducer(ctx, config.KafkaUrl, config.ProcessDeploymentDoneTopic, config.Debug)
+		if err != nil {
+			return ctrl, err
+		}
 	}
 	ctrl.mgw, err = mgw.New(config, ctx, ctrl)
 	if err != nil {

@@ -111,6 +111,16 @@ func (this *AnalyticsRecorder) removePrefixFromMap(m map[string]string) map[stri
 	return result
 }
 
+func (this *AnalyticsRecorder) removePrefixFromListMap(m map[string][]string) map[string][]string {
+	result := map[string][]string{}
+	for key, values := range m {
+		for _, value := range values {
+			result[key] = append(result[key], this.removePrefix(strings.TrimPrefix(value, this.EnvelopePrefix)))
+		}
+	}
+	return result
+}
+
 func (this *AnalyticsRecorder) removePrefixFromServiceToPathAndCharacteristic(serviceToPathAndCharacteristic map[string][]eventmodel.PathAndCharacteristic) map[string][]eventmodel.PathAndCharacteristic {
 	result := map[string][]eventmodel.PathAndCharacteristic{}
 	for key, list := range serviceToPathAndCharacteristic {

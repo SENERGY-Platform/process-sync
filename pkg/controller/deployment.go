@@ -51,22 +51,6 @@ func (this *Controller) UpdateDeployment(networkId string, deployment camundamod
 	}
 }
 
-func (this *Controller) UpdateDeploymentMetadata(networkId string, metadata model.Metadata) {
-	err := this.db.SaveDeploymentMetadata(model.DeploymentMetadata{
-		Metadata: metadata,
-		SyncInfo: model.SyncInfo{
-			NetworkId:       networkId,
-			IsPlaceholder:   false,
-			MarkedForDelete: false,
-			SyncDate:        configuration.TimeNow(),
-		},
-	})
-	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
-	}
-}
-
 func (this *Controller) DeleteDeployment(networkId string, deploymentId string) {
 	err := this.db.RemoveDeployment(networkId, deploymentId)
 	if err != nil {
@@ -404,7 +388,7 @@ func deploymentToEventManagerDeployment(deployment deploymentmodel.Deployment) (
 	return
 }
 
-//Image taken from the de:Straßenverkehrsordnung (German Road Regulations)
+// Image taken from the de:Straßenverkehrsordnung (German Road Regulations)
 const constructionSvg = `<svg
    xmlns:ns="http://ns.adobe.com/SaveForWeb/1.0/"
    xmlns:dc="http://purl.org/dc/elements/1.1/"

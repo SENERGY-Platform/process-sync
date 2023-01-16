@@ -31,6 +31,9 @@ var LogEnvConfig = true
 type Config struct {
 	Debug bool `json:"debug"`
 
+	KafkaUrl                   string `json:"kafka_url"`
+	ProcessDeploymentDoneTopic string `json:"process_deployment_done_topic"`
+
 	MongoUrl string `json:"mongo_url"`
 
 	MqttPw                            string `json:"mqtt_pw"`
@@ -57,7 +60,7 @@ type Config struct {
 	CleanupInterval string `json:"cleanup_interval"`
 }
 
-//loads config from json in location and used environment variables (e.g ZookeeperUrl --> ZOOKEEPER_URL)
+// loads config from json in location and used environment variables (e.g ZookeeperUrl --> ZOOKEEPER_URL)
 func Load(location string) (config Config, err error) {
 	file, err := os.Open(location)
 	if err != nil {
