@@ -49,8 +49,8 @@ func InitTopic(bootstrapUrl string, topics ...string) (err error) {
 			ReplicationFactor: 1,
 			ConfigEntries: []kafka.ConfigEntry{
 				{
-					ConfigName:  "retention.hours",
-					ConfigValue: "168",
+					ConfigName:  "retention.ms",
+					ConfigValue: "604800000",
 				},
 			},
 		})
