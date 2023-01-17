@@ -36,9 +36,9 @@ type Config struct {
 
 	MongoUrl string `json:"mongo_url"`
 
-	MqttPw                            string `json:"mqtt_pw"`
-	MqttUser                          string `json:"mqtt_user"`
-	MqttClientId                      string `json:"mqtt_client_id"`
+	MqttPw                            string `json:"mqtt_pw" config:"secret"`
+	MqttUser                          string `json:"mqtt_user" config:"secret"`
+	MqttClientId                      string `json:"mqtt_client_id" config:"secret"`
 	MqttBroker                        string `json:"mqtt_broker"`
 	MqttCleanSession                  bool   `json:"mqtt_clean_session"`
 	MqttGroupId                       string `json:"mqtt_group_id"` //optional
@@ -95,10 +95,11 @@ func handleEnvironmentVars(config *Config) {
 	configType := configValue.Type()
 	for index := 0; index < configType.NumField(); index++ {
 		fieldName := configType.Field(index).Name
+		fieldConfig := configType.Field(index).Tag.Get("config")
 		envName := fieldNameToEnvName(fieldName)
 		envValue := os.Getenv(envName)
 		if envValue != "" {
-			if LogEnvConfig {
+			if !strings.Contains(fieldConfig, "secret") {
 				fmt.Println("use environment variable: ", envName, " = ", envValue)
 			}
 			if configValue.FieldByName(fieldName).Kind() == reflect.Int64 {
