@@ -83,7 +83,7 @@ func (this *Mgw) handleDeploymentKnown(message paho.Message) {
 	this.handler.DeleteUnknownDeployments(networkId, knownIds)
 }
 
-func (this *Mgw) SendDeploymentCommand(networkId string, deployment model.DeploymentWithAnalyticsRecords) error {
+func (this *Mgw) SendDeploymentCommand(networkId string, deployment model.DeploymentWithEventDesc) error {
 	return this.sendObj(this.getCommandTopic(networkId, deploymentTopic), deployment)
 }
 

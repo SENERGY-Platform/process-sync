@@ -19,14 +19,16 @@ package controller
 import (
 	"context"
 	"errors"
+	eventinterfaces "github.com/SENERGY-Platform/event-deployment/lib/interfaces"
+	"github.com/SENERGY-Platform/event-deployment/lib/model"
+	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/process-deployment/lib/auth"
-	"github.com/SENERGY-Platform/process-deployment/lib/config"
-	"github.com/SENERGY-Platform/process-deployment/lib/devices"
 	"github.com/SENERGY-Platform/process-deployment/lib/interfaces"
 	"github.com/SENERGY-Platform/process-deployment/lib/model/devicemodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/database/mongo"
+	"github.com/SENERGY-Platform/process-sync/pkg/devices"
 	"github.com/SENERGY-Platform/process-sync/pkg/kafka"
 	"github.com/SENERGY-Platform/process-sync/pkg/mgw"
 	"github.com/SENERGY-Platform/process-sync/pkg/security"
@@ -39,13 +41,23 @@ type Controller struct {
 	mgw                    *mgw.Mgw
 	db                     database.Database
 	security               Security
+	baseDeviceRepoFactory  BaseDeviceRepoFactory
 	devicerepo             Devices
 	deploymentDoneNotifier interfaces.Producer
 }
 
+type BaseDeviceRepoFactory = func(token string, deviceRepoUrl string, permissionsSearchUrl string) eventinterfaces.Devices
+
+type DeviceProvider = func(token string, baseUrl string, deviceId string) (result models.Device, err error, code int)
+
 type Devices interface {
+	GetDeviceInfosOfGroup(token auth.Token, groupId string) (devices []model.Device, deviceTypeIds []string, err error, code int)
+	GetDeviceInfosOfDevices(token auth.Token, deviceIds []string) (devices []model.Device, deviceTypeIds []string, err error, code int)
+	GetDeviceTypeSelectables(token auth.Token, criteria []model.FilterCriteria) (result []model.DeviceTypeSelectable, err error, code int)
+	GetConcept(token auth.Token, conceptId string) (result model.Concept, err error, code int)
+	GetFunction(token auth.Token, functionId string) (result model.Function, err error, code int)
+	GetService(token auth.Token, serviceId string) (result models.Service, err error, code int)
 	GetDevice(token auth.Token, id string) (devicemodel.Device, error, int)
-	GetService(token auth.Token, id string) (devicemodel.Service, error, int)
 }
 
 type Security interface {
@@ -60,15 +72,16 @@ func NewDefault(conf configuration.Config, ctx context.Context) (ctrl *Controlle
 	if err != nil {
 		return ctrl, err
 	}
-	d, err := devices.Factory.New(context.Background(), &config.ConfigStruct{DeviceRepoUrl: conf.DeviceRepoUrl})
+	return New(conf, ctx, db, security.New(conf), devices.DefaultBaseDeviceRepoFactory, devices.DefaultDeviceProvider)
+}
+
+func New(config configuration.Config, ctx context.Context, db database.Database, security Security, baseDeviceRepoFactory BaseDeviceRepoFactory, deviceProvider DeviceProvider) (ctrl *Controller, err error) {
+	d, err := devices.New(config, baseDeviceRepoFactory, deviceProvider)
 	if err != nil {
 		return ctrl, err
 	}
-	return New(conf, ctx, db, security.New(conf), d)
-}
 
-func New(config configuration.Config, ctx context.Context, db database.Database, security Security, devicerepo Devices) (ctrl *Controller, err error) {
-	ctrl = &Controller{config: config, db: db, security: security, devicerepo: devicerepo}
+	ctrl = &Controller{config: config, db: db, security: security, baseDeviceRepoFactory: baseDeviceRepoFactory, devicerepo: d}
 	if err != nil {
 		return ctrl, err
 	}

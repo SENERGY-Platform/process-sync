@@ -17,9 +17,9 @@
 package model
 
 import (
-	eventmodel "github.com/SENERGY-Platform/event-deployment/lib/model"
+	"github.com/SENERGY-Platform/event-worker/pkg/model"
+	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
-	"github.com/SENERGY-Platform/process-sync/pkg/model/deploymentmodel"
 	"time"
 )
 
@@ -89,41 +89,11 @@ type HistoryQuery struct {
 	Search              string
 }
 
-type DeploymentWithAnalyticsRecords struct {
+type DeploymentWithEventDesc struct {
 	deploymentmodel.Deployment
-	AnalyticsRecords   []AnalyticsRecord `json:"analytics_records"`
 	DeviceIdToLocalId  map[string]string `json:"device_id_to_local_id"`
 	ServiceIdToLocalId map[string]string `json:"service_id_to_local_id"`
-}
-
-type DeviceEventAnalyticsRecord struct {
-	Label          string `json:"label"`
-	DeploymentId   string `json:"deployment_id"`
-	FlowId         string `json:"flow_id"`
-	EventId        string `json:"event_id"`
-	DeviceId       string `json:"device_id"`
-	ServiceId      string `json:"service_id"`
-	Value          string `json:"value"`
-	Path           string `json:"path"`
-	PathWithPrefix string `json:"-"` //set json tag to enable
-	CastFrom       string `json:"cast_from"`
-	CastTo         string `json:"cast_to"`
-}
-
-type GroupEventAnalyticsRecord struct {
-	Label                                    string                                        `json:"label"`
-	Desc                                     eventmodel.GroupEventDescription              `json:"desc"`
-	ServiceIds                               []string                                      `json:"service_ids"`
-	ServiceToDeviceIdsMapping                map[string][]string                           `json:"service_to_device_ids_mapping"`
-	ServiceToPathMapping                     map[string]string                             `json:"service_to_path_mapping"`
-	ServiceToPathWithPrefixMapping           map[string]string                             `json:"-"` //set json tag to enable
-	ServiceToPathAndCharacteristic           map[string][]eventmodel.PathAndCharacteristic `json:"service_to_path_and_characteristic"`
-	ServiceToPathWithPrefixAndCharacteristic map[string][]eventmodel.PathAndCharacteristic `json:"-"` //set json tag to enable
-}
-
-type AnalyticsRecord struct {
-	DeviceEvent *DeviceEventAnalyticsRecord `json:"device_event"`
-	GroupEvent  *GroupEventAnalyticsRecord  `json:"group_event"`
+	EventDescriptions  []model.EventDesc `json:"event_descriptions"`
 }
 
 type MetadataQuery struct {

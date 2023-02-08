@@ -18,14 +18,13 @@ package server
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/event-deployment/lib/config"
-	"github.com/SENERGY-Platform/event-deployment/lib/devices"
 	"github.com/SENERGY-Platform/event-deployment/lib/interfaces"
+	"github.com/SENERGY-Platform/models/go/models"
+	"github.com/SENERGY-Platform/process-deployment/lib/auth"
 	"github.com/SENERGY-Platform/process-sync/pkg/api"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 	"github.com/SENERGY-Platform/process-sync/pkg/database/mongo"
-	"github.com/SENERGY-Platform/process-sync/pkg/eventmanager"
 	"github.com/SENERGY-Platform/process-sync/pkg/tests/docker"
 	"github.com/SENERGY-Platform/process-sync/pkg/tests/mocks"
 	"sync"
@@ -68,7 +67,13 @@ func Env(ctx context.Context, wg *sync.WaitGroup, initConf configuration.Config,
 	if err != nil {
 		return config, err
 	}
-	ctrl, err := controller.New(config, ctx, db, mocks.Security(), nil)
+	d := &mocks.Devices{}
+
+	ctrl, err := controller.New(config, ctx, db, mocks.Security(), func(token string, deviceRepoUrl string, permissionsSearchUrl string) interfaces.Devices {
+		return d
+	}, func(token string, baseUrl string, deviceId string) (result models.Device, err error, code int) {
+		return d.GetDevice(auth.Token{Token: token}, deviceId)
+	})
 
 	err = api.Start(config, ctx, ctrl)
 	if err != nil {
@@ -85,7 +90,6 @@ func EnvForEventsCheck(ctx context.Context, wg *sync.WaitGroup, initConf configu
 		return conf, err
 	}
 	conf.DeviceRepoUrl = "placeholder"
-	conf.MarshallerUrl = "placeholder"
 	conf.PermissionsUrl = "placeholder"
 
 	_, mqttip, err := docker.Mqtt(ctx, wg)
@@ -104,11 +108,11 @@ func EnvForEventsCheck(ctx context.Context, wg *sync.WaitGroup, initConf configu
 
 	d := &mocks.Devices{}
 
-	eventmanager.DevicesFactory = func(config.Config, devices.Auth) interfaces.Devices {
+	ctrl, err := controller.New(conf, ctx, db, mocks.Security(), func(token string, deviceRepoUrl string, permissionsSearchUrl string) interfaces.Devices {
 		return d
-	}
-
-	ctrl, err := controller.New(conf, ctx, db, mocks.Security(), d)
+	}, func(token string, baseUrl string, deviceId string) (result models.Device, err error, code int) {
+		return d.GetDevice(auth.Token{Token: token}, deviceId)
+	})
 
 	err = api.Start(conf, ctx, ctrl)
 	if err != nil {

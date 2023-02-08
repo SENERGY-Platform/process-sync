@@ -17,15 +17,25 @@
 package mocks
 
 import (
-	eventmodel "github.com/SENERGY-Platform/event-deployment/lib/model"
+	"github.com/SENERGY-Platform/event-deployment/lib/model"
 	"github.com/SENERGY-Platform/process-deployment/lib/auth"
 	"github.com/SENERGY-Platform/process-deployment/lib/model/devicemodel"
 )
 
 type Devices struct{}
 
-func (this *Devices) GetDeviceInfosOfGroup(groupId string) (devices []eventmodel.Device, deviceTypeIds []string, err error, code int) {
-	return []eventmodel.Device{
+func (this *Devices) GetConcept(conceptId string) (result model.Concept, err error, code int) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (this *Devices) GetFunction(functionId string) (result model.Function, err error, code int) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (this *Devices) GetDeviceInfosOfGroup(groupId string) (devices []model.Device, deviceTypeIds []string, err error, code int) {
+	return []model.Device{
 		{
 			Id:           "did1",
 			Name:         "test-device-did1",
@@ -39,9 +49,9 @@ func (this *Devices) GetDeviceInfosOfGroup(groupId string) (devices []eventmodel
 	}, []string{"dt1"}, nil, 200
 }
 
-func (this *Devices) GetDeviceInfosOfDevices(deviceIds []string) (devices []eventmodel.Device, deviceTypeIds []string, err error, code int) {
+func (this *Devices) GetDeviceInfosOfDevices(deviceIds []string) (devices []model.Device, deviceTypeIds []string, err error, code int) {
 	for _, id := range deviceIds {
-		devices = append(devices, eventmodel.Device{
+		devices = append(devices, model.Device{
 			Id:           id,
 			Name:         "test-device-" + id,
 			DeviceTypeId: "dt1",
@@ -59,7 +69,7 @@ func (this *Devices) GetDevice(token auth.Token, id string) (devicemodel.Device,
 	}, nil, 200
 }
 
-func (this *Devices) GetService(token auth.Token, id string) (devicemodel.Service, error, int) {
+func (this *Devices) GetService(id string) (devicemodel.Service, error, int) {
 	return devicemodel.Service{
 		Id:          id,
 		LocalId:     "l" + id,
@@ -79,11 +89,11 @@ func (this *Devices) GetService(token auth.Token, id string) (devicemodel.Servic
 	}, nil, 200
 }
 
-func (this *Devices) GetDeviceTypeSelectables(criteria []eventmodel.FilterCriteria) (result []eventmodel.DeviceTypeSelectable, err error, code int) {
-	result = []eventmodel.DeviceTypeSelectable{
+func (this *Devices) GetDeviceTypeSelectables(criteria []model.FilterCriteria) (result []model.DeviceTypeSelectable, err error, code int) {
+	result = []model.DeviceTypeSelectable{
 		{
 			DeviceTypeId: "dt1",
-			ServicePathOptions: map[string][]eventmodel.ServicePathOption{
+			ServicePathOptions: map[string][]model.ServicePathOption{
 				"sid1": {
 					{
 						ServiceId:        "sid1",

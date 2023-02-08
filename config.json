@@ -17,7 +17,6 @@
     "mongo_process_instance_collection": "process_instances",
     "mongo_last_network_contact_collection": "last_network_contact",
     "permissions_url": "",
-    "marshaller_url": "",
     "analytics_envelope_prefix": "",
 
     "cleanup_max_age": "730h",

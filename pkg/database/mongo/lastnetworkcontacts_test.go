@@ -18,10 +18,10 @@ package mongo
 
 import (
 	"context"
+	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
-	"github.com/SENERGY-Platform/process-sync/pkg/model/deploymentmodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/tests/docker"
 	"reflect"
 	"sort"

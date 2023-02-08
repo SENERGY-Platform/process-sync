@@ -17,14 +17,12 @@
 package controller
 
 import (
-	"encoding/json"
 	"github.com/SENERGY-Platform/process-deployment/lib/auth"
-	eventmanagermodel "github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
+	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
-	"github.com/SENERGY-Platform/process-sync/pkg/eventmanager"
+	"github.com/SENERGY-Platform/process-sync/pkg/controller/transformer"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
-	"github.com/SENERGY-Platform/process-sync/pkg/model/deploymentmodel"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -130,7 +128,7 @@ func (this *Controller) ApiSearchDeployments(networkIds []string, search string,
 }
 
 func (this *Controller) ApiCreateDeployment(token string, networkId string, deployment deploymentmodel.Deployment) (err error, errCode int) {
-	err = deployment.Validate(deploymentmodel.ValidatePublish)
+	err = deployment.Validate(deploymentmodel.ValidatePublish, map[string]bool{"service": true})
 	if err != nil {
 		return err, http.StatusBadRequest
 	}
@@ -138,7 +136,7 @@ func (this *Controller) ApiCreateDeployment(token string, networkId string, depl
 		errCode = this.SetErrCode(err)
 	}()
 
-	withAnalytics, err := this.deploymentModelWithAnalyticsRecords(token, deployment)
+	withAnalytics, err := this.deploymentModelWithEventDescriptions(token, deployment)
 	if err != nil {
 		return err, errCode
 	}
@@ -280,76 +278,36 @@ func (this *Controller) ExtendDeployments(deployments []model.Deployment) (resul
 	return
 }
 
-func (this *Controller) deploymentModelWithAnalyticsRecords(token string, deployment deploymentmodel.Deployment) (result model.DeploymentWithAnalyticsRecords, err error) {
+func (this *Controller) deploymentModelWithEventDescriptions(token string, deployment deploymentmodel.Deployment) (result model.DeploymentWithEventDesc, err error) {
 	result.Deployment = deployment
-	if this.config.DeviceRepoUrl == "" || this.config.MarshallerUrl == "" {
-		log.Println("WARNING: deploymentModelWithAnalyticsRecords() not enabled; add config values for DeviceRepoUrl and MarshallerUrl")
+	if this.config.DeviceRepoUrl == "" {
+		log.Println("WARNING: deploymentModelWithEventDescriptions() not enabled; add config values for DeviceRepoUrl")
 		return
 	}
-	eventManagerDeployment, err := deploymentToEventManagerDeployment(deployment)
-	if err != nil {
-		return result, err
-	}
-	result.AnalyticsRecords, err = eventmanager.GetAnalyticsDeploymentsForMessageEvents(this.config, token, eventManagerDeployment)
+	result.EventDescriptions, err = transformer.New(this.config, this.baseDeviceRepoFactory, token).Transform("", deployment)
 	if err != nil {
 		return result, err
 	}
 	result.DeviceIdToLocalId = map[string]string{}
 	result.ServiceIdToLocalId = map[string]string{}
-	for _, record := range result.AnalyticsRecords {
-		if record.DeviceEvent != nil {
-			if _, ok := result.ServiceIdToLocalId[record.DeviceEvent.ServiceId]; !ok {
-				service, err, _ := this.devicerepo.GetService(auth.Token{Token: token}, record.DeviceEvent.ServiceId)
-				if err != nil {
-					return result, err
-				}
-				result.ServiceIdToLocalId[record.DeviceEvent.ServiceId] = service.LocalId
+	for _, record := range result.EventDescriptions {
+		if _, ok := result.ServiceIdToLocalId[record.ServiceId]; !ok {
+			service, err, _ := this.devicerepo.GetService(auth.Token{Token: token}, record.ServiceId)
+			if err != nil {
+				return result, err
 			}
-			if _, ok := result.DeviceIdToLocalId[record.DeviceEvent.DeviceId]; !ok {
-				device, err, _ := this.devicerepo.GetDevice(auth.Token{Token: token}, record.DeviceEvent.DeviceId)
-				if err != nil {
-					return result, err
-				}
-				result.DeviceIdToLocalId[record.DeviceEvent.DeviceId] = device.LocalId
-			}
+			result.ServiceIdToLocalId[record.ServiceId] = service.LocalId
 		}
-		if record.GroupEvent != nil {
-			for _, serviceId := range record.GroupEvent.ServiceIds {
-				if _, ok := result.ServiceIdToLocalId[serviceId]; !ok {
-					service, err, _ := this.devicerepo.GetService(auth.Token{Token: token}, serviceId)
-					if err != nil {
-						return result, err
-					}
-					result.ServiceIdToLocalId[serviceId] = service.LocalId
-				}
+		if _, ok := result.DeviceIdToLocalId[record.DeviceId]; !ok {
+			device, err, _ := this.devicerepo.GetDevice(auth.Token{Token: token}, record.DeviceId)
+			if err != nil {
+				return result, err
 			}
-			for _, deviceId := range record.GroupEvent.Desc.DeviceIds {
-				if _, ok := result.DeviceIdToLocalId[deviceId]; !ok {
-					device, err, _ := this.devicerepo.GetDevice(auth.Token{Token: token}, deviceId)
-					if err != nil {
-						return result, err
-					}
-					result.DeviceIdToLocalId[deviceId] = device.LocalId
-				}
-			}
-			for _, deviceIdList := range record.GroupEvent.ServiceToDeviceIdsMapping {
-				for _, deviceId := range deviceIdList {
-					if _, ok := result.DeviceIdToLocalId[deviceId]; !ok {
-						device, err, _ := this.devicerepo.GetDevice(auth.Token{Token: token}, deviceId)
-						if err != nil {
-							return result, err
-						}
-						result.DeviceIdToLocalId[deviceId] = device.LocalId
-					}
-				}
-			}
+			result.DeviceIdToLocalId[record.DeviceId] = device.LocalId
 		}
 	}
 	for _, element := range deployment.Elements {
 		var selection deploymentmodel.Selection
-		if element.MessageEvent != nil {
-			selection = element.MessageEvent.Selection
-		}
 		if element.Task != nil {
 			selection = element.Task.Selection
 		}
@@ -373,19 +331,6 @@ func (this *Controller) deploymentModelWithAnalyticsRecords(token string, deploy
 		}
 	}
 	return result, nil
-}
-
-func deploymentToEventManagerDeployment(deployment deploymentmodel.Deployment) (result eventmanagermodel.Deployment, err error) {
-	t, err := json.Marshal(deployment)
-	if err != nil {
-		return result, err
-	}
-	err = json.Unmarshal(t, &result)
-	if err != nil {
-		return result, err
-	}
-	result.Id = "placeholder"
-	return
 }
 
 // Image taken from the de:Straßenverkehrsordnung (German Road Regulations)
