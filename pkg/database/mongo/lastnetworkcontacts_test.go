@@ -18,6 +18,7 @@ package mongo
 
 import (
 	"context"
+	model2 "github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
@@ -123,7 +124,10 @@ func TestLastNetworkContact(t *testing.T) {
 			err = db.SaveDeploymentMetadata(model.DeploymentMetadata{
 				Metadata: model.Metadata{
 					CamundaDeploymentId: "1",
-					DeploymentModel:     deploymentmodel.Deployment{Id: "1"},
+					DeploymentModel: model.DeploymentWithEventDesc{
+						Deployment:        deploymentmodel.Deployment{Id: "1"},
+						EventDescriptions: []model2.EventDesc{{DeviceGroupId: "dg1"}},
+					},
 				},
 				SyncInfo: model.SyncInfo{NetworkId: network1.NetworkId},
 			})
@@ -134,7 +138,10 @@ func TestLastNetworkContact(t *testing.T) {
 			err = db.SaveDeploymentMetadata(model.DeploymentMetadata{
 				Metadata: model.Metadata{
 					CamundaDeploymentId: "2",
-					DeploymentModel:     deploymentmodel.Deployment{Id: "2"},
+					DeploymentModel: model.DeploymentWithEventDesc{
+						Deployment:        deploymentmodel.Deployment{Id: "2"},
+						EventDescriptions: []model2.EventDesc{{DeviceGroupId: "dg1"}},
+					},
 				},
 				SyncInfo: model.SyncInfo{NetworkId: network2.NetworkId},
 			})
@@ -142,7 +149,58 @@ func TestLastNetworkContact(t *testing.T) {
 				t.Error(err)
 				return
 			}
+			err = db.SaveDeploymentMetadata(model.DeploymentMetadata{
+				Metadata: model.Metadata{
+					CamundaDeploymentId: "3",
+					DeploymentModel: model.DeploymentWithEventDesc{
+						Deployment:        deploymentmodel.Deployment{Id: "3"},
+						EventDescriptions: []model2.EventDesc{{DeviceGroupId: "dg2"}},
+					},
+				},
+				SyncInfo: model.SyncInfo{NetworkId: "nope"},
+			})
+			if err != nil {
+				t.Error(err)
+				return
+			}
 		})
+
+		t.Run("get deployments by device-group", func(t *testing.T) {
+			list, err := db.ListDeploymentMetadataByEventDeviceGroupId("dg1")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			sort.Slice(list, func(i, j int) bool {
+				return list[i].CamundaDeploymentId < list[j].CamundaDeploymentId
+			})
+			expected := []model.DeploymentMetadata{
+				{
+					Metadata: model.Metadata{
+						CamundaDeploymentId: "1",
+						DeploymentModel: model.DeploymentWithEventDesc{
+							Deployment:        deploymentmodel.Deployment{Id: "1"},
+							EventDescriptions: []model2.EventDesc{{DeviceGroupId: "dg1"}},
+						},
+					},
+					SyncInfo: model.SyncInfo{NetworkId: network1.NetworkId},
+				},
+				{
+					Metadata: model.Metadata{
+						CamundaDeploymentId: "2",
+						DeploymentModel: model.DeploymentWithEventDesc{
+							Deployment:        deploymentmodel.Deployment{Id: "2"},
+							EventDescriptions: []model2.EventDesc{{DeviceGroupId: "dg1"}},
+						},
+					},
+					SyncInfo: model.SyncInfo{NetworkId: network2.NetworkId},
+				},
+			}
+			if !reflect.DeepEqual(expected, list) {
+				t.Errorf("%#v\n%#v\n", expected, list)
+			}
+		})
+
 		t.Run("create histories", func(t *testing.T) {
 			err = db.SaveHistoricProcessInstance(model.HistoricProcessInstance{
 				HistoricProcessInstance: camundamodel.HistoricProcessInstance{Id: "1"},

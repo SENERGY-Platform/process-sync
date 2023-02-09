@@ -66,6 +66,7 @@ type Database interface {
 	RemoveDeploymentMetadata(networkId string, deploymentId string) error
 	ReadDeploymentMetadata(networkId string, deploymentId string) (metadata model.DeploymentMetadata, err error)
 	ListDeploymentMetadata(query model.MetadataQuery) (result []model.DeploymentMetadata, err error)
+	ListDeploymentMetadataByEventDeviceGroupId(deviceGroupId string) (result []model.DeploymentMetadata, err error)
 
 	GetDeploymentMetadataOfDeploymentIdList(networkId string, deploymentIds []string) (map[string]model.DeploymentMetadata, error)
 	GetDefinitionsOfDeploymentIdList(networkId string, deploymentIds []string) (map[string]model.ProcessDefinition, error)

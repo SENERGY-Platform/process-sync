@@ -136,12 +136,12 @@ func (this *Controller) ApiCreateDeployment(token string, networkId string, depl
 		errCode = this.SetErrCode(err)
 	}()
 
-	withAnalytics, err := this.deploymentModelWithEventDescriptions(token, deployment)
+	withEvents, err := this.deploymentModelWithEventDescriptions(token, deployment)
 	if err != nil {
 		return err, errCode
 	}
 
-	err = this.mgw.SendDeploymentCommand(networkId, withAnalytics)
+	err = this.mgw.SendDeploymentCommand(networkId, withEvents)
 	if err != nil {
 		return
 	}

@@ -23,20 +23,31 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
+	"runtime/debug"
 )
 
 var metadataDeploymentIdKey string
 var metadataCamundaDeploymentIdKey string
 var metadataNetworkIdKey string
+var metadataEventGroupIdKey string
 
 func init() {
+	var err error
+	metadataEventGroupIdKey, err = getBsonFieldPath(model.DeploymentMetadata{}, "Metadata.DeploymentModel.EventDescriptions")
+	if err != nil {
+		debug.PrintStack()
+		log.Fatal(err)
+	}
+	metadataEventGroupIdKey = metadataEventGroupIdKey + ".device_group_id"
+
 	prepareCollection(func(config configuration.Config) string {
 		return config.MongoDeploymentMetadataCollection
 	},
 		model.DeploymentMetadata{},
 		[]KeyMapping{
 			{
-				FieldName: "Metadata.DeploymentModel.Id",
+				FieldName: "Metadata.DeploymentModel.Deployment.Id",
 				Key:       &metadataDeploymentIdKey,
 			},
 			{
@@ -66,6 +77,12 @@ func init() {
 				Unique: false,
 				Asc:    true,
 				Keys:   []*string{&metadataDeploymentIdKey},
+			},
+			{
+				Name:   "deploymen_metadata_event_device_group_id_index",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&metadataEventGroupIdKey},
 			},
 		},
 	)
@@ -133,6 +150,26 @@ func (this *Mongo) ListDeploymentMetadata(query model.MetadataQuery) (result []m
 	if query.NetworkId != nil {
 		filter[metadataNetworkIdKey] = *query.NetworkId
 	}
+	cursor, err := this.deploymentMetadataCollection().Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	for cursor.Next(ctx) {
+		element := model.DeploymentMetadata{}
+		err = cursor.Decode(&element)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, element)
+	}
+	err = cursor.Err()
+	log.Printf("DEBUG: result = %#v\n %v\n", result, err)
+	return
+}
+
+func (this *Mongo) ListDeploymentMetadataByEventDeviceGroupId(deviceGroupId string) (result []model.DeploymentMetadata, err error) {
+	ctx, _ := this.getTimeoutContext()
+	filter := bson.M{metadataEventGroupIdKey: deviceGroupId}
 	cursor, err := this.deploymentMetadataCollection().Find(ctx, filter)
 	if err != nil {
 		return nil, err

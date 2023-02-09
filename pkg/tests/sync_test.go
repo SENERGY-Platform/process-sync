@@ -53,6 +53,7 @@ func TestSync(t *testing.T) {
 		MongoProcessInstanceCollection:    "instances",
 		MongoDeploymentMetadataCollection: "deployment_metadata",
 		MongoLastNetworkContactCollection: "last_network_collection",
+		DeviceRepoUrl:                     "placeholder",
 	}
 
 	networkId := "test-network-id"

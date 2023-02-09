@@ -18,6 +18,7 @@ package mgw
 
 import (
 	"encoding/json"
+	model2 "github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	paho "github.com/eclipse/paho.mqtt.golang"
@@ -87,6 +88,15 @@ func (this *Mgw) SendDeploymentCommand(networkId string, deployment model.Deploy
 	return this.sendObj(this.getCommandTopic(networkId, deploymentTopic), deployment)
 }
 
+func (this *Mgw) SendDeploymentEventUpdateCommand(networkId string, camundaDeploymentId string, eventDescriptions []model2.EventDesc, deviceMapping map[string]string, serviceMapping map[string]string) error {
+	return this.sendObj(this.getCommandTopic(networkId, deploymentTopic, "event-descriptions"), EventDescriptionsUpdate{
+		CamundaDeploymentId: camundaDeploymentId,
+		EventDescriptions:   eventDescriptions,
+		DeviceIdToLocalId:   deviceMapping,
+		ServiceIdToLocalId:  serviceMapping,
+	})
+}
+
 func (this *Mgw) SendDeploymentDeleteCommand(networkId string, deploymentId string) error {
 	return this.sendStr(this.getCommandTopic(networkId, deploymentTopic, "delete"), deploymentId)
 }
@@ -96,4 +106,11 @@ func (this *Mgw) SendDeploymentStartCommand(networkId string, deploymentId strin
 		DeploymentId: deploymentId,
 		Parameter:    parameter,
 	})
+}
+
+type EventDescriptionsUpdate struct {
+	CamundaDeploymentId string             `json:"camunda_deployment_id"`
+	EventDescriptions   []model2.EventDesc `json:"event_descriptions"`
+	DeviceIdToLocalId   map[string]string  `json:"device_id_to_local_id"`
+	ServiceIdToLocalId  map[string]string  `json:"service_id_to_local_id"`
 }

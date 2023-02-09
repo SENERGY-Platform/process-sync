@@ -38,7 +38,7 @@ type LastNetworkContact struct {
 type Metadata struct {
 	CamundaDeploymentId string                           `json:"camunda_deployment_id"`
 	ProcessParameter    map[string]camundamodel.Variable `json:"process_parameter"`
-	DeploymentModel     deploymentmodel.Deployment       `json:"deployment_model"`
+	DeploymentModel     DeploymentWithEventDesc          `json:"deployment_model"`
 }
 
 type DeploymentMetadata struct {
