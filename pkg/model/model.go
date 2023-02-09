@@ -90,10 +90,10 @@ type HistoryQuery struct {
 }
 
 type DeploymentWithEventDesc struct {
-	deploymentmodel.Deployment
-	DeviceIdToLocalId  map[string]string `json:"device_id_to_local_id"`
-	ServiceIdToLocalId map[string]string `json:"service_id_to_local_id"`
-	EventDescriptions  []model.EventDesc `json:"event_descriptions"`
+	deploymentmodel.Deployment `bson:",inline"`
+	DeviceIdToLocalId          map[string]string `json:"device_id_to_local_id"`
+	ServiceIdToLocalId         map[string]string `json:"service_id_to_local_id"`
+	EventDescriptions          []model.EventDesc `json:"event_descriptions"`
 }
 
 type MetadataQuery struct {

@@ -47,7 +47,7 @@ func init() {
 		model.DeploymentMetadata{},
 		[]KeyMapping{
 			{
-				FieldName: "Metadata.DeploymentModel.Deployment.Id",
+				FieldName: "Metadata.DeploymentModel.Id",
 				Key:       &metadataDeploymentIdKey,
 			},
 			{
