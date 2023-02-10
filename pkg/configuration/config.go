@@ -32,7 +32,14 @@ type Config struct {
 	Debug bool `json:"debug"`
 
 	KafkaUrl                   string `json:"kafka_url"`
+	KafkaConsumerGroup         string `json:"kafka_consumer_group"`
 	ProcessDeploymentDoneTopic string `json:"process_deployment_done_topic"`
+	DeviceGroupTopic           string `json:"device_group_topic"`
+
+	AuthExpirationTimeBuffer float64 `json:"auth_expiration_time_buffer"`
+	AuthEndpoint             string  `json:"auth_endpoint"`
+	AuthClientId             string  `json:"auth_client_id"`
+	AuthClientSecret         string  `json:"auth_client_secret"`
 
 	MongoUrl string `json:"mongo_url"`
 

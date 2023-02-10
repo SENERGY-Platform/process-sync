@@ -61,6 +61,7 @@ type Devices interface {
 }
 
 type Security interface {
+	GetAdminToken() (token string, err error)
 	CheckBool(token string, kind string, id string, rights string) (allowed bool, err error)
 	CheckMultiple(token string, kind string, ids []string, rights string) (result map[string]bool, err error)
 	List(token string, resource string, limit string, offset string, rights string) (result []security.ListElement, err error)
@@ -92,6 +93,10 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 		}
 	}
 	ctrl.mgw, err = mgw.New(config, ctx, ctrl)
+	if err != nil {
+		return ctrl, err
+	}
+	err = ctrl.initDeviceGroupWatcher(ctx)
 	if err != nil {
 		return ctrl, err
 	}

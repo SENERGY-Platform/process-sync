@@ -23,5 +23,11 @@
     "cleanup_interval": "24h",
 
     "kafka_url": "",
-    "process_deployment_done_topic": "process-deployment-done"
+    "kafka_consumer_group": "process-sync",
+    "process_deployment_done_topic": "process-deployment-done",
+    "device_group_topic": "device-groups",
+    "auth_expiration_time_buffer": 1,
+    "auth_endpoint": "",
+    "auth_client_id": "",
+    "auth_client_secret": ""
 }

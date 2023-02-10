@@ -16,6 +16,59 @@
 
 package controller
 
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"github.com/SENERGY-Platform/models/go/models"
+	"github.com/SENERGY-Platform/process-sync/pkg/kafka"
+	"log"
+)
+
+func (this *Controller) initDeviceGroupWatcher(ctx context.Context) (err error) {
+	if this.config.KafkaUrl == "" || this.config.KafkaUrl == "-" {
+		log.Println("skip device-group handler: missing kafka url config")
+		return nil
+	}
+	if this.config.AuthEndpoint == "" || this.config.AuthEndpoint == "-" {
+		log.Println("skip device-group handler: missing auth url config")
+		return nil
+	}
+	return kafka.NewConsumer(ctx, this.config, this.config.DeviceGroupTopic, func(msg []byte) error {
+		if this.config.Debug {
+			log.Println("DEBUG: receive device-group command:", string(msg))
+		}
+		cmd := DeviceGroupCommand{}
+		err := json.Unmarshal(msg, &cmd)
+		if err != nil {
+			log.Println("WARNING: unable to interpret device group command:", err)
+			return nil //ignore uninterpretable commands
+		}
+		if cmd.Command != "PUT" {
+			return nil // ignore unhandled command types
+		}
+		token, err := this.security.GetAdminToken()
+		if err != nil {
+			return err
+		}
+		return this.UpdateDeviceGroup(token, cmd.Id)
+	}, func(err error) (fatal bool) {
+		if errors.Is(err, kafka.FetchError) {
+			log.Fatal(err)
+			return true
+		}
+		if errors.Is(err, kafka.CommitError) {
+			log.Fatal(err)
+			return true
+		}
+		if errors.Is(err, kafka.HandlerError) {
+			log.Fatal(err)
+			return true
+		}
+		return true
+	})
+}
+
 func (this *Controller) UpdateDeviceGroup(token string, deviceGroupId string) error {
 	list, err := this.db.ListDeploymentMetadataByEventDeviceGroupId(deviceGroupId)
 	if err != nil {
@@ -36,4 +89,11 @@ func (this *Controller) UpdateDeviceGroup(token string, deviceGroupId string) er
 		}
 	}
 	return nil
+}
+
+type DeviceGroupCommand struct {
+	Command     string             `json:"command"`
+	Id          string             `json:"id"`
+	Owner       string             `json:"owner"`
+	DeviceGroup models.DeviceGroup `json:"device_group"`
 }

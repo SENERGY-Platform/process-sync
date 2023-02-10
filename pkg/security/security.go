@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"net/url"
 	"runtime/debug"
+	"time"
 )
 
 func New(config configuration.Config) *Security {
@@ -33,6 +34,16 @@ func New(config configuration.Config) *Security {
 
 type Security struct {
 	config configuration.Config
+	openid *OpenidToken
+}
+
+type OpenidToken struct {
+	AccessToken      string    `json:"access_token"`
+	ExpiresIn        float64   `json:"expires_in"`
+	RefreshExpiresIn float64   `json:"refresh_expires_in"`
+	RefreshToken     string    `json:"refresh_token"`
+	TokenType        string    `json:"token_type"`
+	RequestTime      time.Time `json:"-"`
 }
 
 type IdWrapper struct {
