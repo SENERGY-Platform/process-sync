@@ -38,8 +38,8 @@ type Config struct {
 
 	AuthExpirationTimeBuffer float64 `json:"auth_expiration_time_buffer"`
 	AuthEndpoint             string  `json:"auth_endpoint"`
-	AuthClientId             string  `json:"auth_client_id"`
-	AuthClientSecret         string  `json:"auth_client_secret"`
+	AuthClientId             string  `json:"auth_client_id" config:"secret"`
+	AuthClientSecret         string  `json:"auth_client_secret" config:"secret"`
 
 	MongoUrl string `json:"mongo_url"`
 
