@@ -15,6 +15,8 @@ github.com/SENERGY-Platform/models/go v0.0.0-20230105115534-8edcf0271764 h1:myrB
 github.com/SENERGY-Platform/models/go v0.0.0-20230105115534-8edcf0271764/go.mod h1:GqfI+440B0Yz7NshAxm4PgVwRGcNqvbxddoB+xUa6HQ=
 github.com/SENERGY-Platform/process-deployment v0.0.0-20230208100932-a2a0a983c8ba h1:Tkt9bsyvusekH1kvwTuP0QBAkM7m0neWYxaEfIvQAnM=
 github.com/SENERGY-Platform/process-deployment v0.0.0-20230208100932-a2a0a983c8ba/go.mod h1:vqh9BCV6is5UVKIFRAjiKQrHet5WSgbdITV0YI+vFQ4=
+github.com/SENERGY-Platform/process-deployment v0.0.0-20230220144253-c09c2b3cfff5 h1:+LDQ4dY7V/XMjo7fop/28h0ZJgIkYmQLRYD6hXWQr8c=
+github.com/SENERGY-Platform/process-deployment v0.0.0-20230220144253-c09c2b3cfff5/go.mod h1:vqh9BCV6is5UVKIFRAjiKQrHet5WSgbdITV0YI+vFQ4=
 github.com/beevik/etree v1.1.0 h1:T0xke/WvNtMoCqgzPhkX2r4rjY3GDZFi+FjpRZY2Jbs=
 github.com/beevik/etree v1.1.0/go.mod h1:r8Aw8JqVegEf0w2fDnATrX9VpkMcyFeM0FhwO62wh+A=
 github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b h1:L/QXpzIa3pOvUGt1D1lA5KjYhPBAN/3iWdP7xeFS9F0=

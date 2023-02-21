@@ -6,7 +6,7 @@ require (
 	github.com/SENERGY-Platform/event-deployment v0.0.0-20230208101350-a25614bdf8eb
 	github.com/SENERGY-Platform/event-worker v0.0.0-20230206101950-c0664a0fa7a4
 	github.com/SENERGY-Platform/models/go v0.0.0-20230105115534-8edcf0271764
-	github.com/SENERGY-Platform/process-deployment v0.0.0-20230208100932-a2a0a983c8ba
+	github.com/SENERGY-Platform/process-deployment v0.0.0-20230220144253-c09c2b3cfff5
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.4.2
 	github.com/google/uuid v1.2.0
