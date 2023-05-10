@@ -171,6 +171,7 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 	var current model.Deployment
 	current, err = this.db.ReadDeployment(networkId, deploymentId)
 	if err != nil {
+		debug.PrintStack()
 		return
 	}
 	if current.IsPlaceholder {
@@ -184,11 +185,13 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 
 	definition, err := this.db.GetDefinitionByDeploymentId(networkId, deploymentId)
 	if err != nil {
+		debug.PrintStack()
 		return
 	}
 
 	err = this.mgw.SendDeploymentStartCommand(networkId, deploymentId, parameter)
 	if err != nil {
+		debug.PrintStack()
 		return
 	}
 
@@ -233,6 +236,10 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 			SyncDate:        now,
 		},
 	})
+	if err != nil {
+		debug.PrintStack()
+		return
+	}
 	return
 }
 

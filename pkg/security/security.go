@@ -17,24 +17,21 @@
 package security
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
+	"github.com/SENERGY-Platform/permission-search/lib/client"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"log"
-	"net/http"
-	"net/url"
-	"runtime/debug"
 	"time"
 )
 
 func New(config configuration.Config) *Security {
-	return &Security{config: config}
+	return &Security{config: config, permissionsearch: client.NewClient(config.PermissionsUrl)}
 }
 
 type Security struct {
-	config configuration.Config
-	openid *OpenidToken
+	config           configuration.Config
+	openid           *OpenidToken
+	permissionsearch client.Client
 }
 
 type OpenidToken struct {
@@ -72,29 +69,17 @@ func (this *Security) CheckBool(token string, kind string, id string, rights str
 	if this.IsAdmin(token) {
 		return true, nil
 	}
-	req, err := http.NewRequest("GET", this.config.PermissionsUrl+"/v3/resources/"+url.QueryEscape(kind)+"/"+url.QueryEscape(id)+"/access?rights="+rights, nil)
-	if err != nil {
-		debug.PrintStack()
-		return false, err
+	err = this.permissionsearch.CheckUserOrGroup(token, kind, id, rights)
+	if err == nil {
+		return true, nil
 	}
-	req.Header.Set("Authorization", token)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		debug.PrintStack()
-		return false, err
+	if errors.Is(err, client.ErrAccessDenied) {
+		return false, nil
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(resp.Body)
-		return false, errors.New(buf.String())
+	if errors.Is(err, client.ErrNotFound) {
+		return false, nil
 	}
-	err = json.NewDecoder(resp.Body).Decode(&allowed)
-	if err != nil {
-		debug.PrintStack()
-		return false, err
-	}
-	return true, nil
+	return allowed, err
 }
 
 func (this *Security) CheckMultiple(token string, kind string, ids []string, rights string) (result map[string]bool, err error) {
@@ -105,38 +90,13 @@ func (this *Security) CheckMultiple(token string, kind string, ids []string, rig
 		}
 		return result, nil
 	}
-	requestBody := new(bytes.Buffer)
-	err = json.NewEncoder(requestBody).Encode(QueryMessage{
+	result, _, err = client.Query[map[string]bool](this.permissionsearch, token, client.QueryMessage{
 		Resource: kind,
-		CheckIds: &QueryCheckIds{
+		CheckIds: &client.QueryCheckIds{
 			Ids:    ids,
 			Rights: rights,
 		},
 	})
-	if err != nil {
-		return result, err
-	}
-	req, err := http.NewRequest("POST", this.config.PermissionsUrl+"/v3/query", requestBody)
-	if err != nil {
-		debug.PrintStack()
-		return result, err
-	}
-	req.Header.Set("Authorization", token)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		debug.PrintStack()
-		return result, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(resp.Body)
-		return result, errors.New(buf.String())
-	}
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		debug.PrintStack()
-		return result, err
-	}
+
 	return result, err
 }

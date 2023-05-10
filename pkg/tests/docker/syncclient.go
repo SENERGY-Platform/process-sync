@@ -18,37 +18,46 @@ package docker
 
 import (
 	"context"
-	"github.com/ory/dockertest/v3"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 	"log"
 	"sync"
-	"time"
 )
 
 func MgwProcessSyncClient(ctx context.Context, wg *sync.WaitGroup, camundaDb, camundaUrl, mqttUrl, mqttClientId, networkId, deploymentMetadataStorage string) (err error) {
-	pool, err := dockertest.NewPool("")
-	if err != nil {
-		return err
-	}
-	container, err := pool.Run("ghcr.io/senergy-platform/mgw-process-sync-client", "prod", []string{
-		"CAMUNDA_DB=" + camundaDb,
-		"CAMUNDA_URL=" + camundaUrl,
-		"MQTT_BROKER=" + mqttUrl,
-		"MQTT_CLIENT_ID=" + mqttClientId,
-		"NETWORK_ID=" + networkId,
-		"DEBUG=true",
-		"DEPLOYMENT_METADATA_STORAGE=" + deploymentMetadataStorage,
+	log.Println("start mgw-process-sync-client")
+	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: testcontainers.ContainerRequest{
+			Image: "ghcr.io/senergy-platform/mgw-process-sync-client:dev",
+			Env: map[string]string{
+				"CAMUNDA_DB":                  camundaDb,
+				"CAMUNDA_URL":                 camundaUrl,
+				"MQTT_BROKER":                 mqttUrl,
+				"MQTT_CLIENT_ID":              mqttClientId,
+				"NETWORK_ID":                  networkId,
+				"DEBUG":                       "true",
+				"DEPLOYMENT_METADATA_STORAGE": deploymentMetadataStorage,
+			},
+			ExposedPorts:    []string{"8080/tcp"},
+			WaitingFor:      wait.ForListeningPort("8080/tcp"),
+			AlwaysPullImage: true,
+		},
+		Started: true,
 	})
 	if err != nil {
 		return err
 	}
 	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		<-ctx.Done()
-		log.Println("DEBUG: remove container " + container.Container.Name)
-		container.Close()
-		wg.Done()
+		log.Println("DEBUG: remove container mgw-process-sync-client", c.Terminate(context.Background()))
 	}()
-	go Dockerlog(pool, ctx, container, "MGW-PROCESS-SYNC-CLIENT")
-	time.Sleep(10 * time.Second) //wait for startup
-	return
+
+	//err = docker.Dockerlog(ctx, c, "PROCESS-SYNC-CLIENT")
+	if err != nil {
+		return err
+	}
+
+	return err
 }

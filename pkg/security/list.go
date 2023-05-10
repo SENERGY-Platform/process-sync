@@ -17,13 +17,10 @@
 package security
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
-	"net/http"
-	"net/url"
+	"github.com/SENERGY-Platform/permission-search/lib/client"
 	"runtime/debug"
-	"strings"
+	"strconv"
 )
 
 type ListElement struct {
@@ -32,62 +29,52 @@ type ListElement struct {
 }
 
 func (this *Security) List(token string, resource string, limit string, offset string, rights string) (result []ListElement, err error) {
-	params := strings.Join([]string{
-		"rights=" + rights,
-		"limit=" + limit,
-		"offset=" + offset,
-	}, "&")
-	req, err := http.NewRequest("GET", this.config.PermissionsUrl+"/v3/resources/"+url.QueryEscape(resource)+"?"+params, nil)
+	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
 		debug.PrintStack()
 		return result, err
 	}
-	req.Header.Set("Authorization", token)
-	resp, err := http.DefaultClient.Do(req)
+	offsetInt, err := strconv.Atoi(offset)
 	if err != nil {
 		debug.PrintStack()
 		return result, err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(resp.Body)
-		return result, errors.New(buf.String())
-	}
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		debug.PrintStack()
-		return result, err
-	}
-	return result, nil
+	return client.List[[]ListElement](this.permissionsearch, token, resource, client.ListOptions{
+		QueryListCommons: client.QueryListCommons{
+			Limit:  limitInt,
+			Offset: offsetInt,
+			Rights: rights,
+		},
+	})
 }
 
 func (this *Security) ListElements(token string, resource string, limit string, offset string, rights string, result interface{}) (err error) {
-	params := strings.Join([]string{
-		"rights=" + rights,
-		"limit=" + limit,
-		"offset=" + offset,
-	}, "&")
-	req, err := http.NewRequest("GET", this.config.PermissionsUrl+"/v3/resources/"+url.QueryEscape(resource)+"?"+params, nil)
+	limitInt, err := strconv.Atoi(limit)
 	if err != nil {
 		debug.PrintStack()
 		return err
 	}
-	req.Header.Set("Authorization", token)
-	resp, err := http.DefaultClient.Do(req)
+	offsetInt, err := strconv.Atoi(offset)
 	if err != nil {
 		debug.PrintStack()
 		return err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(resp.Body)
-		return errors.New(buf.String())
-	}
-	err = json.NewDecoder(resp.Body).Decode(result)
+	temp, err := client.List[[]ListElement](this.permissionsearch, token, resource, client.ListOptions{
+		QueryListCommons: client.QueryListCommons{
+			Limit:  limitInt,
+			Offset: offsetInt,
+			Rights: rights,
+		},
+	})
 	if err != nil {
-		debug.PrintStack()
+		return err
+	}
+	b, err := json.Marshal(temp)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, result)
+	if err != nil {
 		return err
 	}
 	return nil
