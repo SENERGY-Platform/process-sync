@@ -59,7 +59,7 @@ func (this *Security) ListElements(token string, resource string, limit string, 
 		debug.PrintStack()
 		return err
 	}
-	temp, err := client.List[[]ListElement](this.permissionsearch, token, resource, client.ListOptions{
+	temp, err := client.List[[]any](this.permissionsearch, token, resource, client.ListOptions{
 		QueryListCommons: client.QueryListCommons{
 			Limit:  limitInt,
 			Offset: offsetInt,
