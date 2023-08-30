@@ -24,7 +24,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 	"regexp"
 	"strings"
 )
@@ -185,7 +184,7 @@ func (this *Mongo) ListHistoricProcessInstances(networkIds []string, query model
 	if len(parts) > 1 && parts[1] == "desc" {
 		direction = int32(-1)
 	}
-	opt.SetSort(bsonx.Doc{{sortby, bsonx.Int32(direction)}})
+	opt.SetSort(bson.D{{sortby, direction}})
 
 	ctx, _ := this.getTimeoutContext()
 

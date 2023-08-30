@@ -53,11 +53,6 @@ func Camunda(ctx context.Context, wg *sync.WaitGroup, pgIp string, pgPort string
 		return "", err
 	}
 
-	//err = docker.Dockerlog(ctx, c, "CAMUNDA")
-	if err != nil {
-		return "", err
-	}
-
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

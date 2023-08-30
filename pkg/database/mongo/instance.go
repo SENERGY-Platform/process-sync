@@ -23,7 +23,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 	"strings"
 )
 
@@ -160,7 +159,7 @@ func (this *Mongo) ListProcessInstances(networkIds []string, limit int64, offset
 	if len(parts) > 1 && parts[1] == "desc" {
 		direction = int32(-1)
 	}
-	opt.SetSort(bsonx.Doc{{sortby, bsonx.Int32(direction)}})
+	opt.SetSort(bson.D{{sortby, direction}})
 
 	ctx, _ := this.getTimeoutContext()
 	cursor, err := this.processInstanceCollection().Find(ctx, bson.M{instanceNetworkIdKey: bson.M{"$in": networkIds}}, opt)

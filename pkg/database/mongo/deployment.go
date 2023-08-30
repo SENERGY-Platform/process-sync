@@ -24,7 +24,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 	"log"
 	"regexp"
 	"strings"
@@ -177,7 +176,7 @@ func (this *Mongo) ListDeployments(networkIds []string, limit int64, offset int6
 	if len(parts) > 1 && parts[1] == "desc" {
 		direction = int32(-1)
 	}
-	opt.SetSort(bsonx.Doc{{sortby, bsonx.Int32(direction)}})
+	opt.SetSort(bson.D{{sortby, direction}})
 
 	ctx, _ := this.getTimeoutContext()
 	cursor, err := this.deploymentCollection().Find(ctx, bson.M{deploymentNetworkIdKey: bson.M{"$in": networkIds}}, opt)
@@ -216,7 +215,7 @@ func (this *Mongo) SearchDeployments(networkIds []string, search string, limit i
 	if len(parts) > 1 && parts[1] == "desc" {
 		direction = int32(-1)
 	}
-	opt.SetSort(bsonx.Doc{{sortby, bsonx.Int32(direction)}})
+	opt.SetSort(bson.D{{sortby, direction}})
 
 	ctx, _ := this.getTimeoutContext()
 	cursor, err := this.deploymentCollection().Find(

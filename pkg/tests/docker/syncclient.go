@@ -54,10 +54,5 @@ func MgwProcessSyncClient(ctx context.Context, wg *sync.WaitGroup, camundaDb, ca
 		log.Println("DEBUG: remove container mgw-process-sync-client", c.Terminate(context.Background()))
 	}()
 
-	//err = docker.Dockerlog(ctx, c, "PROCESS-SYNC-CLIENT")
-	if err != nil {
-		return err
-	}
-
 	return err
 }
