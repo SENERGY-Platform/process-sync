@@ -5,16 +5,16 @@ go 1.21
 toolchain go1.21.0
 
 require (
-	github.com/SENERGY-Platform/event-deployment v0.0.0-20230829105023-9cab925daac4
+	github.com/SENERGY-Platform/event-deployment v0.0.0-20230901093430-77a0ca421693
 	github.com/SENERGY-Platform/event-worker v0.0.0-20230824110413-f47de68fdd6c
 	github.com/SENERGY-Platform/models/go v0.0.0-20230824080159-16585960df38
 	github.com/SENERGY-Platform/permission-search v0.0.0-20230829121111-76c8c176bddb
-	github.com/SENERGY-Platform/process-deployment v0.0.0-20230816090614-383f4ed54e16
+	github.com/SENERGY-Platform/process-deployment v0.0.0-20230901093000-6ea610063ac2
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.3.1
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/lib/pq v1.10.2
+	github.com/lib/pq v1.10.9
 	github.com/segmentio/kafka-go v0.4.42
 	github.com/testcontainers/testcontainers-go v0.23.0
 	go.mongodb.org/mongo-driver v1.12.1
