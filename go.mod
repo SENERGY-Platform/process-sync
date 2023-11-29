@@ -5,8 +5,8 @@ go 1.21
 toolchain go1.21.0
 
 require (
-	github.com/SENERGY-Platform/event-deployment v0.0.0-20231127095531-74b88fd97261
-	github.com/SENERGY-Platform/event-worker v1.0.3
+	github.com/SENERGY-Platform/event-deployment v0.0.0-20231129082320-b5b1c33941be
+	github.com/SENERGY-Platform/event-worker v1.0.4
 	github.com/SENERGY-Platform/models/go v0.0.0-20230824080159-16585960df38
 	github.com/SENERGY-Platform/permission-search v0.0.0-20231027062307-b6e4c722fdf0
 	github.com/SENERGY-Platform/process-deployment v0.0.0-20231127091158-2e8565a65882

@@ -10,10 +10,10 @@ github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migc
 github.com/Microsoft/go-winio v0.6.1/go.mod h1:LRdKpFKfdobln8UmuiYcKPot9D2v6svN5+sAH+4kjUM=
 github.com/Microsoft/hcsshim v0.11.4 h1:68vKo2VN8DE9AdN4tnkWnmdhqdbpUFM8OF3Airm7fz8=
 github.com/Microsoft/hcsshim v0.11.4/go.mod h1:smjE4dvqPX9Zldna+t5FG3rnoHhaB7QYxPRqGcpAD9w=
-github.com/SENERGY-Platform/event-deployment v0.0.0-20231127095531-74b88fd97261 h1:GAaxpXDqK+L5rdNVRrUHCm2bmPGc+E2W2gdMxyAs4GA=
-github.com/SENERGY-Platform/event-deployment v0.0.0-20231127095531-74b88fd97261/go.mod h1:zl3pAZW0zE4eIenOQRHI1s+FOWOil3S9isGVnSnXhDc=
-github.com/SENERGY-Platform/event-worker v1.0.3 h1:+ILi9KSporffrnnno3ChvXeUeVWVnkoruJrEojMIHWc=
-github.com/SENERGY-Platform/event-worker v1.0.3/go.mod h1:2J/TRAnTEmMaTSN0YheV8MnQwizif1e4GskRM0OjmO4=
+github.com/SENERGY-Platform/event-deployment v0.0.0-20231129082320-b5b1c33941be h1:ssVnmhHEyMkbquaiscL/XZOv288miJofQFpqu8YCpHA=
+github.com/SENERGY-Platform/event-deployment v0.0.0-20231129082320-b5b1c33941be/go.mod h1:idhgvRohFIKJFwSy5ZP0G7sRy2y11+b9s8gXAOSpw5U=
+github.com/SENERGY-Platform/event-worker v1.0.4 h1:L1n/Y1zO/m5WrxyQYa64oNnmbYdz7sOpdPCXw2jI+J4=
+github.com/SENERGY-Platform/event-worker v1.0.4/go.mod h1:T9kxuzFZVpk5bGTGAinl0+QkdhKuYA4M8sJWvBPri48=
 github.com/SENERGY-Platform/models/go v0.0.0-20230824080159-16585960df38 h1:PDvFwIJBnFyKt1KeepkABNIS57+WhVj4vBw7X5JGZJw=
 github.com/SENERGY-Platform/models/go v0.0.0-20230824080159-16585960df38/go.mod h1:bCREPNRN4P8oxLgpC3/ZKK4jXSy4MSPXoiomhohE+aw=
 github.com/SENERGY-Platform/permission-search v0.0.0-20231027062307-b6e4c722fdf0 h1:t3FC91H5NR+ZqUXDc6laI7U+K0XNdj3/sSQiHDDEvsI=
