@@ -21,6 +21,7 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/api/util"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
+	"github.com/SENERGY-Platform/service-commons/pkg/accesslog"
 	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
@@ -34,7 +35,7 @@ var endpoints = []func(config configuration.Config, ctrl *controller.Controller,
 func Start(config configuration.Config, ctx context.Context, ctrl *controller.Controller) (err error) {
 	log.Println("start api on " + config.ApiPort)
 	router := Router(config, ctrl)
-	handler := util.NewLogger(util.NewCors(router))
+	handler := accesslog.New(util.NewCors(router))
 	server := &http.Server{Addr: ":" + config.ApiPort, Handler: handler, WriteTimeout: 10 * time.Second, ReadTimeout: 2 * time.Second, ReadHeaderTimeout: 2 * time.Second}
 	go func() {
 		log.Println("listening on ", server.Addr)
