@@ -25,7 +25,7 @@ import (
 )
 
 func (this *Controller) UpdateIncident(networkId string, incident camundamodel.Incident) {
-	err := this.db.SaveIncident(model.Incident{
+	newDocument, err := this.db.SaveIncident(model.Incident{
 		Incident: incident,
 		SyncInfo: model.SyncInfo{
 			NetworkId:       networkId,
@@ -35,8 +35,11 @@ func (this *Controller) UpdateIncident(networkId string, incident camundamodel.I
 		},
 	})
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.logger.Error("unable to create notification", "snrgy-log-type", "error", "error", err.Error(), "user", incident.TenantId, "process-definition-id", incident.ProcessDefinitionId, "incident-msg", incident.ErrorMessage)
+		return
+	}
+	if newDocument {
+		this.logAndNotify(networkId, incident)
 	}
 }
 

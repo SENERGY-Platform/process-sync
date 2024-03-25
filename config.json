@@ -29,5 +29,7 @@
     "auth_expiration_time_buffer": 1,
     "auth_endpoint": "",
     "auth_client_id": "",
-    "auth_client_secret": ""
+    "auth_client_secret": "",
+
+    "developer_notification_url": "http://api.developer-notifications:8080"
 }

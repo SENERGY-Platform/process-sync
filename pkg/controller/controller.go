@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"errors"
+	developerNotifications "github.com/SENERGY-Platform/developer-notifications/pkg/client"
 	eventinterfaces "github.com/SENERGY-Platform/event-deployment/lib/interfaces"
 	"github.com/SENERGY-Platform/event-deployment/lib/model"
 	"github.com/SENERGY-Platform/models/go/models"
@@ -32,7 +33,10 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/kafka"
 	"github.com/SENERGY-Platform/process-sync/pkg/mgw"
 	"github.com/SENERGY-Platform/process-sync/pkg/security"
+	"log/slog"
 	"net/http"
+	"os"
+	"runtime/debug"
 	"time"
 )
 
@@ -44,6 +48,8 @@ type Controller struct {
 	baseDeviceRepoFactory  BaseDeviceRepoFactory
 	devicerepo             Devices
 	deploymentDoneNotifier interfaces.Producer
+	devNotifications       developerNotifications.Client
+	logger                 *slog.Logger
 }
 
 type BaseDeviceRepoFactory = func(token string, deviceRepoUrl string, permissionsSearchUrl string) eventinterfaces.Devices
@@ -81,8 +87,11 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 	if err != nil {
 		return ctrl, err
 	}
-
-	ctrl = &Controller{config: config, db: db, security: security, baseDeviceRepoFactory: baseDeviceRepoFactory, devicerepo: d}
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	if info, ok := debug.ReadBuildInfo(); ok {
+		logger = logger.With("go-module", info.Path)
+	}
+	ctrl = &Controller{config: config, db: db, security: security, baseDeviceRepoFactory: baseDeviceRepoFactory, devicerepo: d, logger: logger}
 	if err != nil {
 		return ctrl, err
 	}
@@ -91,6 +100,9 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 		if err != nil {
 			return ctrl, err
 		}
+	}
+	if config.DeveloperNotificationUrl != "" && config.DeveloperNotificationUrl != "-" {
+		ctrl.devNotifications = developerNotifications.New(config.DeveloperNotificationUrl)
 	}
 	ctrl.mgw, err = mgw.New(config, ctx, ctrl)
 	if err != nil {

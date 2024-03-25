@@ -64,6 +64,8 @@ type Config struct {
 
 	CleanupMaxAge   string `json:"cleanup_max_age"`
 	CleanupInterval string `json:"cleanup_interval"`
+
+	DeveloperNotificationUrl string `json:"developer_notification_url"`
 }
 
 // loads config from json in location and used environment variables (e.g ZookeeperUrl --> ZOOKEEPER_URL)

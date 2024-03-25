@@ -92,9 +92,9 @@ func (this *Mongo) incidentCollection() *mongo.Collection {
 	return this.client.Database(this.config.MongoTable).Collection(this.config.MongoIncidentCollection)
 }
 
-func (this *Mongo) SaveIncident(incident model.Incident) error {
+func (this *Mongo) SaveIncident(incident model.Incident) (newDocument bool, err error) {
 	ctx, _ := this.getTimeoutContext()
-	_, err := this.incidentCollection().ReplaceOne(
+	result, err := this.incidentCollection().ReplaceOne(
 		ctx,
 		bson.M{
 			incidentIdKey:        incident.Id,
@@ -102,7 +102,8 @@ func (this *Mongo) SaveIncident(incident model.Incident) error {
 		},
 		incident,
 		options.Replace().SetUpsert(true))
-	return err
+	newDocument = result.MatchedCount == 0
+	return newDocument, err
 }
 
 func (this *Mongo) RemoveIncident(networkId string, incidentId string) error {

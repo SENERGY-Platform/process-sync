@@ -10,6 +10,8 @@ github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migc
 github.com/Microsoft/go-winio v0.6.1/go.mod h1:LRdKpFKfdobln8UmuiYcKPot9D2v6svN5+sAH+4kjUM=
 github.com/Microsoft/hcsshim v0.12.0 h1:rbICA+XZFwrBef2Odk++0LjFvClNCJGRK+fsrP254Ts=
 github.com/Microsoft/hcsshim v0.12.0/go.mod h1:RZV12pcHCXQ42XnlQ3pz6FZfmrC1C+R4gaOHhRNML1g=
+github.com/SENERGY-Platform/developer-notifications v0.0.4 h1:SmblhfWavNhE1mDxzrkhmWl2AoPPqKD+7YcZCQ7a5Tg=
+github.com/SENERGY-Platform/developer-notifications v0.0.4/go.mod h1:8yJrYnAYMtPEPy89ULw8ivgG8orVhSnaLgyfDt0bdgg=
 github.com/SENERGY-Platform/event-deployment v0.0.7 h1:/8wZzxLGDu0ekPjZ+SEB1gp5a+e7wU3ujlZrw5Fbe4s=
 github.com/SENERGY-Platform/event-deployment v0.0.7/go.mod h1:k5nZrXhdgicpda0GE5gjSYRkFVcpBa8daJQGZwM4dDY=
 github.com/SENERGY-Platform/event-worker v1.0.11 h1:s3JEq3j1tR8nY2RkK4Z7HJSxjFYxBJkQtFBk4KB3/vo=

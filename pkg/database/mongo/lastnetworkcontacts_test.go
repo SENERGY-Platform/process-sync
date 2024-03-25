@@ -220,7 +220,7 @@ func TestLastNetworkContact(t *testing.T) {
 			}
 		})
 		t.Run("create incidents", func(t *testing.T) {
-			err = db.SaveIncident(model.Incident{
+			newDoc, err := db.SaveIncident(model.Incident{
 				Incident: camundamodel.Incident{Id: "1"},
 				SyncInfo: model.SyncInfo{NetworkId: network1.NetworkId},
 			})
@@ -228,12 +228,35 @@ func TestLastNetworkContact(t *testing.T) {
 				t.Error(err)
 				return
 			}
-			err = db.SaveIncident(model.Incident{
+			if !newDoc {
+				t.Error("doc should be new")
+				return
+			}
+
+			//check newDoc result
+			newDoc, err = db.SaveIncident(model.Incident{
+				Incident: camundamodel.Incident{Id: "1"},
+				SyncInfo: model.SyncInfo{NetworkId: network1.NetworkId},
+			})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if newDoc {
+				t.Error("doc should not be new")
+				return
+			}
+
+			newDoc, err = db.SaveIncident(model.Incident{
 				Incident: camundamodel.Incident{Id: "2"},
 				SyncInfo: model.SyncInfo{NetworkId: network2.NetworkId},
 			})
 			if err != nil {
 				t.Error(err)
+				return
+			}
+			if !newDoc {
+				t.Error("doc should be new")
 				return
 			}
 		})

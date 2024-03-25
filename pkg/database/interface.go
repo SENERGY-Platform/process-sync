@@ -51,7 +51,7 @@ type Database interface {
 	ListProcessDefinitions(networkIds []string, limit int64, offset int64, sort string) (processDefinition []model.ProcessDefinition, err error)
 	GetDefinitionByDeploymentId(networkId string, deploymentId string) (processDefinition model.ProcessDefinition, err error)
 
-	SaveIncident(incident model.Incident) error
+	SaveIncident(incident model.Incident) (newDocument bool, err error)
 	RemoveIncident(networkId string, incidentId string) error
 	RemoveUnknownIncidents(networkId string, knownIds []string) error
 	ReadIncident(networkId string, incidentId string) (incident model.Incident, err error)
