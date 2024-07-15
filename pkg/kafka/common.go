@@ -17,10 +17,16 @@
 package kafka
 
 import (
-	"github.com/segmentio/kafka-go"
 	"net"
 	"strconv"
+	"time"
+
+	"github.com/segmentio/kafka-go"
 )
+
+func init() {
+	kafka.DefaultDialer.Timeout = 120 * time.Second
+}
 
 func InitTopic(bootstrapUrl string, topics ...string) (err error) {
 	conn, err := kafka.Dial("tcp", bootstrapUrl)
