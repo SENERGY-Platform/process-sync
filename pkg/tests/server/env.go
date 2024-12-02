@@ -69,7 +69,7 @@ func Env(ctx context.Context, wg *sync.WaitGroup, initConf configuration.Config,
 	}
 	d := &mocks.Devices{}
 
-	ctrl, err := controller.New(config, ctx, db, mocks.Security(), func(token string, deviceRepoUrl string, permissionsSearchUrl string) interfaces.Devices {
+	ctrl, err := controller.New(config, ctx, db, mocks.Security(), func(token string, deviceRepoUrl string) interfaces.Devices {
 		return d
 	}, func(token string, baseUrl string, deviceId string) (result models.Device, err error, code int) {
 		return d.GetDevice(auth.Token{Token: token}, deviceId)
@@ -90,7 +90,6 @@ func EnvForEventsCheck(ctx context.Context, wg *sync.WaitGroup, initConf configu
 		return conf, err
 	}
 	conf.DeviceRepoUrl = "placeholder"
-	conf.PermissionsUrl = "placeholder"
 
 	_, mqttip, err := docker.Mqtt(ctx, wg)
 	if err != nil {
@@ -108,7 +107,7 @@ func EnvForEventsCheck(ctx context.Context, wg *sync.WaitGroup, initConf configu
 
 	d := &mocks.Devices{}
 
-	ctrl, err := controller.New(conf, ctx, db, mocks.Security(), func(token string, deviceRepoUrl string, permissionsSearchUrl string) interfaces.Devices {
+	ctrl, err := controller.New(conf, ctx, db, mocks.Security(), func(token string, deviceRepoUrl string) interfaces.Devices {
 		return d
 	}, func(token string, baseUrl string, deviceId string) (result models.Device, err error, code int) {
 		return d.GetDevice(auth.Token{Token: token}, deviceId)

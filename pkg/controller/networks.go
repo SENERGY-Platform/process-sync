@@ -17,6 +17,8 @@
 package controller
 
 import (
+	devicerpo "github.com/SENERGY-Platform/device-repository/lib/client"
+	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"log"
 	"net/http"
@@ -24,19 +26,18 @@ import (
 	"time"
 )
 
-type SearchHub struct {
-	Id             string   `json:"id"`
-	Name           string   `json:"name"`
-	DeviceLocalIds []string `json:"device_local_ids"`
-	DeviceIds      []string `json:"device_ids"`
-}
+type SearchHub = models.Hub
 
 func (this *Controller) ApiListNetworks(request *http.Request) (result []SearchHub, err error, errCode int) {
 	token := request.Header.Get("Authorization")
 	all := []SearchHub{}
-	err = this.security.ListElements(token, "hubs", "10000", "0", "r", &all)
+	all, err, errCode = devicerpo.NewClient(this.config.DeviceRepoUrl).ListHubs(token, devicerpo.HubListOptions{
+		Limit:  9999,
+		Offset: 0,
+		SortBy: "name.asc",
+	})
 	if err != nil {
-		return result, err, http.StatusInternalServerError
+		return result, err, errCode
 	}
 	allIds := []string{}
 	hubIndex := map[string]SearchHub{}

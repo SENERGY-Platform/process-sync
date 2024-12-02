@@ -17,21 +17,21 @@
 package security
 
 import (
-	"errors"
-	"github.com/SENERGY-Platform/permission-search/lib/client"
+	permv2 "github.com/SENERGY-Platform/permissions-v2/pkg/client"
+	"github.com/SENERGY-Platform/permissions-v2/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"log"
 	"time"
 )
 
 func New(config configuration.Config) *Security {
-	return &Security{config: config, permissionsearch: client.NewClient(config.PermissionsUrl)}
+	return &Security{config: config, permv2: permv2.New(config.PermissionsV2Url)}
 }
 
 type Security struct {
-	config           configuration.Config
-	openid           *OpenidToken
-	permissionsearch client.Client
+	config configuration.Config
+	openid *OpenidToken
+	permv2 permv2.Client
 }
 
 type OpenidToken struct {
@@ -69,17 +69,15 @@ func (this *Security) CheckBool(token string, kind string, id string, rights str
 	if this.IsAdmin(token) {
 		return true, nil
 	}
-	err = this.permissionsearch.CheckUserOrGroup(token, kind, id, rights)
-	if err == nil {
-		return true, nil
+	permList, err := model.PermissionListFromString(rights)
+	if err != nil {
+		return false, err
 	}
-	if errors.Is(err, client.ErrAccessDenied) {
-		return false, nil
+	allowed, err, _ = this.permv2.CheckPermission(token, kind, id, permList...)
+	if err != nil {
+		return false, err
 	}
-	if errors.Is(err, client.ErrNotFound) {
-		return false, nil
-	}
-	return allowed, err
+	return allowed, nil
 }
 
 func (this *Security) CheckMultiple(token string, kind string, ids []string, rights string) (result map[string]bool, err error) {
@@ -90,13 +88,16 @@ func (this *Security) CheckMultiple(token string, kind string, ids []string, rig
 		}
 		return result, nil
 	}
-	result, _, err = client.Query[map[string]bool](this.permissionsearch, token, client.QueryMessage{
-		Resource: kind,
-		CheckIds: &client.QueryCheckIds{
-			Ids:    ids,
-			Rights: rights,
-		},
-	})
-
-	return result, err
+	permList, err := model.PermissionListFromString(rights)
+	if err != nil {
+		return nil, err
+	}
+	result, err, _ = this.permv2.CheckMultiplePermissions(token, kind, ids, permList...)
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return map[string]bool{}, nil
+	}
+	return result, nil
 }

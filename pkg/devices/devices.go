@@ -45,10 +45,10 @@ func New(config syncconf.Config, baseRepFactory BaseDeviceRepoFactory, devicePro
 	return &DeviceRepo{config: config, baseRepFactory: baseRepFactory, deviceProvider: deviceProvider}, nil
 }
 
-type BaseDeviceRepoFactory = func(token string, deviceRepoUrl string, permissionsSearchUrl string) interfaces.Devices
+type BaseDeviceRepoFactory = func(token string, deviceRepoUrl string) interfaces.Devices
 
-func DefaultBaseDeviceRepoFactory(token string, deviceRepoUrl string, permissionsUrl string) interfaces.Devices {
-	return devices.NewWithAuth(&config.ConfigStruct{DeviceRepositoryUrl: deviceRepoUrl, PermSearchUrl: permissionsUrl}, AuthFromToken{Token: token})
+func DefaultBaseDeviceRepoFactory(token string, deviceRepoUrl string) interfaces.Devices {
+	return devices.NewWithAuth(&config.ConfigStruct{DeviceRepositoryUrl: deviceRepoUrl}, AuthFromToken{Token: token})
 }
 
 type DeviceProvider = func(token string, baseUrl string, deviceId string) (result models.Device, err error, code int)
@@ -85,7 +85,7 @@ func (this AuthFromToken) Ensure() (token auth2.AuthToken, err error) {
 }
 
 func (this *DeviceRepo) WithPresetToken(token auth.Token) interfaces.Devices {
-	return this.baseRepFactory(token.Token, this.config.DeviceRepoUrl, this.config.PermissionsUrl)
+	return this.baseRepFactory(token.Token, this.config.DeviceRepoUrl)
 }
 
 func (this *DeviceRepo) GetDeviceInfosOfGroup(token auth.Token, groupId string) (devices []model.Device, deviceTypeIds []string, err error, code int) {

@@ -52,7 +52,7 @@ type Controller struct {
 	logger                 *slog.Logger
 }
 
-type BaseDeviceRepoFactory = func(token string, deviceRepoUrl string, permissionsSearchUrl string) eventinterfaces.Devices
+type BaseDeviceRepoFactory = func(token string, deviceRepoUrl string) eventinterfaces.Devices
 
 type DeviceProvider = func(token string, baseUrl string, deviceId string) (result models.Device, err error, code int)
 
@@ -70,8 +70,6 @@ type Security interface {
 	GetAdminToken() (token string, err error)
 	CheckBool(token string, kind string, id string, rights string) (allowed bool, err error)
 	CheckMultiple(token string, kind string, ids []string, rights string) (result map[string]bool, err error)
-	List(token string, resource string, limit string, offset string, rights string) (result []security.ListElement, err error)
-	ListElements(token string, resource string, limit string, offset string, rights string, result interface{}) (err error)
 }
 
 func NewDefault(conf configuration.Config, ctx context.Context) (ctrl *Controller, err error) {

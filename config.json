@@ -16,7 +16,7 @@
     "mongo_incident_collection": "incidents",
     "mongo_process_instance_collection": "process_instances",
     "mongo_last_network_contact_collection": "last_network_contact",
-    "permissions_url": "",
+    "permissions_v2_url": "http://permv2.permissions:8080",
     "analytics_envelope_prefix": "",
 
     "cleanup_max_age": "730h",

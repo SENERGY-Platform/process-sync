@@ -25,10 +25,10 @@ import (
 	"net/http"
 )
 
-type DeviceRepoFactory = func(token string, deviceRepoUrl string, permissionsSearchUrl string) interfaces.Devices
+type DeviceRepoFactory = func(token string, deviceRepoUrl string) interfaces.Devices
 
 func New(config configuration.Config, repoFactory DeviceRepoFactory, token string) *conditionalevents.Transformer {
-	return conditionalevents.NewTransformer(repoFactory(token, config.DeviceRepoUrl, config.PermissionsUrl), Imports{})
+	return conditionalevents.NewTransformer(repoFactory(token, config.DeviceRepoUrl), Imports{})
 }
 
 type Imports struct {
