@@ -31,7 +31,7 @@ type SearchHub = models.Hub
 func (this *Controller) ApiListNetworks(request *http.Request) (result []SearchHub, err error, errCode int) {
 	token := request.Header.Get("Authorization")
 	all := []SearchHub{}
-	all, err, errCode = devicerpo.NewClient(this.config.DeviceRepoUrl).ListHubs(token, devicerpo.HubListOptions{
+	all, err, errCode = devicerpo.NewClient(this.config.DeviceRepoUrl, nil).ListHubs(token, devicerpo.HubListOptions{
 		Limit:  9999,
 		Offset: 0,
 		SortBy: "name.asc",
