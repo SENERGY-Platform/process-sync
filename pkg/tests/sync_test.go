@@ -173,8 +173,137 @@ func TestKnown(t *testing.T) {
 
 	//check result after 'known' message
 	t.Run("get deployments after known", testGetDeployments(config.ApiPort, networkId, &deployments))
-	t.Run("check deployments is placeholder after known", testCheckDeploymentsPlaceholder(&deployments, []bool{false}))
-	t.Run("check deployments is marked delete after known", testCheckDeploymentsMarkedDelete(&deployments, []bool{false}))
+	t.Run("check deployments is placeholder after known", testCheckDeploymentsPlaceholder(&deployments, []bool{false, false}))
+	t.Run("check deployments is marked delete after known", testCheckDeploymentsMarkedDelete(&deployments, []bool{false, false}))
+	t.Run("check deployments is marked missing after known", testCheckDeploymentsMarkedMissing(&deployments, []bool{false, true}))
+	t.Run("delete missing", func(t *testing.T) {
+		if len(deployments) != 2 {
+			t.Error("Expected 2 deployments, got ", len(deployments))
+			return
+		}
+		req, err := http.NewRequest("DELETE", "http://localhost:"+config.ApiPort+"/deployments/"+url.PathEscape(networkId)+"/"+url.PathEscape(deployments[1].Id), nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode >= 300 {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(resp.Body)
+			err = errors.New(buf.String())
+		}
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	})
+	time.Sleep(2 * time.Second)
+	t.Run("get deployments after delete missing", testGetDeployments(config.ApiPort, networkId, &deployments))
+	t.Run("check deployments is placeholder after known after delete missing", testCheckDeploymentsPlaceholder(&deployments, []bool{false}))
+	t.Run("check deployments is marked delete after known after delete missing", testCheckDeploymentsMarkedDelete(&deployments, []bool{false}))
+	t.Run("check deployments is marked missing after known after delete missing", testCheckDeploymentsMarkedMissing(&deployments, []bool{false}))
+}
+
+func TestMarkedAsMissingRetry(t *testing.T) {
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	config := configuration.Config{
+		Debug:                             true,
+		MqttClientId:                      "",
+		MqttCleanSession:                  true,
+		MqttGroupId:                       "",
+		MongoTable:                        "processes",
+		MongoProcessDefinitionCollection:  "process_definition",
+		MongoDeploymentCollection:         "deployments",
+		MongoProcessHistoryCollection:     "histories",
+		MongoIncidentCollection:           "incidents",
+		MongoProcessInstanceCollection:    "instances",
+		MongoDeploymentMetadataCollection: "deployment_metadata",
+		MongoLastNetworkContactCollection: "last_network_collection",
+	}
+
+	networkId := "test-network-id"
+	config, err := server.Env(ctx, wg, config, networkId)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	time.Sleep(2 * time.Second)
+
+	t.Run("deploy process 1", testDeployExampleProcess(config.ApiPort, networkId))
+	t.Run("deploy process 2", testDeployExampleProcess(config.ApiPort, networkId))
+
+	deployments := []model.Deployment{}
+
+	time.Sleep(5 * time.Second)
+	t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
+	t.Run("check deployments is placeholder", testCheckDeploymentsPlaceholder(&deployments, []bool{false, false}))
+	t.Run("check deployments is marked delete", testCheckDeploymentsMarkedDelete(&deployments, []bool{false, false}))
+
+	//send 'known' message
+	t.Run("send known message", func(t *testing.T) {
+		options := paho.NewClientOptions().
+			SetPassword(config.MqttPw).
+			SetUsername(config.MqttUser).
+			SetAutoReconnect(true).
+			AddBroker(config.MqttBroker)
+
+		mqtt := paho.NewClient(options)
+		if token := mqtt.Connect(); token.Wait() && token.Error() != nil {
+			t.Error("Error on MqttStart.Connect(): ", token.Error())
+			return
+		}
+		token := mqtt.Publish("processes/"+networkId+"/cmd/deployment/delete", 2, false, deployments[1].Id)
+		if token.Wait() && token.Error() != nil {
+			t.Error("Error on Publish: ", token.Error())
+			return
+		}
+	})
+
+	time.Sleep(2 * time.Second)
+
+	//check result after 'known' message
+	t.Run("get deployments after delete", testGetDeployments(config.ApiPort, networkId, &deployments))
+	t.Run("check deployments is placeholder after delete", testCheckDeploymentsPlaceholder(&deployments, []bool{false, false}))
+	t.Run("check deployments is marked delete after delete", testCheckDeploymentsMarkedDelete(&deployments, []bool{false, false}))
+	t.Run("check deployments is marked missing after client side delete", testCheckDeploymentsMarkedMissing(&deployments, []bool{false, true}))
+	t.Run("sync missing", func(t *testing.T) {
+		req, err := http.NewRequest("POST", "http://localhost:"+config.ApiPort+"/sync/deployments/"+url.PathEscape(networkId), nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode >= 300 {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(resp.Body)
+			err = errors.New(buf.String())
+		}
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	})
+	time.Sleep(2 * time.Second)
+	t.Run("get deployments after sync", testGetDeployments(config.ApiPort, networkId, &deployments))
+	t.Run("check deployments is placeholder after sync", testCheckDeploymentsPlaceholder(&deployments, []bool{false, false}))
+	t.Run("check deployments is marked delete after sync", testCheckDeploymentsMarkedDelete(&deployments, []bool{false, false}))
+	t.Run("check deployments is marked missing after sync", testCheckDeploymentsMarkedMissing(&deployments, []bool{false, false}))
 }
 
 func testCheckExtendedDeployment(config configuration.Config, networkId string, count int) func(t *testing.T) {
@@ -710,10 +839,32 @@ func testGetDefinitions(port string, networkId string, result *[]model.ProcessDe
 	}
 }
 
+func testCheckDeploymentsMarkedMissing(deployments *[]model.Deployment, bools []bool) func(t *testing.T) {
+	return func(t *testing.T) {
+		if len(*deployments) != len(bools) {
+			t.Errorf("%v %v %#v", len(bools), len(*deployments), *deployments)
+			for _, depl := range *deployments {
+				t.Logf("%v %#v", depl.Id, depl.SyncInfo)
+			}
+			return
+		}
+		for i, b := range bools {
+			depl := (*deployments)[i]
+			if depl.MarkedAsMissing != b {
+				t.Error(i, depl)
+				return
+			}
+		}
+	}
+}
+
 func testCheckDeploymentsMarkedDelete(deployments *[]model.Deployment, bools []bool) func(t *testing.T) {
 	return func(t *testing.T) {
 		if len(*deployments) != len(bools) {
-			t.Error(len(*deployments), *deployments)
+			t.Errorf("%v %v %#v", len(bools), len(*deployments), *deployments)
+			for _, depl := range *deployments {
+				t.Logf("%v %#v", depl.Id, depl.SyncInfo)
+			}
 			return
 		}
 		for i, b := range bools {
@@ -729,7 +880,10 @@ func testCheckDeploymentsMarkedDelete(deployments *[]model.Deployment, bools []b
 func testCheckDeploymentsPlaceholder(deployments *[]model.Deployment, bools []bool) func(t *testing.T) {
 	return func(t *testing.T) {
 		if len(*deployments) != len(bools) {
-			t.Error(len(*deployments), *deployments)
+			t.Errorf("%v %v %#v", len(bools), len(*deployments), *deployments)
+			for _, depl := range *deployments {
+				t.Logf("%v %#v", depl.Id, depl.SyncInfo)
+			}
 			return
 		}
 		for i, b := range bools {

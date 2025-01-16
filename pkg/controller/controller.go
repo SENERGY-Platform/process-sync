@@ -116,6 +116,7 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 var IsPlaceholderProcessErr = errors.New("is placeholder process")
 var IsMarkedForDeleteErr = errors.New("is market for deletion")
 var HistoryMayOnlyDeletedIfFinishedOrPlaceholderErr = errors.New("history may only deleted if the process instance is finished or the element is a placeholder")
+var IsMarkedAsMissingErr = errors.New("is market as missing (you may try to redeploy)")
 
 func (this *Controller) SetErrCode(err error) int {
 	switch err {

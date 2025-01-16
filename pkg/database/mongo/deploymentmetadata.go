@@ -17,6 +17,7 @@
 package mongo
 
 import (
+	"errors"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
@@ -125,14 +126,14 @@ func (this *Mongo) ReadDeploymentMetadata(networkId string, deploymentId string)
 			metadataNetworkIdKey:           networkId,
 		})
 	err = result.Err()
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return metadata, database.ErrNotFound
 	}
 	if err != nil {
 		return
 	}
 	err = result.Decode(&metadata)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return metadata, database.ErrNotFound
 	}
 	return metadata, err

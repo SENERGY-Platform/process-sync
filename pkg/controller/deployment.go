@@ -17,10 +17,12 @@
 package controller
 
 import (
+	"errors"
 	"github.com/SENERGY-Platform/process-deployment/lib/auth"
 	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller/transformer"
+	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	"log"
@@ -50,25 +52,86 @@ func (this *Controller) UpdateDeployment(networkId string, deployment camundamod
 }
 
 func (this *Controller) DeleteDeployment(networkId string, deploymentId string) {
-	err := this.db.RemoveDeployment(networkId, deploymentId)
+	deployment, err := this.db.ReadDeployment(networkId, deploymentId)
+	if errors.Is(err, database.ErrNotFound) {
+		this.deleteDeployment(networkId, deploymentId)
+		return
+	}
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
+		return
 	}
-	err = this.db.RemoveDeploymentMetadata(networkId, deploymentId)
+	_, err = this.db.ReadDeploymentMetadata(networkId, deploymentId)
+	if errors.Is(err, database.ErrNotFound) {
+		this.deleteDeployment(networkId, deploymentId)
+		return
+	}
 	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+		return
+	}
+	if deployment.SyncInfo.MarkedForDelete {
+		this.deleteDeployment(networkId, deploymentId)
+	} else {
+		deployment.SyncInfo.MarkedAsMissing = true
+		err = this.db.SaveDeployment(deployment)
+		if err != nil {
+			log.Println("ERROR:", err)
+			debug.PrintStack()
+			return
+		}
+	}
+}
+
+func (this *Controller) deleteDeployment(networkId string, deploymentId string) {
+	err := this.db.RemoveDeploymentMetadata(networkId, deploymentId)
+	if err != nil && !errors.Is(err, database.ErrNotFound) {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+	}
+	err = this.db.RemoveDeployment(networkId, deploymentId)
+	if err != nil && !errors.Is(err, database.ErrNotFound) {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
 }
 
 func (this *Controller) DeleteUnknownDeployments(networkId string, knownIds []string) {
-	err := this.db.RemoveUnknownDeployments(networkId, knownIds)
+	deployments, err := this.db.ListUnknownDeployments(networkId, knownIds)
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+		return
+	}
+	handled := []string{}
+	handled = append(handled, knownIds...)
+	for _, deployment := range deployments {
+		handled = append(handled, deployment.Id)
+		if deployment.SyncInfo.MarkedForDelete {
+			this.deleteDeployment(networkId, deployment.Id)
+			continue
+		}
+		if deployment.SyncInfo.IsPlaceholder {
+			this.deleteDeployment(networkId, deployment.Id)
+			continue
+		}
+		if !deployment.SyncInfo.MarkedAsMissing {
+			deployment.SyncInfo.MarkedAsMissing = true
+			err = this.db.SaveDeployment(deployment)
+			if err != nil {
+				log.Println("ERROR:", err)
+				debug.PrintStack()
+			}
+		}
+	}
+	err = this.db.RemoveUnknownDeployments(networkId, handled)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
-	err = this.db.RemoveUnknownDeploymentMetadata(networkId, knownIds)
+	err = this.db.RemoveUnknownDeploymentMetadata(networkId, handled)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
@@ -96,7 +159,7 @@ func (this *Controller) ApiDeleteDeployment(networkId string, deploymentId strin
 	if err != nil {
 		return
 	}
-	if current.IsPlaceholder {
+	if current.IsPlaceholder || current.MarkedAsMissing {
 		err = this.db.RemoveDeployment(networkId, deploymentId)
 	} else {
 		err = this.mgw.SendDeploymentDeleteCommand(networkId, deploymentId)
@@ -180,6 +243,10 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 	}
 	if current.MarkedForDelete {
 		err = IsMarkedForDeleteErr
+		return
+	}
+	if current.MarkedAsMissing {
+		err = IsMarkedAsMissingErr
 		return
 	}
 
@@ -267,7 +334,11 @@ func (this *Controller) ExtendDeployments(deployments []model.Deployment) (resul
 	for _, deployment := range deployments {
 		if deployment.IsPlaceholder {
 			result = append(result, model.ExtendedDeployment{Deployment: deployment, Diagram: constructionSvg})
-			break
+			continue
+		}
+		if deployment.MarkedAsMissing {
+			result = append(result, model.ExtendedDeployment{Deployment: deployment, Diagram: constructionSvg})
+			continue
 		}
 		element := model.ExtendedDeployment{Deployment: deployment}
 		err := errors[deployment.NetworkId]

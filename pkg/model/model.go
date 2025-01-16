@@ -27,6 +27,7 @@ type SyncInfo struct {
 	NetworkId       string    `json:"network_id"`
 	IsPlaceholder   bool      `json:"is_placeholder"`
 	MarkedForDelete bool      `json:"marked_for_delete"`
+	MarkedAsMissing bool      `json:"marked_as_missing"`
 	SyncDate        time.Time `json:"sync_date"`
 }
 

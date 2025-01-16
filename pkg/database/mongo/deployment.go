@@ -17,6 +17,7 @@
 package mongo
 
 import (
+	"errors"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
@@ -137,6 +138,24 @@ func (this *Mongo) RemoveUnknownDeployments(networkId string, knownIds []string)
 	return err
 }
 
+func (this *Mongo) ListUnknownDeployments(networkId string, knownIds []string) (result []model.Deployment, err error) {
+	ctx, _ := this.getTimeoutContext()
+	iter, err := this.deploymentCollection().Find(
+		ctx,
+		bson.M{
+			deploymentIdKey:        bson.M{"$nin": knownIds},
+			deploymentNetworkIdKey: networkId,
+		})
+	if err != nil {
+		return result, err
+	}
+	err = iter.All(ctx, &result)
+	if err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
 func (this *Mongo) ReadDeployment(networkId string, deploymentId string) (deployment model.Deployment, err error) {
 	ctx, _ := this.getTimeoutContext()
 	result := this.deploymentCollection().FindOne(
@@ -146,14 +165,14 @@ func (this *Mongo) ReadDeployment(networkId string, deploymentId string) (deploy
 			deploymentNetworkIdKey: networkId,
 		})
 	err = result.Err()
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return deployment, database.ErrNotFound
 	}
 	if err != nil {
 		return
 	}
 	err = result.Decode(&deployment)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return deployment, database.ErrNotFound
 	}
 	return deployment, err
