@@ -14,10 +14,10 @@ github.com/SENERGY-Platform/developer-notifications v0.0.4 h1:SmblhfWavNhE1mDxzr
 github.com/SENERGY-Platform/developer-notifications v0.0.4/go.mod h1:8yJrYnAYMtPEPy89ULw8ivgG8orVhSnaLgyfDt0bdgg=
 github.com/SENERGY-Platform/device-repository v0.1.52 h1:JedGhrK3dm0x693jHAPgsn85iO9esjxJz9zgdyt/nis=
 github.com/SENERGY-Platform/device-repository v0.1.52/go.mod h1:36pibGmG2igxgydf+deII/wiP1gWxF2/bgijDzwRriY=
-github.com/SENERGY-Platform/event-deployment v0.0.21 h1:k4RJBagwbuFS6TQl2+VXcYXPr3HQiKrpDp82DESu090=
-github.com/SENERGY-Platform/event-deployment v0.0.21/go.mod h1:qfmeg5V3t1zGJwnFgK2tM6UpZWv/4rg7auEr7dGLRZ4=
-github.com/SENERGY-Platform/event-worker v1.0.20 h1:U079tlUiDBjFFXJfXz5mAosAgYf7TcnDQoTRHcAkOe4=
-github.com/SENERGY-Platform/event-worker v1.0.20/go.mod h1:zmntQ+02XCv02SRFoWFBWXNYFkmMvq1WJ9HWIAKdYPE=
+github.com/SENERGY-Platform/event-deployment v0.0.22 h1:bme78HAv86KW6G3X633vpSEHUvFJIjq5zSHNMGJB+8Y=
+github.com/SENERGY-Platform/event-deployment v0.0.22/go.mod h1:Z6iPst9u+OLZYVfgB2RVNnPV4EH2tXMlugwNPJf0Koc=
+github.com/SENERGY-Platform/event-worker v1.0.21 h1:SVXKu/7+uE0xDVtwgRAjy/CwtKYYAbVKt4KAZISY0F0=
+github.com/SENERGY-Platform/event-worker v1.0.21/go.mod h1:zmntQ+02XCv02SRFoWFBWXNYFkmMvq1WJ9HWIAKdYPE=
 github.com/SENERGY-Platform/models/go v0.0.0-20241007061544-de7132ae94e4 h1:zS65f1cmjAoBQUA432nmJl2TXAwqqqJMz7sp2DHLAGc=
 github.com/SENERGY-Platform/models/go v0.0.0-20241007061544-de7132ae94e4/go.mod h1:bCREPNRN4P8oxLgpC3/ZKK4jXSy4MSPXoiomhohE+aw=
 github.com/SENERGY-Platform/permissions-v2 v0.0.27 h1:4Sf5zNW0KMrSSJrv90MmyKD5RMnS8CT26yE7W9Za/x0=
