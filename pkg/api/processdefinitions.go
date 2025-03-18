@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 	"strconv"
@@ -28,15 +27,30 @@ import (
 )
 
 func init() {
-	endpoints = append(endpoints, ProcessDefinitionEndpoints)
+	endpoints = append(endpoints, &ProcessDefinitionEndpoints{})
 }
 
-func ProcessDefinitionEndpoints(config configuration.Config, ctrl *controller.Controller, router *httprouter.Router) {
-	resource := "/process-definitions"
+type ProcessDefinitionEndpoints struct{}
 
-	router.GET(resource+"/:networkId/:id", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		networkId := params.ByName("networkId")
-		id := params.ByName("id")
+// GetProcessDefinition godoc
+// @Summary      get process-definition
+// @Description  get process-definition
+// @Tags         process-definitions
+// @Produce      json
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Param        id path string true "process definition id"
+// @Success      200 {object}  model.ProcessDefinition
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /process-definitions/{networkId}/{id} [GET]
+func (this *ProcessDefinitionEndpoints) GetProcessDefinition(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("GET /process-definitions/{networkId}/{id}", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
+		id := request.PathValue("id")
 		err, errCode := ctrl.ApiCheckAccess(request, networkId, "rx")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
@@ -54,8 +68,27 @@ func ProcessDefinitionEndpoints(config configuration.Config, ctrl *controller.Co
 		}
 		return
 	})
+}
 
-	router.GET(resource, func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+// ListProcessDefinitions godoc
+// @Summary      list process-definitions
+// @Description  list process-definitions
+// @Tags         process-definitions
+// @Produce      json
+// @Security Bearer
+// @Param        limit query integer false "default 100"
+// @Param        offset query integer false "default 0"
+// @Param        sort query string false "default id.asc"
+// @Param        network_id query string true "comma seperated list of network-ids used to filter"
+// @Success      200 {array}  model.ProcessDefinition
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /process-definitions [GET]
+func (this *ProcessDefinitionEndpoints) ListProcessDefinitions(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("GET /process-definitions", func(writer http.ResponseWriter, request *http.Request) {
 		sort := request.URL.Query().Get("sort")
 		if sort == "" {
 			sort = "id.asc"

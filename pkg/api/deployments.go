@@ -22,7 +22,6 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 	"net/url"
@@ -31,15 +30,30 @@ import (
 )
 
 func init() {
-	endpoints = append(endpoints, DeploymentEndpoints)
+	endpoints = append(endpoints, &DeploymentEndpoints{})
 }
 
-func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controller, router *httprouter.Router) {
-	resource := "/deployments"
+type DeploymentEndpoints struct{}
 
-	router.GET(resource+"/:networkId/:deploymentId", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		networkId := params.ByName("networkId")
-		deploymentId := params.ByName("deploymentId")
+// GetDeployment godoc
+// @Summary      get deployment
+// @Description  get deployment
+// @Tags         deployment
+// @Produce      json
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Param        deploymentId path string true "deployment id"
+// @Success      200 {object}  model.Deployment
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /deployments/{networkId}/{deploymentId} [GET]
+func (this *DeploymentEndpoints) GetDeployment(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("GET /deployments/{networkId}/{deploymentId}", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
+		deploymentId := request.PathValue("deploymentId")
 		err, errCode := ctrl.ApiCheckAccess(request, networkId, "rx")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
@@ -57,10 +71,27 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 		}
 		return
 	})
+}
 
-	router.GET(resource+"/:networkId/:deploymentId/metadata", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		networkId := params.ByName("networkId")
-		deploymentId := params.ByName("deploymentId")
+// GetDeploymentMetadata godoc
+// @Summary      get deployment metadata
+// @Description  get deployment metadata
+// @Tags         deployment, metadata
+// @Produce      json
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Param        deploymentId path string true "deployment id"
+// @Success      200 {object}  model.DeploymentMetadata
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /deployments/{networkId}/{deploymentId}/metadata [GET]
+func (this *DeploymentEndpoints) GetDeploymentMetadata(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("GET /deployments/{networkId}/{deploymentId}/metadata", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
+		deploymentId := request.PathValue("deploymentId")
 		err, errCode := ctrl.ApiCheckAccess(request, networkId, "rx")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
@@ -78,10 +109,27 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 		}
 		return
 	})
+}
 
-	router.GET(resource+"/:networkId/:deploymentId/start", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		networkId := params.ByName("networkId")
-		deploymentId := params.ByName("deploymentId")
+// StartDeployment godoc
+// @Summary      start deployed process
+// @Description  start deployed process; a process may expect parameters on start. these cna be passed as query parameters. swagger allows no arbitrary/dynamic parameter names, which means a query wit parameters must be executed manually
+// @Tags         deployment
+// @Produce      json
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Param        deploymentId path string true "deployment id"
+// @Success      200
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /deployments/{networkId}/{deploymentId}/start [GET]
+func (this *DeploymentEndpoints) StartDeployment(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("GET /deployments/{networkId}/{deploymentId}/start", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
+		deploymentId := request.PathValue("deploymentId")
 		err, errCode := ctrl.ApiCheckAccess(request, networkId, "rx")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
@@ -102,9 +150,25 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 		}
 		return
 	})
+}
 
-	router.POST(resource+"/:networkId", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		networkId := params.ByName("networkId")
+// CreateDeployment godoc
+// @Summary      deploy process
+// @Description  deploy process; prepared process may be requested from the process-fog-deployment service
+// @Tags         deployment
+// @Produce      json
+// @Security Bearer
+// @Param        message body deploymentmodel.Deployment true "deployment"
+// @Success      200
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /deployments/{networkId} [POST]
+func (this *DeploymentEndpoints) CreateDeployment(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("POST /deployments/{networkId}", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
 		deployment := deploymentmodel.Deployment{}
 		err := json.NewDecoder(request.Body).Decode(&deployment)
 		if err != nil {
@@ -128,10 +192,27 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 		}
 		return
 	})
+}
 
-	router.DELETE(resource+"/:networkId/:deploymentId", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		networkId := params.ByName("networkId")
-		deploymentId := params.ByName("deploymentId")
+// DeleteDeployment godoc
+// @Summary      delete deployment
+// @Description  delete deployment
+// @Tags         deployment
+// @Produce      json
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Param        deploymentId path string true "deployment id"
+// @Success      200
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /deployments/{networkId}/{deploymentId} [DELETE]
+func (this *DeploymentEndpoints) DeleteDeployment(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("DELETE /deployments/{networkId}/{deploymentId}", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
+		deploymentId := request.PathValue("deploymentId")
 		err, errCode := ctrl.ApiCheckAccess(request, networkId, "a")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
@@ -149,8 +230,31 @@ func DeploymentEndpoints(config configuration.Config, ctrl *controller.Controlle
 		}
 		return
 	})
+}
 
-	router.GET(resource, func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+// ListDeployments godoc
+// @Summary      list deployments
+// @Description  list deployments
+// @Tags         deployment
+// @Produce      json
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Param        deploymentId path string true "deployment id"
+// @Param        search query string false "search"
+// @Param        limit query integer false "default 100"
+// @Param        offset query integer false "default 0"
+// @Param        sort query string false "default id.asc"
+// @Param        extended query bool false "add the fields 'diagram', 'definition_id' and 'error' to the results"
+// @Param        network_id query string true "comma seperated list of network-ids used to filter the deployments"
+// @Success      200 {array}  model.Deployment
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /deployments [GET]
+func (this *DeploymentEndpoints) ListDeployments(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("GET /deployments", func(writer http.ResponseWriter, request *http.Request) {
 		search := request.URL.Query().Get("search")
 		sort := request.URL.Query().Get("sort")
 		if sort == "" {

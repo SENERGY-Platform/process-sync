@@ -21,20 +21,35 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 )
 
 func init() {
-	endpoints = append(endpoints, MetadataEndpoints)
+	endpoints = append(endpoints, &MetadataEndpoints{})
 }
 
-func MetadataEndpoints(config configuration.Config, ctrl *controller.Controller, router *httprouter.Router) {
-	resource := "/metadata"
+type MetadataEndpoints struct{}
 
-	router.GET(resource+"/:networkId", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		networkId := params.ByName("networkId")
+// ListMetadata godoc
+// @Summary      list deployment metadata
+// @Description  list deployment metadata
+// @Tags         deployment, metadata
+// @Produce      json
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Param        deployment_id query string false "deployment id"
+// @Param        camunda_deployment_id query string false "camunda deployment id"
+// @Success      200 {array}  model.DeploymentMetadata
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /metadata/{networkId} [GET]
+func (this *MetadataEndpoints) ListMetadata(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("GET /metadata/{networkId}", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
 		err, errCode := ctrl.ApiCheckAccess(request, networkId, "rx")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)

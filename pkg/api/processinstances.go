@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 	"strconv"
@@ -28,15 +27,30 @@ import (
 )
 
 func init() {
-	endpoints = append(endpoints, ProcessInstanceEndpoints)
+	endpoints = append(endpoints, &ProcessInstanceEndpoints{})
 }
 
-func ProcessInstanceEndpoints(config configuration.Config, ctrl *controller.Controller, router *httprouter.Router) {
-	resource := "/process-instances"
+type ProcessInstanceEndpoints struct{}
 
-	router.GET(resource+"/:networkId/:id", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		networkId := params.ByName("networkId")
-		id := params.ByName("id")
+// GetProcessInstance godoc
+// @Summary      get process-instances
+// @Description  get process-instances
+// @Tags         process-instance
+// @Produce      json
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Param        id path string true "instance id"
+// @Success      200 {object}  model.HistoricProcessInstance
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /process-instances/{networkId}/{id} [GET]
+func (this *ProcessInstanceEndpoints) GetProcessInstance(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("GET /process-instances/{networkId}/{id}", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
+		id := request.PathValue("id")
 		err, errCode := ctrl.ApiCheckAccess(request, networkId, "rx")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
@@ -54,10 +68,27 @@ func ProcessInstanceEndpoints(config configuration.Config, ctrl *controller.Cont
 		}
 		return
 	})
+}
 
-	router.DELETE(resource+"/:networkId/:id", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		networkId := params.ByName("networkId")
-		id := params.ByName("id")
+// DeleteProcessInstance godoc
+// @Summary      get process-instances
+// @Description  get process-instances
+// @Tags         process-instance
+// @Produce      json
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Param        id path string true "instance id"
+// @Success      200
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /process-instances/{networkId}/{id} [DELETE]
+func (this *ProcessInstanceEndpoints) DeleteProcessInstance(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("DELETE /process-instances/{networkId}/{id}", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
+		id := request.PathValue("id")
 		err, errCode := ctrl.ApiCheckAccess(request, networkId, "a")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
@@ -75,8 +106,27 @@ func ProcessInstanceEndpoints(config configuration.Config, ctrl *controller.Cont
 		}
 		return
 	})
+}
 
-	router.GET(resource, func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+// ListProcessInstances godoc
+// @Summary      list process-instances
+// @Description  list process-instances
+// @Tags         process-instance
+// @Produce      json
+// @Security Bearer
+// @Param        limit query integer false "default 100"
+// @Param        offset query integer false "default 0"
+// @Param        sort query string false "default id.asc"
+// @Param        network_id query string true "comma seperated list of network-ids used to filter"
+// @Success      200 {array}  model.ProcessInstance
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /process-instances [GET]
+func (this *ProcessInstanceEndpoints) ListProcessInstances(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("GET /process-instances", func(writer http.ResponseWriter, request *http.Request) {
 		sort := request.URL.Query().Get("sort")
 		if sort == "" {
 			sort = "id.asc"

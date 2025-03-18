@@ -20,20 +20,33 @@ import (
 	"encoding/json"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 )
 
 func init() {
-	endpoints = append(endpoints, SyncEndpoints)
+	endpoints = append(endpoints, &SyncEndpoints{})
 }
 
-func SyncEndpoints(config configuration.Config, ctrl *controller.Controller, router *httprouter.Router) {
-	resource := "/sync"
+type SyncEndpoints struct{}
 
-	router.POST(resource+"/deployments/:networkId", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		networkId := params.ByName("networkId")
+// ReSyncDeployments godoc
+// @Summary      resync deployments
+// @Description  resync deployments that are registered as lost on the mgw side. can only be tried once.
+// @Tags         deployment
+// @Produce      json
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Success      200
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /sync/deployments/{networkId} [POST]
+func (this *SyncEndpoints) ReSyncDeployments(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("POST /sync/deployments/{networkId}", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
 		token, err, errCode := ctrl.ApiCheckAccessReturnToken(request, networkId, "a")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)

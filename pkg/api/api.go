@@ -22,15 +22,17 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 	"github.com/SENERGY-Platform/service-commons/pkg/accesslog"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 	"reflect"
-	"runtime"
 	"time"
 )
 
-var endpoints = []func(config configuration.Config, ctrl *controller.Controller, router *httprouter.Router){}
+//go:generate go tool swag init -o ../../docs --parseDependency -d .. -g api/api.go
+
+type EndpointMethod = func(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux)
+
+var endpoints = []interface{}{} //list of objects with EndpointMethod
 
 func Start(config configuration.Config, ctx context.Context, ctrl *controller.Controller) (err error) {
 	log.Println("start api on " + config.ApiPort)
@@ -53,15 +55,49 @@ func Start(config configuration.Config, ctx context.Context, ctrl *controller.Co
 	return nil
 }
 
+// Router doc
+// @title         Process-Sync-Api
+// @version       0.1
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+// @BasePath  /
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 func Router(config configuration.Config, ctrl *controller.Controller) http.Handler {
-	router := httprouter.New()
+	router := http.NewServeMux()
 	log.Println("add heart beat endpoint")
-	router.GET("/", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+	router.HandleFunc("GET /", func(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusOK)
 	})
 	for _, e := range endpoints {
-		log.Println("add endpoints: " + runtime.FuncForPC(reflect.ValueOf(e).Pointer()).Name())
-		e(config, ctrl, router)
+		for name, call := range getEndpointMethods(e) {
+			log.Println("add endpoint: " + name)
+			call(config, ctrl, router)
+		}
 	}
 	return router
+}
+
+func getEndpointMethods(e interface{}) map[string]EndpointMethod {
+	result := map[string]EndpointMethod{}
+	objRef := reflect.ValueOf(e)
+	methodCount := objRef.NumMethod()
+	for i := 0; i < methodCount; i++ {
+		m := objRef.Method(i)
+		f, ok := m.Interface().(EndpointMethod)
+		if ok {
+			name := getTypeName(objRef.Type()) + "::" + objRef.Type().Method(i).Name
+			result[name] = f
+		}
+	}
+	return result
+}
+
+func getTypeName(t reflect.Type) (res string) {
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	return t.Name()
 }

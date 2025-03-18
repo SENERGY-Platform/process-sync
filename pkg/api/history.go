@@ -21,7 +21,6 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 	"strconv"
@@ -29,15 +28,30 @@ import (
 )
 
 func init() {
-	endpoints = append(endpoints, HistoryEndpoints)
+	endpoints = append(endpoints, &HistoryEndpoints{})
 }
 
-func HistoryEndpoints(config configuration.Config, ctrl *controller.Controller, router *httprouter.Router) {
-	resource := "/history/process-instances"
+type HistoryEndpoints struct{}
 
-	router.GET(resource+"/:networkId/:id", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		networkId := params.ByName("networkId")
-		id := params.ByName("id")
+// GetHistoricProcessInstance godoc
+// @Summary      get historic process-instances
+// @Description  get historic process-instances
+// @Tags         process-instance
+// @Produce      json
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Param        id path string true "instance id"
+// @Success      200 {object}  model.HistoricProcessInstance
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /history/process-instances/{networkId}/{id} [GET]
+func (this *HistoryEndpoints) GetHistoricProcessInstance(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("GET /history/process-instances/{networkId}/{id}", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
+		id := request.PathValue("id")
 		err, errCode := ctrl.ApiCheckAccess(request, networkId, "rx")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
@@ -55,10 +69,27 @@ func HistoryEndpoints(config configuration.Config, ctrl *controller.Controller, 
 		}
 		return
 	})
+}
 
-	router.DELETE(resource+"/:networkId/:id", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		networkId := params.ByName("networkId")
-		id := params.ByName("id")
+// DeleteHistoricProcessInstance godoc
+// @Summary      get historic process-instances
+// @Description  get historic process-instances
+// @Tags         process-instance
+// @Produce      json
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Param        id path string true "instance id"
+// @Success      200
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /history/process-instances/{networkId}/{id} [DELETE]
+func (this *HistoryEndpoints) DeleteHistoricProcessInstance(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("DELETE /history/process-instances/{networkId}/{id}", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
+		id := request.PathValue("id")
 		err, errCode := ctrl.ApiCheckAccess(request, networkId, "a")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
@@ -76,8 +107,31 @@ func HistoryEndpoints(config configuration.Config, ctrl *controller.Controller, 
 		}
 		return
 	})
+}
 
-	router.GET(resource, func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+// ListHistoricProcessInstances godoc
+// @Summary      list historic process-instances
+// @Description  list historic process-instances
+// @Tags         process-instance
+// @Produce      json
+// @Security Bearer
+// @Param        search query string false "search"
+// @Param        limit query integer false "default 100"
+// @Param        offset query integer false "default 0"
+// @Param        sort query string false "default id.asc"
+// @Param        network_id query string true "comma seperated list of network-ids, used to filter the result"
+// @Param        processDefinitionId query string false "process-definition-id, used to filter the result"
+// @Param        state query string false "state may be 'finished' or 'unfinished', used to filter the result"
+// @Param        with_total query bool false "if set to true, wraps the result in an objet with the result {total:0, data:[]}"
+// @Success      200 {array}  model.HistoricProcessInstance
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /history/process-instances [GET]
+func (this *HistoryEndpoints) ListHistoricProcessInstances(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("GET /history/process-instances", func(writer http.ResponseWriter, request *http.Request) {
 		sort := request.URL.Query().Get("sort")
 		if sort == "" {
 			sort = "id.asc"

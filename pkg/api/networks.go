@@ -20,19 +20,31 @@ import (
 	"encoding/json"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 )
 
 func init() {
-	endpoints = append(endpoints, NetworksEndpoints)
+	endpoints = append(endpoints, &NetworksEndpoints{})
 }
 
-func NetworksEndpoints(config configuration.Config, ctrl *controller.Controller, router *httprouter.Router) {
-	resource := "/networks"
+type NetworksEndpoints struct{}
 
-	router.GET(resource, func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+// ListNetworks godoc
+// @Summary      list networks
+// @Description  list networks
+// @Tags         networks
+// @Produce      json
+// @Security Bearer
+// @Success      200 {array}  models.Hub
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /networks [GET]
+func (this *NetworksEndpoints) ListNetworks(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("GET /networks", func(writer http.ResponseWriter, request *http.Request) {
 		result, err, errCode := ctrl.ApiListNetworks(request)
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)

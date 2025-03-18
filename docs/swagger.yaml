@@ -1,0 +1,1549 @@
+basePath: /
+definitions:
+  deploymentmodel.ConditionalEvent:
+    properties:
+      event_id:
+        type: string
+      qos:
+        type: integer
+      script:
+        type: string
+      selection:
+        $ref: '#/definitions/deploymentmodel.Selection'
+      value_variable:
+        type: string
+      variables:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  deploymentmodel.Deployment:
+    properties:
+      description:
+        type: string
+      diagram:
+        $ref: '#/definitions/deploymentmodel.Diagram'
+      elements:
+        items:
+          $ref: '#/definitions/deploymentmodel.Element'
+        type: array
+      executable:
+        type: boolean
+      id:
+        type: string
+      incident_handling:
+        $ref: '#/definitions/deploymentmodel.IncidentHandling'
+      name:
+        type: string
+      start_parameter:
+        items:
+          $ref: '#/definitions/deploymentmodel.ProcessStartParameter'
+        type: array
+      version:
+        type: integer
+    type: object
+  deploymentmodel.Device:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  deploymentmodel.DeviceGroup:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  deploymentmodel.Diagram:
+    properties:
+      svg:
+        type: string
+      xml_deployed:
+        type: string
+      xml_raw:
+        type: string
+    type: object
+  deploymentmodel.Element:
+    properties:
+      bpmn_id:
+        type: string
+      conditional_event:
+        $ref: '#/definitions/deploymentmodel.ConditionalEvent'
+      group:
+        type: string
+      message_event:
+        $ref: '#/definitions/deploymentmodel.MessageEvent'
+      name:
+        type: string
+      notification:
+        $ref: '#/definitions/deploymentmodel.Notification'
+      order:
+        type: integer
+      task:
+        $ref: '#/definitions/deploymentmodel.Task'
+      time_event:
+        $ref: '#/definitions/deploymentmodel.TimeEvent'
+    type: object
+  deploymentmodel.FilterCriteria:
+    properties:
+      aspect_id:
+        type: string
+      characteristic_id:
+        description: 'TODO: remove?'
+        type: string
+      device_class_id:
+        type: string
+      function_id:
+        type: string
+    type: object
+  deploymentmodel.GenericEventSource:
+    properties:
+      filter_ids:
+        type: string
+      filter_type:
+        type: string
+      topic:
+        type: string
+    type: object
+  deploymentmodel.IncidentHandling:
+    properties:
+      notify:
+        type: boolean
+      restart:
+        type: boolean
+    type: object
+  deploymentmodel.MessageEvent:
+    properties:
+      event_id:
+        type: string
+      flow_id:
+        type: string
+      selection:
+        $ref: '#/definitions/deploymentmodel.Selection'
+      use_marshaller:
+        type: boolean
+      value:
+        type: string
+    type: object
+  deploymentmodel.Notification:
+    properties:
+      message:
+        type: string
+      title:
+        type: string
+    type: object
+  deploymentmodel.ProcessStartParameter:
+    properties:
+      default:
+        type: string
+      id:
+        type: string
+      label:
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        type: object
+      type:
+        type: string
+    type: object
+  deploymentmodel.Selection:
+    properties:
+      filter_criteria:
+        $ref: '#/definitions/deploymentmodel.FilterCriteria'
+      selected_device_group_id:
+        type: string
+      selected_device_id:
+        type: string
+      selected_generic_event_source:
+        $ref: '#/definitions/deploymentmodel.GenericEventSource'
+      selected_import_id:
+        type: string
+      selected_path:
+        $ref: '#/definitions/deviceselectionmodel.PathOption'
+      selected_service_id:
+        type: string
+      selection_options:
+        items:
+          $ref: '#/definitions/deploymentmodel.SelectionOption'
+        type: array
+    type: object
+  deploymentmodel.SelectionOption:
+    properties:
+      device:
+        $ref: '#/definitions/deploymentmodel.Device'
+      device_group:
+        $ref: '#/definitions/deploymentmodel.DeviceGroup'
+      import:
+        $ref: '#/definitions/importmodel.Import'
+      importType:
+        $ref: '#/definitions/importmodel.ImportType'
+      path_options:
+        additionalProperties:
+          items:
+            $ref: '#/definitions/deviceselectionmodel.PathOption'
+          type: array
+        type: object
+      services:
+        items:
+          $ref: '#/definitions/deploymentmodel.Service'
+        type: array
+    type: object
+  deploymentmodel.Service:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  deploymentmodel.Task:
+    properties:
+      parameter:
+        additionalProperties:
+          type: string
+        type: object
+      prefer_event:
+        type: boolean
+      retries:
+        type: integer
+      selection:
+        $ref: '#/definitions/deploymentmodel.Selection'
+    type: object
+  deploymentmodel.TimeEvent:
+    properties:
+      time:
+        type: string
+      type:
+        type: string
+    type: object
+  devicemodel.AspectNode:
+    properties:
+      ancestor_ids:
+        items:
+          type: string
+        type: array
+      child_ids:
+        items:
+          type: string
+        type: array
+      descendent_ids:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      parent_id:
+        type: string
+      root_id:
+        type: string
+    type: object
+  deviceselectionmodel.Configurable:
+    properties:
+      aspect_node:
+        $ref: '#/definitions/devicemodel.AspectNode'
+      characteristic_id:
+        type: string
+      function_id:
+        type: string
+      path:
+        type: string
+      type:
+        type: string
+      value: {}
+    type: object
+  deviceselectionmodel.PathOption:
+    properties:
+      aspectNode:
+        $ref: '#/definitions/devicemodel.AspectNode'
+      characteristicId:
+        type: string
+      configurables:
+        items:
+          $ref: '#/definitions/deviceselectionmodel.Configurable'
+        type: array
+      functionId:
+        type: string
+      isVoid:
+        type: boolean
+      path:
+        type: string
+      type:
+        type: string
+      value: {}
+    type: object
+  github_com_SENERGY-Platform_process-sync_pkg_model_camundamodel.Variable:
+    properties:
+      type:
+        type: string
+      value: {}
+      valueInfo: {}
+    type: object
+  importmodel.Import:
+    properties:
+      configs:
+        items:
+          $ref: '#/definitions/importmodel.ImportConfig'
+        type: array
+      id:
+        type: string
+      image:
+        type: string
+      import_type_id:
+        type: string
+      kafka_topic:
+        type: string
+      name:
+        type: string
+      restart:
+        type: boolean
+    type: object
+  importmodel.ImportConfig:
+    properties:
+      name:
+        type: string
+      value: {}
+    type: object
+  importmodel.ImportContentVariable:
+    properties:
+      aspect_id:
+        type: string
+      characteristic_id:
+        type: string
+      function_id:
+        type: string
+      name:
+        type: string
+      sub_content_variables:
+        items:
+          $ref: '#/definitions/importmodel.ImportContentVariable'
+        type: array
+      type:
+        type: string
+      use_as_tag:
+        type: boolean
+    type: object
+  importmodel.ImportType:
+    properties:
+      configs:
+        items:
+          $ref: '#/definitions/importmodel.ImportConfig'
+        type: array
+      default_restart:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+      name:
+        type: string
+      output:
+        $ref: '#/definitions/importmodel.ImportContentVariable'
+      owner:
+        type: string
+    type: object
+  model.Deployment:
+    properties:
+      deploymentTime: {}
+      id:
+        type: string
+      is_placeholder:
+        type: boolean
+      marked_as_missing:
+        type: boolean
+      marked_for_delete:
+        type: boolean
+      name:
+        type: string
+      network_id:
+        type: string
+      source:
+        type: string
+      sync_date:
+        type: string
+      tenantId:
+        type: string
+    type: object
+  model.DeploymentMetadata:
+    properties:
+      camunda_deployment_id:
+        type: string
+      deployment_model:
+        $ref: '#/definitions/model.DeploymentWithEventDesc'
+      is_placeholder:
+        type: boolean
+      marked_as_missing:
+        type: boolean
+      marked_for_delete:
+        type: boolean
+      network_id:
+        type: string
+      process_parameter:
+        additionalProperties:
+          $ref: '#/definitions/github_com_SENERGY-Platform_process-sync_pkg_model_camundamodel.Variable'
+        type: object
+      sync_date:
+        type: string
+    type: object
+  model.DeploymentWithEventDesc:
+    properties:
+      description:
+        type: string
+      device_id_to_local_id:
+        additionalProperties:
+          type: string
+        type: object
+      diagram:
+        $ref: '#/definitions/deploymentmodel.Diagram'
+      elements:
+        items:
+          $ref: '#/definitions/deploymentmodel.Element'
+        type: array
+      event_descriptions:
+        items:
+          $ref: '#/definitions/model.EventDesc'
+        type: array
+      executable:
+        type: boolean
+      id:
+        type: string
+      incident_handling:
+        $ref: '#/definitions/deploymentmodel.IncidentHandling'
+      name:
+        type: string
+      service_id_to_local_id:
+        additionalProperties:
+          type: string
+        type: object
+      start_parameter:
+        items:
+          $ref: '#/definitions/deploymentmodel.ProcessStartParameter'
+        type: array
+      version:
+        type: integer
+    type: object
+  model.EventDesc:
+    properties:
+      aspect_id:
+        type: string
+      characteristic_id:
+        description: marshaller info
+        type: string
+      deployment_id:
+        description: search info
+        type: string
+      device_group_id:
+        type: string
+      device_id:
+        type: string
+      event_id:
+        type: string
+      function_id:
+        type: string
+      import_id:
+        type: string
+      path:
+        type: string
+      qos:
+        type: integer
+      script:
+        description: worker info
+        type: string
+      service_for_marshaller:
+        allOf:
+        - $ref: '#/definitions/models.Service'
+        description: "set by event-manager\nmay be\n\t- the service from EventDesc.ConditionalEvent.Selection.SelectedServiceId\n\t-
+          or an artificial service for EventDesc.ConditionalEvent.Selection.SelectedImportId"
+      service_id:
+        type: string
+      user_id:
+        type: string
+      value_variable:
+        type: string
+      variables:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  model.HistoricProcessInstance:
+    properties:
+      businessKey:
+        type: string
+      caseInstanceId:
+        type: string
+      deleteReason:
+        type: string
+      durationInMillis:
+        type: number
+      endTime:
+        type: string
+      id:
+        type: string
+      is_placeholder:
+        type: boolean
+      marked_as_missing:
+        type: boolean
+      marked_for_delete:
+        type: boolean
+      network_id:
+        type: string
+      processDefinitionId:
+        type: string
+      processDefinitionKey:
+        type: string
+      processDefinitionName:
+        type: string
+      processDefinitionVersion:
+        type: number
+      startActivityId:
+        type: string
+      startTime:
+        type: string
+      startUserId:
+        type: string
+      state:
+        type: string
+      superCaseInstanceId:
+        type: string
+      superProcessInstanceId:
+        type: string
+      sync_date:
+        type: string
+      tenantId:
+        type: string
+    type: object
+  model.Incident:
+    properties:
+      deployment_name:
+        type: string
+      error_message:
+        type: string
+      external_task_id:
+        type: string
+      id:
+        type: string
+      is_placeholder:
+        type: boolean
+      marked_as_missing:
+        type: boolean
+      marked_for_delete:
+        type: boolean
+      msg_version:
+        description: from version 3 onward will be set in KafkaIncidentsCommand and
+          be copied to this field
+        type: integer
+      network_id:
+        type: string
+      process_definition_id:
+        type: string
+      process_instance_id:
+        type: string
+      sync_date:
+        type: string
+      tenant_id:
+        type: string
+      time:
+        type: string
+      worker_id:
+        type: string
+    type: object
+  model.ProcessDefinition:
+    properties:
+      Version:
+        type: integer
+      category:
+        type: string
+      deploymentId:
+        type: string
+      description:
+        type: string
+      diagram:
+        type: string
+      historyTimeToLive:
+        type: integer
+      id:
+        type: string
+      is_placeholder:
+        type: boolean
+      key:
+        type: string
+      marked_as_missing:
+        type: boolean
+      marked_for_delete:
+        type: boolean
+      name:
+        type: string
+      network_id:
+        type: string
+      resource:
+        type: string
+      suspended:
+        type: boolean
+      sync_date:
+        type: string
+      tenantId:
+        type: string
+      versionTag:
+        type: string
+    type: object
+  model.ProcessInstance:
+    properties:
+      businessKey:
+        type: string
+      caseInstanceId:
+        type: string
+      definitionId:
+        type: string
+      ended:
+        type: boolean
+      id:
+        type: string
+      is_placeholder:
+        type: boolean
+      marked_as_missing:
+        type: boolean
+      marked_for_delete:
+        type: boolean
+      network_id:
+        type: string
+      suspended:
+        type: boolean
+      sync_date:
+        type: string
+      tenantId:
+        type: string
+    type: object
+  models.Attribute:
+    properties:
+      key:
+        type: string
+      origin:
+        type: string
+      value:
+        type: string
+    type: object
+  models.Content:
+    properties:
+      content_variable:
+        $ref: '#/definitions/models.ContentVariable'
+      id:
+        type: string
+      protocol_segment_id:
+        type: string
+      serialization:
+        $ref: '#/definitions/models.Serialization'
+    type: object
+  models.ContentVariable:
+    properties:
+      aspect_id:
+        type: string
+      characteristic_id:
+        type: string
+      function_id:
+        type: string
+      id:
+        type: string
+      is_void:
+        type: boolean
+      name:
+        type: string
+      omit_empty:
+        type: boolean
+      serialization_options:
+        items:
+          type: string
+        type: array
+      sub_content_variables:
+        items:
+          $ref: '#/definitions/models.ContentVariable'
+        type: array
+      type:
+        $ref: '#/definitions/models.Type'
+      unit_reference:
+        type: string
+      value: {}
+    type: object
+  models.Hub:
+    properties:
+      device_ids:
+        items:
+          type: string
+        type: array
+      device_local_ids:
+        items:
+          type: string
+        type: array
+      hash:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      owner_id:
+        type: string
+    type: object
+  models.Interaction:
+    enum:
+    - event
+    - request
+    - event+request
+    type: string
+    x-enum-varnames:
+    - EVENT
+    - REQUEST
+    - EVENT_AND_REQUEST
+  models.Serialization:
+    enum:
+    - xml
+    - json
+    - plain-text
+    type: string
+    x-enum-varnames:
+    - XML
+    - JSON
+    - PlainText
+  models.Service:
+    properties:
+      attributes:
+        items:
+          $ref: '#/definitions/models.Attribute'
+        type: array
+      description:
+        type: string
+      id:
+        type: string
+      inputs:
+        items:
+          $ref: '#/definitions/models.Content'
+        type: array
+      interaction:
+        $ref: '#/definitions/models.Interaction'
+      local_id:
+        type: string
+      name:
+        type: string
+      outputs:
+        items:
+          $ref: '#/definitions/models.Content'
+        type: array
+      protocol_id:
+        type: string
+      service_group_key:
+        type: string
+    type: object
+  models.Type:
+    enum:
+    - https://schema.org/Text
+    - https://schema.org/Integer
+    - https://schema.org/Float
+    - https://schema.org/Boolean
+    - https://schema.org/ItemList
+    - https://schema.org/StructuredValue
+    type: string
+    x-enum-varnames:
+    - String
+    - Integer
+    - Float
+    - Boolean
+    - List
+    - Structure
+info:
+  contact: {}
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Process-Sync-Api
+  version: "0.1"
+paths:
+  /deployments:
+    get:
+      description: list deployments
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: deployment id
+        in: path
+        name: deploymentId
+        required: true
+        type: string
+      - description: search
+        in: query
+        name: search
+        type: string
+      - description: default 100
+        in: query
+        name: limit
+        type: integer
+      - description: default 0
+        in: query
+        name: offset
+        type: integer
+      - description: default id.asc
+        in: query
+        name: sort
+        type: string
+      - description: add the fields 'diagram', 'definition_id' and 'error' to the
+          results
+        in: query
+        name: extended
+        type: boolean
+      - description: comma seperated list of network-ids used to filter the deployments
+        in: query
+        name: network_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Deployment'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: list deployments
+      tags:
+      - deployment
+  /deployments/{networkId}:
+    post:
+      description: deploy process; prepared process may be requested from the process-fog-deployment
+        service
+      parameters:
+      - description: deployment
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/deploymentmodel.Deployment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: deploy process
+      tags:
+      - deployment
+  /deployments/{networkId}/{deploymentId}:
+    delete:
+      description: delete deployment
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: deployment id
+        in: path
+        name: deploymentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: delete deployment
+      tags:
+      - deployment
+    get:
+      description: get deployment
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: deployment id
+        in: path
+        name: deploymentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Deployment'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: get deployment
+      tags:
+      - deployment
+  /deployments/{networkId}/{deploymentId}/metadata:
+    get:
+      description: get deployment metadata
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: deployment id
+        in: path
+        name: deploymentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.DeploymentMetadata'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: get deployment metadata
+      tags:
+      - deployment
+      - metadata
+  /deployments/{networkId}/{deploymentId}/start:
+    get:
+      description: start deployed process; a process may expect parameters on start.
+        these cna be passed as query parameters. swagger allows no arbitrary/dynamic
+        parameter names, which means a query wit parameters must be executed manually
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: deployment id
+        in: path
+        name: deploymentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: start deployed process
+      tags:
+      - deployment
+  /history/process-instances:
+    get:
+      description: list historic process-instances
+      parameters:
+      - description: search
+        in: query
+        name: search
+        type: string
+      - description: default 100
+        in: query
+        name: limit
+        type: integer
+      - description: default 0
+        in: query
+        name: offset
+        type: integer
+      - description: default id.asc
+        in: query
+        name: sort
+        type: string
+      - description: comma seperated list of network-ids, used to filter the result
+        in: query
+        name: network_id
+        required: true
+        type: string
+      - description: process-definition-id, used to filter the result
+        in: query
+        name: processDefinitionId
+        type: string
+      - description: state may be 'finished' or 'unfinished', used to filter the result
+        in: query
+        name: state
+        type: string
+      - description: if set to true, wraps the result in an objet with the result
+          {total:0, data:[]}
+        in: query
+        name: with_total
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.HistoricProcessInstance'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: list historic process-instances
+      tags:
+      - process-instance
+  /history/process-instances/{networkId}/{id}:
+    delete:
+      description: get historic process-instances
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: instance id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: get historic process-instances
+      tags:
+      - process-instance
+    get:
+      description: get historic process-instances
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: instance id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.HistoricProcessInstance'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: get historic process-instances
+      tags:
+      - process-instance
+  /incidents:
+    get:
+      description: list incidents
+      parameters:
+      - description: default 100
+        in: query
+        name: limit
+        type: integer
+      - description: default 0
+        in: query
+        name: offset
+        type: integer
+      - description: default id.asc
+        in: query
+        name: sort
+        type: string
+      - description: comma seperated list of network-ids, used to filter the result
+        in: query
+        name: network_id
+        required: true
+        type: string
+      - description: process-instance-id, used to filter the result
+        in: query
+        name: process_instance_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Incident'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: list incidents
+      tags:
+      - incidents
+  /incidents/{networkId}/{id}:
+    delete:
+      description: delete incident
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: incident id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: delete incident
+      tags:
+      - incidents
+    get:
+      description: get incident
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: incident id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Incident'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: get incident
+      tags:
+      - incidents
+  /metadata/{networkId}:
+    get:
+      description: list deployment metadata
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: deployment id
+        in: query
+        name: deployment_id
+        type: string
+      - description: camunda deployment id
+        in: query
+        name: camunda_deployment_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.DeploymentMetadata'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: list deployment metadata
+      tags:
+      - deployment
+      - metadata
+  /networks:
+    get:
+      description: list networks
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Hub'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: list networks
+      tags:
+      - networks
+  /process-definitions:
+    get:
+      description: list process-definitions
+      parameters:
+      - description: default 100
+        in: query
+        name: limit
+        type: integer
+      - description: default 0
+        in: query
+        name: offset
+        type: integer
+      - description: default id.asc
+        in: query
+        name: sort
+        type: string
+      - description: comma seperated list of network-ids used to filter
+        in: query
+        name: network_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ProcessDefinition'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: list process-definitions
+      tags:
+      - process-definitions
+  /process-definitions/{networkId}/{id}:
+    get:
+      description: get process-definition
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: process definition id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ProcessDefinition'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: get process-definition
+      tags:
+      - process-definitions
+  /process-instances:
+    get:
+      description: list process-instances
+      parameters:
+      - description: default 100
+        in: query
+        name: limit
+        type: integer
+      - description: default 0
+        in: query
+        name: offset
+        type: integer
+      - description: default id.asc
+        in: query
+        name: sort
+        type: string
+      - description: comma seperated list of network-ids used to filter
+        in: query
+        name: network_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ProcessInstance'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: list process-instances
+      tags:
+      - process-instance
+  /process-instances/{networkId}/{id}:
+    delete:
+      description: get process-instances
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: instance id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: get process-instances
+      tags:
+      - process-instance
+    get:
+      description: get process-instances
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: instance id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.HistoricProcessInstance'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: get process-instances
+      tags:
+      - process-instance
+  /sync/deployments/{networkId}:
+    post:
+      description: resync deployments that are registered as lost on the mgw side.
+        can only be tried once.
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: resync deployments
+      tags:
+      - deployment
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

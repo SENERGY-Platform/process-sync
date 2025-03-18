@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 	"strconv"
@@ -28,15 +27,30 @@ import (
 )
 
 func init() {
-	endpoints = append(endpoints, IncidentEndpoints)
+	endpoints = append(endpoints, &IncidentEndpoints{})
 }
 
-func IncidentEndpoints(config configuration.Config, ctrl *controller.Controller, router *httprouter.Router) {
-	resource := "/incidents"
+type IncidentEndpoints struct{}
 
-	router.GET(resource+"/:networkId/:id", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		networkId := params.ByName("networkId")
-		id := params.ByName("id")
+// GetIncident godoc
+// @Summary      get incident
+// @Description  get incident
+// @Tags         incidents
+// @Produce      json
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Param        id path string true "incident id"
+// @Success      200 {object}  model.Incident
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /incidents/{networkId}/{id} [GET]
+func (this *IncidentEndpoints) GetIncident(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("GET /incidents/{networkId}/{id}", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
+		id := request.PathValue("id")
 		err, errCode := ctrl.ApiCheckAccess(request, networkId, "rx")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
@@ -54,10 +68,27 @@ func IncidentEndpoints(config configuration.Config, ctrl *controller.Controller,
 		}
 		return
 	})
+}
 
-	router.DELETE(resource+"/:networkId/:id", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		networkId := params.ByName("networkId")
-		id := params.ByName("id")
+// DeleteIncident godoc
+// @Summary      delete incident
+// @Description  delete incident
+// @Tags         incidents
+// @Produce      json
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Param        id path string true "incident id"
+// @Success      200
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /incidents/{networkId}/{id} [DELETE]
+func (this *IncidentEndpoints) DeleteIncident(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("DELETE /incidents/{networkId}/{id}", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
+		id := request.PathValue("id")
 		err, errCode := ctrl.ApiCheckAccess(request, networkId, "a")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
@@ -75,8 +106,28 @@ func IncidentEndpoints(config configuration.Config, ctrl *controller.Controller,
 		}
 		return
 	})
+}
 
-	router.GET(resource, func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+// ListIncidents godoc
+// @Summary      list incidents
+// @Description  list incidents
+// @Tags         incidents
+// @Produce      json
+// @Security Bearer
+// @Param        limit query integer false "default 100"
+// @Param        offset query integer false "default 0"
+// @Param        sort query string false "default id.asc"
+// @Param        network_id query string true "comma seperated list of network-ids, used to filter the result"
+// @Param        process_instance_id query string false "process-instance-id, used to filter the result"
+// @Success      200 {array}  model.Incident
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /incidents [GET]
+func (this *IncidentEndpoints) ListIncidents(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("GET /incidents", func(writer http.ResponseWriter, request *http.Request) {
 		sort := request.URL.Query().Get("sort")
 		if sort == "" {
 			sort = "id.asc"
