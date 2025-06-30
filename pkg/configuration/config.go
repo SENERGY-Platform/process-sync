@@ -65,6 +65,8 @@ type Config struct {
 	CleanupMaxAge   string `json:"cleanup_max_age"`
 	CleanupInterval string `json:"cleanup_interval"`
 
+	ApiDocsProviderBaseUrl string `json:"api_docs_provider_base_url"`
+
 	DeveloperNotificationUrl string `json:"developer_notification_url"`
 }
 

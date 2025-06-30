@@ -19,10 +19,13 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/SENERGY-Platform/api-docs-provider/lib/client"
+	"github.com/SENERGY-Platform/process-sync/docs"
 	"github.com/SENERGY-Platform/process-sync/pkg/api"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime/debug"
@@ -57,6 +60,13 @@ func main() {
 
 	if config.CleanupInterval != "" && config.CleanupInterval != "-" && config.CleanupMaxAge != "" && config.CleanupMaxAge != "-" {
 		go cleanup(ctx, ctrl, config)
+	}
+
+	if config.ApiDocsProviderBaseUrl != "" && config.ApiDocsProviderBaseUrl != "-" {
+		err = PublishAsyncApiDoc(config)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	shutdown := make(chan os.Signal, 1)
@@ -95,4 +105,9 @@ func cleanup(ctx context.Context, ctrl *controller.Controller, config configurat
 			}
 		}
 	}
+}
+
+func PublishAsyncApiDoc(conf configuration.Config) error {
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	return client.New(http.DefaultClient, conf.ApiDocsProviderBaseUrl).AsyncapiPutDoc(ctx, "github_com_SENERGY-Platform_senergy-platform-connector", docs.AsyncApiDoc)
 }

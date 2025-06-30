@@ -1,0 +1,1982 @@
+{
+    "asyncapi": "3.0.0",
+    "info": {
+        "title": "Process-Sync",
+        "version": "",
+        "description": "topics or parts of topics in '[]' are placeholders"
+    },
+    "servers": {
+        "kafka": {
+            "host": "",
+            "protocol": "kafka"
+        },
+        "mqtt": {
+            "host": "",
+            "protocol": "mqtt",
+            "description": "this service subscribes with a '$share/[group-id]/' topic prefix, to enable service scaling without duplicate message handling. this prefix is transparent to other mqtt clients."
+        }
+    },
+    "channels": {
+        "device-groups": {
+            "address": "device-groups",
+            "messages": {
+                "publish.message": {
+                    "$ref": "#/components/messages/ControllerDeviceGroupCommand"
+                }
+            },
+            "description": "topic may be configured by config.DeviceGroupTopic; messages will trigger updates to fog process deployments",
+            "servers": [
+                {
+                    "$ref": "#/servers/kafka"
+                }
+            ]
+        },
+        "process-deployment-done": {
+            "address": "process-deployment-done",
+            "messages": {
+                "subscribe.message": {
+                    "$ref": "#/components/messages/ControllerDoneNotification"
+                }
+            },
+            "description": "topic may be configured by config.ProcessDeploymentDoneTopic; send when mgw has signaled finished process deployment",
+            "servers": [
+                {
+                    "$ref": "#/servers/kafka"
+                }
+            ]
+        },
+        "processes/[network-id]/cmd/deployment": {
+            "address": "processes/[network-id]/cmd/deployment",
+            "messages": {
+                "subscribe.message": {
+                    "$ref": "#/components/messages/ModelDeploymentWithEventDesc"
+                }
+            },
+            "description": "send process deployment to mgw",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/cmd/deployment/delete": {
+            "address": "processes/[network-id]/cmd/deployment/delete",
+            "messages": {
+                "subscribe.message": {
+                    "payload": {
+                        "type": "string"
+                    },
+                    "name": "DeploymentId",
+                    "title": "DeploymentId"
+                }
+            },
+            "description": "send process deployment delete request to a mgw",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/cmd/deployment/event-descriptions": {
+            "address": "processes/[network-id]/cmd/deployment/event-descriptions",
+            "messages": {
+                "subscribe.message": {
+                    "$ref": "#/components/messages/MgwEventDescriptionsUpdate"
+                }
+            },
+            "description": "send event descriptions to mgw",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/cmd/deployment/start": {
+            "address": "processes/[network-id]/cmd/deployment/start",
+            "messages": {
+                "subscribe.message": {
+                    "$ref": "#/components/messages/ModelStartMessage"
+                }
+            },
+            "description": "send process start request to a mgw",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/cmd/process-instance-history/delete": {
+            "address": "processes/[network-id]/cmd/process-instance-history/delete",
+            "messages": {
+                "subscribe.message": {
+                    "payload": {
+                        "type": "string"
+                    },
+                    "name": "HistoryId",
+                    "title": "HistoryId"
+                }
+            },
+            "description": "send process-instance-history delete request to a mgw",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/cmd/process-instance/delete": {
+            "address": "processes/[network-id]/cmd/process-instance/delete",
+            "messages": {
+                "subscribe.message": {
+                    "payload": {
+                        "type": "string"
+                    },
+                    "name": "InstanceId",
+                    "title": "InstanceId"
+                }
+            },
+            "description": "send process-instance delete request to a mgw",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/deployment": {
+            "address": "processes/[network-id]/state/deployment",
+            "messages": {
+                "publish.message": {
+                    "$ref": "#/components/messages/CamundamodelDeployment"
+                }
+            },
+            "description": "informs about deployed processes",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/deployment/delete": {
+            "address": "processes/[network-id]/state/deployment/delete",
+            "messages": {
+                "publish.message": {
+                    "payload": {
+                        "type": "string"
+                    },
+                    "name": "DeleteProcessDeployment",
+                    "title": "DeleteProcessDeployment"
+                }
+            },
+            "description": "signal that process deployment has been deleted at mgw",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/deployment/known": {
+            "address": "processes/[network-id]/state/deployment/known",
+            "messages": {
+                "publish.message": {
+                    "payload": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "name": "KnownDeploymentIds",
+                    "title": "KnownDeploymentIds"
+                }
+            },
+            "description": "informs about known deployments; resources on platform, that are not in this list will be deleted",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/deployment/metadata": {
+            "address": "processes/[network-id]/state/deployment/metadata",
+            "messages": {
+                "publish.message": {
+                    "$ref": "#/components/messages/ModelMetadata"
+                }
+            },
+            "description": "informs about metadata of a process deployment",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/incident": {
+            "address": "processes/[network-id]/state/incident",
+            "messages": {
+                "publish.message": {
+                    "$ref": "#/components/messages/CamundamodelIncident"
+                }
+            },
+            "description": "informs about a new incident",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/incident/delete": {
+            "address": "processes/[network-id]/state/incident/delete",
+            "messages": {
+                "publish.message": {
+                    "payload": {
+                        "type": "string"
+                    },
+                    "name": "DeleteProcessIncident",
+                    "title": "DeleteProcessIncident"
+                }
+            },
+            "description": "signal that an incident has been deleted at mgw",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/incident/known": {
+            "address": "processes/[network-id]/state/incident/known",
+            "messages": {
+                "publish.message": {
+                    "payload": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "name": "KnownIncidentIds",
+                    "title": "KnownIncidentIds"
+                }
+            },
+            "description": "informs about known incidents; resources on platform, that are not in this list will be deleted",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-definition": {
+            "address": "processes/[network-id]/state/process-definition",
+            "messages": {
+                "publish.message": {
+                    "$ref": "#/components/messages/CamundamodelProcessDefinition"
+                }
+            },
+            "description": "informs about deployed process definitions",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-definition/delete": {
+            "address": "processes/[network-id]/state/process-definition/delete",
+            "messages": {
+                "publish.message": {
+                    "payload": {
+                        "type": "string"
+                    },
+                    "name": "DeleteDefinitionId",
+                    "title": "DeleteDefinitionId"
+                }
+            },
+            "description": "signal that a process-definition has been deleted at mgw",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-definition/known": {
+            "address": "processes/[network-id]/state/process-definition/known",
+            "messages": {
+                "publish.message": {
+                    "payload": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "name": "KnownProcessDefinitionIds",
+                    "title": "KnownProcessDefinitionIds"
+                }
+            },
+            "description": "informs about known process-definitions; resources on platform, that are not in this list will be deleted",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-instance": {
+            "address": "processes/[network-id]/state/process-instance",
+            "messages": {
+                "publish.message": {
+                    "$ref": "#/components/messages/CamundamodelProcessInstance"
+                }
+            },
+            "description": "informs about a running process instance",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-instance-history": {
+            "address": "processes/[network-id]/state/process-instance-history",
+            "messages": {
+                "publish.message": {
+                    "$ref": "#/components/messages/CamundamodelHistoricProcessInstance"
+                }
+            },
+            "description": "informs about process instance history",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-instance-history/delete": {
+            "address": "processes/[network-id]/state/process-instance-history/delete",
+            "messages": {
+                "publish.message": {
+                    "payload": {
+                        "type": "string"
+                    },
+                    "name": "DeleteHistoryId",
+                    "title": "DeleteHistoryId"
+                }
+            },
+            "description": "signal that process-instance-history has been deleted at mgw",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-instance-history/known": {
+            "address": "processes/[network-id]/state/process-instance-history/known",
+            "messages": {
+                "publish.message": {
+                    "payload": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "name": "KnownHistoryIds",
+                    "title": "KnownHistoryIds"
+                }
+            },
+            "description": "informs about known process-instance-history; resources on platform, that are not in this list will be deleted",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-instance/delete": {
+            "address": "processes/[network-id]/state/process-instance/delete",
+            "messages": {
+                "publish.message": {
+                    "payload": {
+                        "type": "string"
+                    },
+                    "name": "DeleteProcessInstance",
+                    "title": "DeleteProcess"
+                }
+            },
+            "description": "signal that process instance has been deleted at mgw",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-instance/known": {
+            "address": "processes/[network-id]/state/process-instance/known",
+            "messages": {
+                "publish.message": {
+                    "payload": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "name": "KnownInstanceIds",
+                    "title": "KnownInstanceIds"
+                }
+            },
+            "description": "informs about known process-instances; resources on platform, that are not in this list will be deleted",
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
+        }
+    },
+    "operations": {
+        "device-groups.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/device-groups"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/device-groups/messages/publish.message"
+                }
+            ]
+        },
+        "process-deployment-done.subscribe": {
+            "action": "send",
+            "channel": {
+                "$ref": "#/channels/process-deployment-done"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/process-deployment-done/messages/subscribe.message"
+                }
+            ]
+        },
+        "processes/[network-id]/cmd/deployment.subscribe": {
+            "action": "send",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1cmd~1deployment"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1cmd~1deployment/messages/subscribe.message"
+                }
+            ]
+        },
+        "processes/[network-id]/cmd/deployment/delete.subscribe": {
+            "action": "send",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1cmd~1deployment~1delete"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1cmd~1deployment~1delete/messages/subscribe.message"
+                }
+            ]
+        },
+        "processes/[network-id]/cmd/deployment/event-descriptions.subscribe": {
+            "action": "send",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1cmd~1deployment~1event-descriptions"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1cmd~1deployment~1event-descriptions/messages/subscribe.message"
+                }
+            ]
+        },
+        "processes/[network-id]/cmd/deployment/start.subscribe": {
+            "action": "send",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1cmd~1deployment~1start"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1cmd~1deployment~1start/messages/subscribe.message"
+                }
+            ]
+        },
+        "processes/[network-id]/cmd/process-instance-history/delete.subscribe": {
+            "action": "send",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1cmd~1process-instance-history~1delete"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1cmd~1process-instance-history~1delete/messages/subscribe.message"
+                }
+            ]
+        },
+        "processes/[network-id]/cmd/process-instance/delete.subscribe": {
+            "action": "send",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1cmd~1process-instance~1delete"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1cmd~1process-instance~1delete/messages/subscribe.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/deployment.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1deployment"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1deployment/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/deployment/delete.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1deployment~1delete"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1deployment~1delete/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/deployment/known.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1deployment~1known"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1deployment~1known/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/deployment/metadata.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1deployment~1metadata"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1deployment~1metadata/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/incident.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1incident"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1incident/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/incident/delete.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1incident~1delete"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1incident~1delete/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/incident/known.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1incident~1known"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1incident~1known/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-definition.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1process-definition"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1process-definition/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-definition/delete.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1process-definition~1delete"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1process-definition~1delete/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-definition/known.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1process-definition~1known"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1process-definition~1known/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-instance.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1process-instance"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1process-instance/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-instance-history.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1process-instance-history"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1process-instance-history/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-instance-history/delete.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1process-instance-history~1delete"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1process-instance-history~1delete/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-instance-history/known.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1process-instance-history~1known"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1process-instance-history~1known/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-instance/delete.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1process-instance~1delete"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1process-instance~1delete/messages/publish.message"
+                }
+            ]
+        },
+        "processes/[network-id]/state/process-instance/known.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/processes~1[network-id]~1state~1process-instance~1known"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/processes~1[network-id]~1state~1process-instance~1known/messages/publish.message"
+                }
+            ]
+        }
+    },
+    "components": {
+        "schemas": {
+            "CamundamodelDeployment": {
+                "properties": {
+                    "deploymentTime": {},
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "string"
+                    },
+                    "tenantId": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "CamundamodelHistoricProcessInstance": {
+                "properties": {
+                    "businessKey": {
+                        "type": "string"
+                    },
+                    "caseInstanceId": {
+                        "type": "string"
+                    },
+                    "deleteReason": {
+                        "type": "string"
+                    },
+                    "durationInMillis": {
+                        "type": "number"
+                    },
+                    "endTime": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "processDefinitionId": {
+                        "type": "string"
+                    },
+                    "processDefinitionKey": {
+                        "type": "string"
+                    },
+                    "processDefinitionName": {
+                        "type": "string"
+                    },
+                    "processDefinitionVersion": {
+                        "type": "number"
+                    },
+                    "startActivityId": {
+                        "type": "string"
+                    },
+                    "startTime": {
+                        "type": "string"
+                    },
+                    "startUserId": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "type": "string"
+                    },
+                    "superCaseInstanceId": {
+                        "type": "string"
+                    },
+                    "superProcessInstanceId": {
+                        "type": "string"
+                    },
+                    "tenantId": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "CamundamodelIncident": {
+                "properties": {
+                    "deployment_name": {
+                        "type": "string"
+                    },
+                    "error_message": {
+                        "type": "string"
+                    },
+                    "external_task_id": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "msg_version": {
+                        "type": "integer"
+                    },
+                    "process_definition_id": {
+                        "type": "string"
+                    },
+                    "process_instance_id": {
+                        "type": "string"
+                    },
+                    "tenant_id": {
+                        "type": "string"
+                    },
+                    "time": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "worker_id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "CamundamodelProcessDefinition": {
+                "properties": {
+                    "Version": {
+                        "type": "integer"
+                    },
+                    "category": {
+                        "type": "string"
+                    },
+                    "deploymentId": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "diagram": {
+                        "type": "string"
+                    },
+                    "historyTimeToLive": {
+                        "type": "integer"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "key": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "resource": {
+                        "type": "string"
+                    },
+                    "suspended": {
+                        "type": "boolean"
+                    },
+                    "tenantId": {
+                        "type": "string"
+                    },
+                    "versionTag": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "CamundamodelProcessInstance": {
+                "properties": {
+                    "businessKey": {
+                        "type": "string"
+                    },
+                    "caseInstanceId": {
+                        "type": "string"
+                    },
+                    "definitionId": {
+                        "type": "string"
+                    },
+                    "ended": {
+                        "type": "boolean"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "suspended": {
+                        "type": "boolean"
+                    },
+                    "tenantId": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "CamundamodelVariable": {
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "value": {},
+                    "valueInfo": {}
+                },
+                "type": "object"
+            },
+            "ControllerDeviceGroupCommand": {
+                "properties": {
+                    "command": {
+                        "type": "string"
+                    },
+                    "device_group": {
+                        "$ref": "#/components/schemas/ModelsDeviceGroup"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "owner": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ControllerDoneNotification": {
+                "properties": {
+                    "command": {
+                        "type": "string"
+                    },
+                    "handler": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "DeploymentmodelConditionalEvent": {
+                "properties": {
+                    "event_id": {
+                        "type": "string"
+                    },
+                    "qos": {
+                        "type": "integer"
+                    },
+                    "script": {
+                        "type": "string"
+                    },
+                    "selection": {
+                        "$ref": "#/components/schemas/DeploymentmodelSelection"
+                    },
+                    "value_variable": {
+                        "type": "string"
+                    },
+                    "variables": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "object",
+                            "null"
+                        ]
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "DeploymentmodelDevice": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "DeploymentmodelDeviceGroup": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "DeploymentmodelDiagram": {
+                "properties": {
+                    "svg": {
+                        "type": "string"
+                    },
+                    "xml_deployed": {
+                        "type": "string"
+                    },
+                    "xml_raw": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "DeploymentmodelElement": {
+                "properties": {
+                    "bpmn_id": {
+                        "type": "string"
+                    },
+                    "conditional_event": {
+                        "$ref": "#/components/schemas/DeploymentmodelConditionalEvent"
+                    },
+                    "group": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "message_event": {
+                        "$ref": "#/components/schemas/DeploymentmodelMessageEvent"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "notification": {
+                        "$ref": "#/components/schemas/DeploymentmodelNotification"
+                    },
+                    "order": {
+                        "type": "integer"
+                    },
+                    "task": {
+                        "$ref": "#/components/schemas/DeploymentmodelTask"
+                    },
+                    "time_event": {
+                        "$ref": "#/components/schemas/DeploymentmodelTimeEvent"
+                    }
+                },
+                "type": "object"
+            },
+            "DeploymentmodelFilterCriteria": {
+                "properties": {
+                    "aspect_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "characteristic_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "device_class_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "function_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "DeploymentmodelGenericEventSource": {
+                "properties": {
+                    "filter_ids": {
+                        "type": "string"
+                    },
+                    "filter_type": {
+                        "type": "string"
+                    },
+                    "topic": {
+                        "type": "string"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "DeploymentmodelIncidentHandling": {
+                "properties": {
+                    "notify": {
+                        "type": "boolean"
+                    },
+                    "restart": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "DeploymentmodelMessageEvent": {
+                "properties": {
+                    "event_id": {
+                        "type": "string"
+                    },
+                    "flow_id": {
+                        "type": "string"
+                    },
+                    "selection": {
+                        "$ref": "#/components/schemas/DeploymentmodelSelection"
+                    },
+                    "use_marshaller": {
+                        "type": "boolean"
+                    },
+                    "value": {
+                        "type": "string"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "DeploymentmodelNotification": {
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "DeploymentmodelProcessStartParameter": {
+                "properties": {
+                    "default": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "properties": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "object",
+                            "null"
+                        ]
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "DeploymentmodelSelection": {
+                "properties": {
+                    "filter_criteria": {
+                        "$ref": "#/components/schemas/DeploymentmodelFilterCriteria"
+                    },
+                    "selected_device_group_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "selected_device_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "selected_generic_event_source": {
+                        "$ref": "#/components/schemas/DeploymentmodelGenericEventSource"
+                    },
+                    "selected_import_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "selected_path": {
+                        "$ref": "#/components/schemas/DeviceselectionmodelPathOption"
+                    },
+                    "selected_service_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "selection_options": {
+                        "items": {
+                            "$ref": "#/components/schemas/DeploymentmodelSelectionOption"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "DeploymentmodelSelectionOption": {
+                "properties": {
+                    "device": {
+                        "$ref": "#/components/schemas/DeploymentmodelDevice"
+                    },
+                    "device_group": {
+                        "$ref": "#/components/schemas/DeploymentmodelDeviceGroup"
+                    },
+                    "import": {
+                        "$ref": "#/components/schemas/ImportmodelImport"
+                    },
+                    "importType": {
+                        "$ref": "#/components/schemas/ImportmodelImportType"
+                    },
+                    "path_options": {
+                        "additionalProperties": {
+                            "items": {
+                                "$ref": "#/components/schemas/DeviceselectionmodelPathOption"
+                            },
+                            "type": "array"
+                        },
+                        "type": "object"
+                    },
+                    "services": {
+                        "items": {
+                            "$ref": "#/components/schemas/DeploymentmodelService"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "DeploymentmodelService": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "DeploymentmodelTask": {
+                "properties": {
+                    "parameter": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "object",
+                            "null"
+                        ]
+                    },
+                    "prefer_event": {
+                        "type": "boolean"
+                    },
+                    "retries": {
+                        "type": "integer"
+                    },
+                    "selection": {
+                        "$ref": "#/components/schemas/DeploymentmodelSelection"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "DeploymentmodelTimeEvent": {
+                "properties": {
+                    "time": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "DeviceselectionmodelConfigurable": {
+                "properties": {
+                    "aspect_node": {
+                        "$ref": "#/components/schemas/ModelsAspectNode"
+                    },
+                    "characteristic_id": {
+                        "type": "string"
+                    },
+                    "function_id": {
+                        "type": "string"
+                    },
+                    "path": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "value": {}
+                },
+                "type": "object"
+            },
+            "DeviceselectionmodelPathOption": {
+                "properties": {
+                    "aspectNode": {
+                        "$ref": "#/components/schemas/ModelsAspectNode"
+                    },
+                    "characteristicId": {
+                        "type": "string"
+                    },
+                    "configurables": {
+                        "items": {
+                            "$ref": "#/components/schemas/DeviceselectionmodelConfigurable"
+                        },
+                        "type": "array"
+                    },
+                    "functionId": {
+                        "type": "string"
+                    },
+                    "isVoid": {
+                        "type": "boolean"
+                    },
+                    "path": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "value": {}
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "ImportmodelImport": {
+                "properties": {
+                    "configs": {
+                        "items": {
+                            "$ref": "#/components/schemas/ImportmodelImportConfig"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "image": {
+                        "type": "string"
+                    },
+                    "import_type_id": {
+                        "type": "string"
+                    },
+                    "kafka_topic": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "restart": {
+                        "type": [
+                            "null",
+                            "boolean"
+                        ]
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "ImportmodelImportConfig": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "value": {}
+                },
+                "type": "object"
+            },
+            "ImportmodelImportContentVariable": {
+                "properties": {
+                    "aspect_id": {
+                        "type": "string"
+                    },
+                    "characteristic_id": {
+                        "type": "string"
+                    },
+                    "function_id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "sub_content_variables": {
+                        "items": {
+                            "$ref": "#/components/schemas/ImportmodelImportContentVariable"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/ImportmodelType"
+                    },
+                    "use_as_tag": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "ImportmodelImportType": {
+                "properties": {
+                    "configs": {
+                        "items": {
+                            "$ref": "#/components/schemas/ImportmodelImportConfig"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "default_restart": {
+                        "type": "boolean"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "image": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "output": {
+                        "$ref": "#/components/schemas/ImportmodelImportContentVariable"
+                    },
+                    "owner": {
+                        "type": "string"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "ImportmodelType": {
+                "type": "string"
+            },
+            "MgwEventDescriptionsUpdate": {
+                "properties": {
+                    "camunda_deployment_id": {
+                        "type": "string"
+                    },
+                    "device_id_to_local_id": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "object",
+                            "null"
+                        ]
+                    },
+                    "event_descriptions": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelEventDesc"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "service_id_to_local_id": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "object",
+                            "null"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "ModelDeploymentWithEventDesc": {
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "device_id_to_local_id": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "object",
+                            "null"
+                        ]
+                    },
+                    "diagram": {
+                        "$ref": "#/components/schemas/DeploymentmodelDiagram"
+                    },
+                    "elements": {
+                        "items": {
+                            "$ref": "#/components/schemas/DeploymentmodelElement"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "event_descriptions": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelEventDesc"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "executable": {
+                        "type": "boolean"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "incident_handling": {
+                        "$ref": "#/components/schemas/DeploymentmodelIncidentHandling"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "service_id_to_local_id": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "object",
+                            "null"
+                        ]
+                    },
+                    "start_parameter": {
+                        "items": {
+                            "$ref": "#/components/schemas/DeploymentmodelProcessStartParameter"
+                        },
+                        "type": "array"
+                    },
+                    "version": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelEventDesc": {
+                "properties": {
+                    "aspect_id": {
+                        "type": "string"
+                    },
+                    "characteristic_id": {
+                        "type": "string"
+                    },
+                    "deployment_id": {
+                        "type": "string"
+                    },
+                    "device_group_id": {
+                        "type": "string"
+                    },
+                    "device_id": {
+                        "type": "string"
+                    },
+                    "event_id": {
+                        "type": "string"
+                    },
+                    "function_id": {
+                        "type": "string"
+                    },
+                    "import_id": {
+                        "type": "string"
+                    },
+                    "path": {
+                        "type": "string"
+                    },
+                    "qos": {
+                        "type": "integer"
+                    },
+                    "script": {
+                        "type": "string"
+                    },
+                    "service_for_marshaller": {
+                        "$ref": "#/components/schemas/ModelsService"
+                    },
+                    "service_id": {
+                        "type": "string"
+                    },
+                    "user_id": {
+                        "type": "string"
+                    },
+                    "value_variable": {
+                        "type": "string"
+                    },
+                    "variables": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "object",
+                            "null"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "ModelMetadata": {
+                "properties": {
+                    "camunda_deployment_id": {
+                        "type": "string"
+                    },
+                    "deployment_model": {
+                        "$ref": "#/components/schemas/ModelDeploymentWithEventDesc"
+                    },
+                    "process_parameter": {
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/CamundamodelVariable"
+                        },
+                        "type": [
+                            "object",
+                            "null"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "ModelStartMessage": {
+                "properties": {
+                    "deployment_id": {
+                        "type": "string"
+                    },
+                    "parameter": {
+                        "additionalProperties": {},
+                        "type": [
+                            "object",
+                            "null"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsAspectNode": {
+                "properties": {
+                    "ancestor_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "child_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "descendent_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "parent_id": {
+                        "type": "string"
+                    },
+                    "root_id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsAttribute": {
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "origin": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsContent": {
+                "properties": {
+                    "content_variable": {
+                        "$ref": "#/components/schemas/ModelsContentVariable"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "protocol_segment_id": {
+                        "type": "string"
+                    },
+                    "serialization": {
+                        "$ref": "#/components/schemas/ModelsSerialization"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsContentVariable": {
+                "properties": {
+                    "aspect_id": {
+                        "type": "string"
+                    },
+                    "characteristic_id": {
+                        "type": "string"
+                    },
+                    "function_id": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "is_void": {
+                        "type": "boolean"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "omit_empty": {
+                        "type": "boolean"
+                    },
+                    "serialization_options": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "sub_content_variables": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsContentVariable"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/ModelsType"
+                    },
+                    "unit_reference": {
+                        "type": "string"
+                    },
+                    "value": {}
+                },
+                "type": "object"
+            },
+            "ModelsDeviceGroup": {
+                "properties": {
+                    "attributes": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsAttribute"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "auto_generated_by_device": {
+                        "type": "string"
+                    },
+                    "criteria": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsDeviceGroupFilterCriteria"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "criteria_short": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "device_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "image": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsDeviceGroupFilterCriteria": {
+                "properties": {
+                    "aspect_id": {
+                        "type": "string"
+                    },
+                    "device_class_id": {
+                        "type": "string"
+                    },
+                    "function_id": {
+                        "type": "string"
+                    },
+                    "interaction": {
+                        "$ref": "#/components/schemas/ModelsInteraction"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsInteraction": {
+                "type": "string"
+            },
+            "ModelsSerialization": {
+                "type": "string"
+            },
+            "ModelsService": {
+                "properties": {
+                    "attributes": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsAttribute"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "inputs": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsContent"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "interaction": {
+                        "$ref": "#/components/schemas/ModelsInteraction"
+                    },
+                    "local_id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "outputs": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsContent"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "protocol_id": {
+                        "type": "string"
+                    },
+                    "service_group_key": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsType": {
+                "type": "string"
+            }
+        },
+        "messages": {
+            "CamundamodelDeployment": {
+                "payload": {
+                    "$ref": "#/components/schemas/CamundamodelDeployment"
+                },
+                "name": "Deployment",
+                "title": "Deployment"
+            },
+            "CamundamodelHistoricProcessInstance": {
+                "payload": {
+                    "$ref": "#/components/schemas/CamundamodelHistoricProcessInstance"
+                },
+                "name": "HistoricProcessInstance",
+                "title": "HistoricProcessInstance"
+            },
+            "CamundamodelIncident": {
+                "payload": {
+                    "$ref": "#/components/schemas/CamundamodelIncident"
+                },
+                "name": "Incident",
+                "title": "Incident"
+            },
+            "CamundamodelProcessDefinition": {
+                "payload": {
+                    "$ref": "#/components/schemas/CamundamodelProcessDefinition"
+                },
+                "name": "ProcessDefinition",
+                "title": "ProcessDefinition"
+            },
+            "CamundamodelProcessInstance": {
+                "payload": {
+                    "$ref": "#/components/schemas/CamundamodelProcessInstance"
+                },
+                "name": "ProcessInstance",
+                "title": "ProcessInstance"
+            },
+            "ControllerDeviceGroupCommand": {
+                "payload": {
+                    "$ref": "#/components/schemas/ControllerDeviceGroupCommand"
+                },
+                "name": "DeviceGroupCommand",
+                "title": "DeviceGroupCommand"
+            },
+            "ControllerDoneNotification": {
+                "payload": {
+                    "$ref": "#/components/schemas/ControllerDoneNotification"
+                },
+                "name": "DoneNotification",
+                "title": "DoneNotification"
+            },
+            "MgwEventDescriptionsUpdate": {
+                "payload": {
+                    "$ref": "#/components/schemas/MgwEventDescriptionsUpdate"
+                },
+                "name": "EventDescriptionsUpdate",
+                "title": "EventDescriptionsUpdate"
+            },
+            "ModelDeploymentWithEventDesc": {
+                "payload": {
+                    "$ref": "#/components/schemas/ModelDeploymentWithEventDesc"
+                },
+                "name": "DeploymentWithEventDesc",
+                "title": "DeploymentWithEventDesc"
+            },
+            "ModelMetadata": {
+                "payload": {
+                    "$ref": "#/components/schemas/ModelMetadata"
+                },
+                "name": "Metadata",
+                "title": "Metadata"
+            },
+            "ModelStartMessage": {
+                "payload": {
+                    "$ref": "#/components/schemas/ModelStartMessage"
+                },
+                "name": "StartMessage",
+                "title": "StartMessage"
+            }
+        }
+    }
+}
