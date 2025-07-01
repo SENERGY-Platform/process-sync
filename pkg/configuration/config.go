@@ -68,6 +68,8 @@ type Config struct {
 	ApiDocsProviderBaseUrl string `json:"api_docs_provider_base_url"`
 
 	DeveloperNotificationUrl string `json:"developer_notification_url"`
+
+	InitTopics bool `json:"init_topics"`
 }
 
 // loads config from json in location and used environment variables (e.g ZookeeperUrl --> ZOOKEEPER_URL)

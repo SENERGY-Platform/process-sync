@@ -31,17 +31,18 @@ var FetchError = errors.New("unable to fetch from kafka")
 var HandlerError = errors.New("unable to handle kafka message")
 var CommitError = errors.New("unable to commit to kafka")
 
-func NewConsumer(ctx context.Context, config configuration.Config, topic string, listener func(delivery []byte) error, errorhandler func(err error) (fatal bool)) error {
+func NewConsumer(ctx context.Context, config configuration.Config, topic string, listener func(delivery []byte) error, errorhandler func(err error) (fatal bool)) (err error) {
 	broker, err := GetBroker(config.KafkaUrl)
 	if err != nil {
 		log.Println("ERROR: unable to get broker list", err)
 		return err
 	}
-
-	err = InitTopic(config.KafkaUrl, topic)
-	if err != nil {
-		log.Println("ERROR: unable to create topic", err)
-		return err
+	if config.InitTopics {
+		err = InitTopic(config.KafkaUrl, topic)
+		if err != nil {
+			log.Println("ERROR: unable to create topic", err)
+			return err
+		}
 	}
 	r := kafka.NewReader(kafka.ReaderConfig{
 		CommitInterval: 0, //synchronous commits

@@ -30,17 +30,19 @@ type Producer struct {
 	ctx    context.Context
 }
 
-func NewProducer(ctx context.Context, kafkaUrl string, topic string, debug bool) (interfaces.Producer, error) {
+func NewProducer(ctx context.Context, kafkaUrl string, topic string, debug bool, topicInit bool) (interfaces.Producer, error) {
 	result := &Producer{ctx: ctx}
 	broker, err := GetBroker(kafkaUrl)
 	if err != nil {
 		log.Println("ERROR: unable to get broker list", err)
 		return nil, err
 	}
-	err = InitTopic(kafkaUrl, topic)
-	if err != nil {
-		log.Println("ERROR: unable to create topic", err)
-		return nil, err
+	if topicInit {
+		err = InitTopic(kafkaUrl, topic)
+		if err != nil {
+			log.Println("ERROR: unable to create topic", err)
+			return nil, err
+		}
 	}
 
 	var logger kafka.Logger

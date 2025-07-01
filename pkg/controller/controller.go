@@ -94,7 +94,7 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 		return ctrl, err
 	}
 	if config.KafkaUrl != "" && config.KafkaUrl != "-" {
-		ctrl.deploymentDoneNotifier, err = kafka.NewProducer(ctx, config.KafkaUrl, config.ProcessDeploymentDoneTopic, config.Debug)
+		ctrl.deploymentDoneNotifier, err = kafka.NewProducer(ctx, config.KafkaUrl, config.ProcessDeploymentDoneTopic, config.Debug, config.InitTopics)
 		if err != nil {
 			return ctrl, err
 		}
