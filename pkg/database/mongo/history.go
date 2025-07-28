@@ -17,6 +17,7 @@
 package mongo
 
 import (
+	"errors"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
@@ -156,14 +157,14 @@ func (this *Mongo) ReadHistoricProcessInstance(networkId string, historicProcess
 			historyNetworkIdKey: networkId,
 		})
 	err = result.Err()
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return historicProcessInstance, database.ErrNotFound
 	}
 	if err != nil {
 		return
 	}
 	err = result.Decode(&historicProcessInstance)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return historicProcessInstance, database.ErrNotFound
 	}
 	return historicProcessInstance, err
