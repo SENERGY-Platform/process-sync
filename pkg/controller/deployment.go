@@ -284,7 +284,7 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 	}
 	err = this.db.SaveHistoricProcessInstance(model.HistoricProcessInstance{
 		HistoricProcessInstance: camundamodel.HistoricProcessInstance{
-			Id:                       "placeholder-" + configuration.Id(),
+			Id:                       instanceId,
 			SuperProcessInstanceId:   instanceId,
 			ProcessDefinitionName:    definition.Name,
 			ProcessDefinitionKey:     definition.Key,
