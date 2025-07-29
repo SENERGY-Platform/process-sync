@@ -545,6 +545,31 @@ func testRemoveDeployment(port string, networkId string, list *[]model.Deploymen
 	}
 }
 
+func testDeleteInstancesById(port string, networkId string, instanceId string) func(t *testing.T) {
+	return func(t *testing.T) {
+		req, err := http.NewRequest("DELETE", "http://localhost:"+port+"/process-instances/"+url.PathEscape(networkId)+"/"+url.PathEscape(instanceId), nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode >= 300 {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(resp.Body)
+			err = errors.New(buf.String())
+		}
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
+}
+
 func testDeleteInstances(port string, networkId string, list *[]model.ProcessInstance, index int) func(t *testing.T) {
 	return func(t *testing.T) {
 		if index >= len(*list) {

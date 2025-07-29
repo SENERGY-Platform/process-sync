@@ -17,7 +17,9 @@
 package controller
 
 import (
+	"errors"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	"log"
@@ -87,7 +89,14 @@ func (this *Controller) ApiDeleteProcessInstance(networkId string, id string) (e
 		return
 	}
 	if current.IsPlaceholder {
+		err = this.db.RemoveHistoricProcessInstance(networkId, id)
+		if err != nil && !errors.Is(err, database.ErrNotFound) {
+			return
+		}
 		err = this.db.RemoveProcessInstance(networkId, id)
+		if err != nil {
+			return
+		}
 	} else {
 		err = this.mgw.SendProcessStopCommand(networkId, id)
 		if err != nil {
