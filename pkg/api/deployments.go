@@ -18,15 +18,16 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
-	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
-	"github.com/SENERGY-Platform/process-sync/pkg/controller"
-	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"log"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
+	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/controller"
+	"github.com/SENERGY-Platform/process-sync/pkg/model"
 )
 
 func init() {
@@ -113,12 +114,13 @@ func (this *DeploymentEndpoints) GetDeploymentMetadata(config configuration.Conf
 
 // StartDeployment godoc
 // @Summary      start deployed process
-// @Description  start deployed process; a process may expect parameters on start. these cna be passed as query parameters. swagger allows no arbitrary/dynamic parameter names, which means a query wit parameters must be executed manually
+// @Description  start deployed process; a process may expect parameters on start. these can be passed as query parameters. swagger allows no arbitrary/dynamic parameter names, which means a query with parameters must be executed manually
 // @Tags         deployment
 // @Produce      json
 // @Security Bearer
 // @Param        networkId path string true "network id"
 // @Param        deploymentId path string true "deployment id"
+// @Param        business_key query string false "business_key of new process instance"
 // @Success      200
 // @Failure      400
 // @Failure      401
@@ -136,9 +138,12 @@ func (this *DeploymentEndpoints) StartDeployment(config configuration.Config, ct
 			return
 		}
 
+		businessKey := request.URL.Query().Get("business_key")
+		request.URL.Query().Del("business_key")
+
 		inputs := parseQueryParameter(request.URL.Query())
 
-		err, errCode = ctrl.ApiStartDeployment(networkId, deploymentId, inputs)
+		err, errCode = ctrl.ApiStartDeployment(networkId, deploymentId, businessKey, inputs)
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
 			return

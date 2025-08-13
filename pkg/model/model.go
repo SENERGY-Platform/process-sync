@@ -17,10 +17,11 @@
 package model
 
 import (
+	"time"
+
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
-	"time"
 )
 
 type SyncInfo struct {
@@ -75,6 +76,7 @@ type ProcessInstance struct {
 type StartMessage struct {
 	DeploymentId string                 `json:"deployment_id"`
 	Parameter    map[string]interface{} `json:"parameter"`
+	BusinessKey  string                 `json:"business_key"`
 }
 
 type ExtendedDeployment struct {

@@ -1,279 +1,29 @@
 basePath: /
 definitions:
-  deploymentmodel.ConditionalEvent:
-    properties:
-      event_id:
-        type: string
-      qos:
-        type: integer
-      script:
-        type: string
-      selection:
-        $ref: '#/definitions/deploymentmodel.Selection'
-      value_variable:
-        type: string
-      variables:
-        additionalProperties:
-          type: string
-        type: object
-    type: object
   deploymentmodel.Deployment:
     properties:
       description:
         type: string
       diagram:
-        $ref: '#/definitions/deploymentmodel.Diagram'
+        $ref: '#/definitions/models.Diagram'
       elements:
         items:
-          $ref: '#/definitions/deploymentmodel.Element'
+          $ref: '#/definitions/models.Element'
         type: array
       executable:
         type: boolean
       id:
         type: string
       incident_handling:
-        $ref: '#/definitions/deploymentmodel.IncidentHandling'
+        $ref: '#/definitions/models.IncidentHandling'
       name:
         type: string
       start_parameter:
         items:
-          $ref: '#/definitions/deploymentmodel.ProcessStartParameter'
+          $ref: '#/definitions/models.ProcessStartParameter'
         type: array
       version:
         type: integer
-    type: object
-  deploymentmodel.Device:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-    type: object
-  deploymentmodel.DeviceGroup:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-    type: object
-  deploymentmodel.Diagram:
-    properties:
-      svg:
-        type: string
-      xml_deployed:
-        type: string
-      xml_raw:
-        type: string
-    type: object
-  deploymentmodel.Element:
-    properties:
-      bpmn_id:
-        type: string
-      conditional_event:
-        $ref: '#/definitions/deploymentmodel.ConditionalEvent'
-      group:
-        type: string
-      message_event:
-        $ref: '#/definitions/deploymentmodel.MessageEvent'
-      name:
-        type: string
-      notification:
-        $ref: '#/definitions/deploymentmodel.Notification'
-      order:
-        type: integer
-      task:
-        $ref: '#/definitions/deploymentmodel.Task'
-      time_event:
-        $ref: '#/definitions/deploymentmodel.TimeEvent'
-    type: object
-  deploymentmodel.FilterCriteria:
-    properties:
-      aspect_id:
-        type: string
-      characteristic_id:
-        description: 'TODO: remove?'
-        type: string
-      device_class_id:
-        type: string
-      function_id:
-        type: string
-    type: object
-  deploymentmodel.GenericEventSource:
-    properties:
-      filter_ids:
-        type: string
-      filter_type:
-        type: string
-      topic:
-        type: string
-    type: object
-  deploymentmodel.IncidentHandling:
-    properties:
-      notify:
-        type: boolean
-      restart:
-        type: boolean
-    type: object
-  deploymentmodel.MessageEvent:
-    properties:
-      event_id:
-        type: string
-      flow_id:
-        type: string
-      selection:
-        $ref: '#/definitions/deploymentmodel.Selection'
-      use_marshaller:
-        type: boolean
-      value:
-        type: string
-    type: object
-  deploymentmodel.Notification:
-    properties:
-      message:
-        type: string
-      title:
-        type: string
-    type: object
-  deploymentmodel.ProcessStartParameter:
-    properties:
-      default:
-        type: string
-      id:
-        type: string
-      label:
-        type: string
-      properties:
-        additionalProperties:
-          type: string
-        type: object
-      type:
-        type: string
-    type: object
-  deploymentmodel.Selection:
-    properties:
-      filter_criteria:
-        $ref: '#/definitions/deploymentmodel.FilterCriteria'
-      selected_device_group_id:
-        type: string
-      selected_device_id:
-        type: string
-      selected_generic_event_source:
-        $ref: '#/definitions/deploymentmodel.GenericEventSource'
-      selected_import_id:
-        type: string
-      selected_path:
-        $ref: '#/definitions/deviceselectionmodel.PathOption'
-      selected_service_id:
-        type: string
-      selection_options:
-        items:
-          $ref: '#/definitions/deploymentmodel.SelectionOption'
-        type: array
-    type: object
-  deploymentmodel.SelectionOption:
-    properties:
-      device:
-        $ref: '#/definitions/deploymentmodel.Device'
-      device_group:
-        $ref: '#/definitions/deploymentmodel.DeviceGroup'
-      import:
-        $ref: '#/definitions/importmodel.Import'
-      importType:
-        $ref: '#/definitions/importmodel.ImportType'
-      path_options:
-        additionalProperties:
-          items:
-            $ref: '#/definitions/deviceselectionmodel.PathOption'
-          type: array
-        type: object
-      services:
-        items:
-          $ref: '#/definitions/deploymentmodel.Service'
-        type: array
-    type: object
-  deploymentmodel.Service:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-    type: object
-  deploymentmodel.Task:
-    properties:
-      parameter:
-        additionalProperties:
-          type: string
-        type: object
-      prefer_event:
-        type: boolean
-      retries:
-        type: integer
-      selection:
-        $ref: '#/definitions/deploymentmodel.Selection'
-    type: object
-  deploymentmodel.TimeEvent:
-    properties:
-      time:
-        type: string
-      type:
-        type: string
-    type: object
-  devicemodel.AspectNode:
-    properties:
-      ancestor_ids:
-        items:
-          type: string
-        type: array
-      child_ids:
-        items:
-          type: string
-        type: array
-      descendent_ids:
-        items:
-          type: string
-        type: array
-      id:
-        type: string
-      name:
-        type: string
-      parent_id:
-        type: string
-      root_id:
-        type: string
-    type: object
-  deviceselectionmodel.Configurable:
-    properties:
-      aspect_node:
-        $ref: '#/definitions/devicemodel.AspectNode'
-      characteristic_id:
-        type: string
-      function_id:
-        type: string
-      path:
-        type: string
-      type:
-        type: string
-      value: {}
-    type: object
-  deviceselectionmodel.PathOption:
-    properties:
-      aspectNode:
-        $ref: '#/definitions/devicemodel.AspectNode'
-      characteristicId:
-        type: string
-      configurables:
-        items:
-          $ref: '#/definitions/deviceselectionmodel.Configurable'
-        type: array
-      functionId:
-        type: string
-      isVoid:
-        type: boolean
-      path:
-        type: string
-      type:
-        type: string
-      value: {}
     type: object
   github_com_SENERGY-Platform_process-sync_pkg_model_camundamodel.Variable:
     properties:
@@ -281,71 +31,6 @@ definitions:
         type: string
       value: {}
       valueInfo: {}
-    type: object
-  importmodel.Import:
-    properties:
-      configs:
-        items:
-          $ref: '#/definitions/importmodel.ImportConfig'
-        type: array
-      id:
-        type: string
-      image:
-        type: string
-      import_type_id:
-        type: string
-      kafka_topic:
-        type: string
-      name:
-        type: string
-      restart:
-        type: boolean
-    type: object
-  importmodel.ImportConfig:
-    properties:
-      name:
-        type: string
-      value: {}
-    type: object
-  importmodel.ImportContentVariable:
-    properties:
-      aspect_id:
-        type: string
-      characteristic_id:
-        type: string
-      function_id:
-        type: string
-      name:
-        type: string
-      sub_content_variables:
-        items:
-          $ref: '#/definitions/importmodel.ImportContentVariable'
-        type: array
-      type:
-        type: string
-      use_as_tag:
-        type: boolean
-    type: object
-  importmodel.ImportType:
-    properties:
-      configs:
-        items:
-          $ref: '#/definitions/importmodel.ImportConfig'
-        type: array
-      default_restart:
-        type: boolean
-      description:
-        type: string
-      id:
-        type: string
-      image:
-        type: string
-      name:
-        type: string
-      output:
-        $ref: '#/definitions/importmodel.ImportContentVariable'
-      owner:
-        type: string
     type: object
   model.Deployment:
     properties:
@@ -399,10 +84,10 @@ definitions:
           type: string
         type: object
       diagram:
-        $ref: '#/definitions/deploymentmodel.Diagram'
+        $ref: '#/definitions/models.Diagram'
       elements:
         items:
-          $ref: '#/definitions/deploymentmodel.Element'
+          $ref: '#/definitions/models.Element'
         type: array
       event_descriptions:
         items:
@@ -413,7 +98,7 @@ definitions:
       id:
         type: string
       incident_handling:
-        $ref: '#/definitions/deploymentmodel.IncidentHandling'
+        $ref: '#/definitions/models.IncidentHandling'
       name:
         type: string
       service_id_to_local_id:
@@ -422,7 +107,7 @@ definitions:
         type: object
       start_parameter:
         items:
-          $ref: '#/definitions/deploymentmodel.ProcessStartParameter'
+          $ref: '#/definitions/models.ProcessStartParameter'
         type: array
       version:
         type: integer
@@ -519,6 +204,8 @@ definitions:
     type: object
   model.Incident:
     properties:
+      business_key:
+        type: string
       deployment_name:
         type: string
       error_message:
@@ -618,6 +305,29 @@ definitions:
       tenantId:
         type: string
     type: object
+  models.AspectNode:
+    properties:
+      ancestor_ids:
+        items:
+          type: string
+        type: array
+      child_ids:
+        items:
+          type: string
+        type: array
+      descendent_ids:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      parent_id:
+        type: string
+      root_id:
+        type: string
+    type: object
   models.Attribute:
     properties:
       key:
@@ -626,6 +336,37 @@ definitions:
         type: string
       value:
         type: string
+    type: object
+  models.ConditionalEvent:
+    properties:
+      event_id:
+        type: string
+      qos:
+        type: integer
+      script:
+        type: string
+      selection:
+        $ref: '#/definitions/models.Selection'
+      value_variable:
+        type: string
+      variables:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  models.Configurable:
+    properties:
+      aspect_node:
+        $ref: '#/definitions/models.AspectNode'
+      characteristic_id:
+        type: string
+      function_id:
+        type: string
+      path:
+        type: string
+      type:
+        type: string
+      value: {}
     type: object
   models.Content:
     properties:
@@ -668,6 +409,45 @@ definitions:
         type: string
       value: {}
     type: object
+  models.Diagram:
+    properties:
+      svg:
+        type: string
+      xml_deployed:
+        type: string
+      xml_raw:
+        type: string
+    type: object
+  models.Element:
+    properties:
+      bpmn_id:
+        type: string
+      conditional_event:
+        $ref: '#/definitions/models.ConditionalEvent'
+      group:
+        type: string
+      message_event:
+        $ref: '#/definitions/models.MessageEvent'
+      name:
+        type: string
+      notification:
+        $ref: '#/definitions/models.Notification'
+      order:
+        type: integer
+      task:
+        $ref: '#/definitions/models.Task'
+      time_event:
+        $ref: '#/definitions/models.TimeEvent'
+    type: object
+  models.GenericEventSource:
+    properties:
+      filter_ids:
+        type: string
+      filter_type:
+        type: string
+      topic:
+        type: string
+    type: object
   models.Hub:
     properties:
       device_ids:
@@ -687,6 +467,78 @@ definitions:
       owner_id:
         type: string
     type: object
+  models.Import:
+    properties:
+      configs:
+        items:
+          $ref: '#/definitions/models.ImportConfig'
+        type: array
+      id:
+        type: string
+      image:
+        type: string
+      import_type_id:
+        type: string
+      kafka_topic:
+        type: string
+      name:
+        type: string
+      restart:
+        type: boolean
+    type: object
+  models.ImportConfig:
+    properties:
+      name:
+        type: string
+      value: {}
+    type: object
+  models.ImportContentVariable:
+    properties:
+      aspect_id:
+        type: string
+      characteristic_id:
+        type: string
+      function_id:
+        type: string
+      name:
+        type: string
+      sub_content_variables:
+        items:
+          $ref: '#/definitions/models.ImportContentVariable'
+        type: array
+      type:
+        $ref: '#/definitions/models.Type'
+      use_as_tag:
+        type: boolean
+    type: object
+  models.ImportType:
+    properties:
+      configs:
+        items:
+          $ref: '#/definitions/models.ImportConfig'
+        type: array
+      default_restart:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+      name:
+        type: string
+      output:
+        $ref: '#/definitions/models.ImportContentVariable'
+      owner:
+        type: string
+    type: object
+  models.IncidentHandling:
+    properties:
+      notify:
+        type: boolean
+      restart:
+        type: boolean
+    type: object
   models.Interaction:
     enum:
     - event
@@ -697,6 +549,135 @@ definitions:
     - EVENT
     - REQUEST
     - EVENT_AND_REQUEST
+  models.MessageEvent:
+    properties:
+      event_id:
+        type: string
+      flow_id:
+        type: string
+      selection:
+        $ref: '#/definitions/models.Selection'
+      use_marshaller:
+        type: boolean
+      value:
+        type: string
+    type: object
+  models.Notification:
+    properties:
+      message:
+        type: string
+      title:
+        type: string
+    type: object
+  models.PathOption:
+    properties:
+      aspectNode:
+        $ref: '#/definitions/models.AspectNode'
+      characteristicId:
+        type: string
+      configurables:
+        items:
+          $ref: '#/definitions/models.Configurable'
+        type: array
+      functionId:
+        type: string
+      isVoid:
+        type: boolean
+      path:
+        type: string
+      type:
+        type: string
+      value: {}
+    type: object
+  models.ProcessFilterCriteria:
+    properties:
+      aspect_id:
+        type: string
+      characteristic_id:
+        type: string
+      device_class_id:
+        type: string
+      function_id:
+        type: string
+    type: object
+  models.ProcessStartParameter:
+    properties:
+      default:
+        type: string
+      id:
+        type: string
+      label:
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        type: object
+      type:
+        type: string
+    type: object
+  models.Selection:
+    properties:
+      filter_criteria:
+        $ref: '#/definitions/models.ProcessFilterCriteria'
+      selected_device_group_id:
+        type: string
+      selected_device_id:
+        type: string
+      selected_generic_event_source:
+        $ref: '#/definitions/models.GenericEventSource'
+      selected_import_id:
+        type: string
+      selected_path:
+        $ref: '#/definitions/models.PathOption'
+      selected_service_id:
+        type: string
+      selection_options:
+        items:
+          $ref: '#/definitions/models.SelectionOption'
+        type: array
+    type: object
+  models.SelectionDevice:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  models.SelectionDeviceGroup:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  models.SelectionOption:
+    properties:
+      device:
+        $ref: '#/definitions/models.SelectionDevice'
+      device_group:
+        $ref: '#/definitions/models.SelectionDeviceGroup'
+      import:
+        $ref: '#/definitions/models.Import'
+      importType:
+        $ref: '#/definitions/models.ImportType'
+      path_options:
+        additionalProperties:
+          items:
+            $ref: '#/definitions/models.PathOption'
+          type: array
+        type: object
+      services:
+        items:
+          $ref: '#/definitions/models.SelectionService'
+        type: array
+    type: object
+  models.SelectionService:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
   models.Serialization:
     enum:
     - xml
@@ -734,6 +715,26 @@ definitions:
       protocol_id:
         type: string
       service_group_key:
+        type: string
+    type: object
+  models.Task:
+    properties:
+      parameter:
+        additionalProperties:
+          type: string
+        type: object
+      prefer_event:
+        type: boolean
+      retries:
+        type: integer
+      selection:
+        $ref: '#/definitions/models.Selection'
+    type: object
+  models.TimeEvent:
+    properties:
+      time:
+        type: string
+      type:
         type: string
     type: object
   models.Type:
@@ -964,8 +965,8 @@ paths:
   /deployments/{networkId}/{deploymentId}/start:
     get:
       description: start deployed process; a process may expect parameters on start.
-        these cna be passed as query parameters. swagger allows no arbitrary/dynamic
-        parameter names, which means a query wit parameters must be executed manually
+        these can be passed as query parameters. swagger allows no arbitrary/dynamic
+        parameter names, which means a query with parameters must be executed manually
       parameters:
       - description: network id
         in: path
@@ -976,6 +977,10 @@ paths:
         in: path
         name: deploymentId
         required: true
+        type: string
+      - description: business_key of new process instance
+        in: query
+        name: business_key
         type: string
       produces:
       - application/json

@@ -18,12 +18,13 @@ package mgw
 
 import (
 	"encoding/json"
+	"log"
+	"runtime/debug"
+
 	model2 "github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	paho "github.com/eclipse/paho.mqtt.golang"
-	"log"
-	"runtime/debug"
 )
 
 func (this *Mgw) handleDeploymentUpdate(message paho.Message) {
@@ -101,10 +102,11 @@ func (this *Mgw) SendDeploymentDeleteCommand(networkId string, deploymentId stri
 	return this.sendStr(this.getCommandTopic(networkId, deploymentTopic, "delete"), deploymentId)
 }
 
-func (this *Mgw) SendDeploymentStartCommand(networkId string, deploymentId string, parameter map[string]interface{}) error {
+func (this *Mgw) SendDeploymentStartCommand(networkId string, deploymentId string, businessKey string, parameter map[string]interface{}) error {
 	return this.sendObj(this.getCommandTopic(networkId, deploymentTopic, "start"), model.StartMessage{
 		DeploymentId: deploymentId,
 		Parameter:    parameter,
+		BusinessKey:  businessKey,
 	})
 }
 

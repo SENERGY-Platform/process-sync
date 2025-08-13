@@ -334,7 +334,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "start deployed process; a process may expect parameters on start. these cna be passed as query parameters. swagger allows no arbitrary/dynamic parameter names, which means a query wit parameters must be executed manually",
+                "description": "start deployed process; a process may expect parameters on start. these can be passed as query parameters. swagger allows no arbitrary/dynamic parameter names, which means a query with parameters must be executed manually",
                 "produces": [
                     "application/json"
                 ],
@@ -356,6 +356,12 @@ const docTemplate = `{
                         "name": "deploymentId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "business_key of new process instance",
+                        "name": "business_key",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1223,32 +1229,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "deploymentmodel.ConditionalEvent": {
-            "type": "object",
-            "properties": {
-                "event_id": {
-                    "type": "string"
-                },
-                "qos": {
-                    "type": "integer"
-                },
-                "script": {
-                    "type": "string"
-                },
-                "selection": {
-                    "$ref": "#/definitions/deploymentmodel.Selection"
-                },
-                "value_variable": {
-                    "type": "string"
-                },
-                "variables": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "deploymentmodel.Deployment": {
             "type": "object",
             "properties": {
@@ -1256,12 +1236,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "diagram": {
-                    "$ref": "#/definitions/deploymentmodel.Diagram"
+                    "$ref": "#/definitions/models.Diagram"
                 },
                 "elements": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/deploymentmodel.Element"
+                        "$ref": "#/definitions/models.Element"
                     }
                 },
                 "executable": {
@@ -1271,7 +1251,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "incident_handling": {
-                    "$ref": "#/definitions/deploymentmodel.IncidentHandling"
+                    "$ref": "#/definitions/models.IncidentHandling"
                 },
                 "name": {
                     "type": "string"
@@ -1279,369 +1259,12 @@ const docTemplate = `{
                 "start_parameter": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/deploymentmodel.ProcessStartParameter"
+                        "$ref": "#/definitions/models.ProcessStartParameter"
                     }
                 },
                 "version": {
                     "type": "integer"
                 }
-            }
-        },
-        "deploymentmodel.Device": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "deploymentmodel.DeviceGroup": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "deploymentmodel.Diagram": {
-            "type": "object",
-            "properties": {
-                "svg": {
-                    "type": "string"
-                },
-                "xml_deployed": {
-                    "type": "string"
-                },
-                "xml_raw": {
-                    "type": "string"
-                }
-            }
-        },
-        "deploymentmodel.Element": {
-            "type": "object",
-            "properties": {
-                "bpmn_id": {
-                    "type": "string"
-                },
-                "conditional_event": {
-                    "$ref": "#/definitions/deploymentmodel.ConditionalEvent"
-                },
-                "group": {
-                    "type": "string"
-                },
-                "message_event": {
-                    "$ref": "#/definitions/deploymentmodel.MessageEvent"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "notification": {
-                    "$ref": "#/definitions/deploymentmodel.Notification"
-                },
-                "order": {
-                    "type": "integer"
-                },
-                "task": {
-                    "$ref": "#/definitions/deploymentmodel.Task"
-                },
-                "time_event": {
-                    "$ref": "#/definitions/deploymentmodel.TimeEvent"
-                }
-            }
-        },
-        "deploymentmodel.FilterCriteria": {
-            "type": "object",
-            "properties": {
-                "aspect_id": {
-                    "type": "string"
-                },
-                "characteristic_id": {
-                    "description": "TODO: remove?",
-                    "type": "string"
-                },
-                "device_class_id": {
-                    "type": "string"
-                },
-                "function_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "deploymentmodel.GenericEventSource": {
-            "type": "object",
-            "properties": {
-                "filter_ids": {
-                    "type": "string"
-                },
-                "filter_type": {
-                    "type": "string"
-                },
-                "topic": {
-                    "type": "string"
-                }
-            }
-        },
-        "deploymentmodel.IncidentHandling": {
-            "type": "object",
-            "properties": {
-                "notify": {
-                    "type": "boolean"
-                },
-                "restart": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "deploymentmodel.MessageEvent": {
-            "type": "object",
-            "properties": {
-                "event_id": {
-                    "type": "string"
-                },
-                "flow_id": {
-                    "type": "string"
-                },
-                "selection": {
-                    "$ref": "#/definitions/deploymentmodel.Selection"
-                },
-                "use_marshaller": {
-                    "type": "boolean"
-                },
-                "value": {
-                    "type": "string"
-                }
-            }
-        },
-        "deploymentmodel.Notification": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "deploymentmodel.ProcessStartParameter": {
-            "type": "object",
-            "properties": {
-                "default": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "label": {
-                    "type": "string"
-                },
-                "properties": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "deploymentmodel.Selection": {
-            "type": "object",
-            "properties": {
-                "filter_criteria": {
-                    "$ref": "#/definitions/deploymentmodel.FilterCriteria"
-                },
-                "selected_device_group_id": {
-                    "type": "string"
-                },
-                "selected_device_id": {
-                    "type": "string"
-                },
-                "selected_generic_event_source": {
-                    "$ref": "#/definitions/deploymentmodel.GenericEventSource"
-                },
-                "selected_import_id": {
-                    "type": "string"
-                },
-                "selected_path": {
-                    "$ref": "#/definitions/deviceselectionmodel.PathOption"
-                },
-                "selected_service_id": {
-                    "type": "string"
-                },
-                "selection_options": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/deploymentmodel.SelectionOption"
-                    }
-                }
-            }
-        },
-        "deploymentmodel.SelectionOption": {
-            "type": "object",
-            "properties": {
-                "device": {
-                    "$ref": "#/definitions/deploymentmodel.Device"
-                },
-                "device_group": {
-                    "$ref": "#/definitions/deploymentmodel.DeviceGroup"
-                },
-                "import": {
-                    "$ref": "#/definitions/importmodel.Import"
-                },
-                "importType": {
-                    "$ref": "#/definitions/importmodel.ImportType"
-                },
-                "path_options": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/deviceselectionmodel.PathOption"
-                        }
-                    }
-                },
-                "services": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/deploymentmodel.Service"
-                    }
-                }
-            }
-        },
-        "deploymentmodel.Service": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "deploymentmodel.Task": {
-            "type": "object",
-            "properties": {
-                "parameter": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "prefer_event": {
-                    "type": "boolean"
-                },
-                "retries": {
-                    "type": "integer"
-                },
-                "selection": {
-                    "$ref": "#/definitions/deploymentmodel.Selection"
-                }
-            }
-        },
-        "deploymentmodel.TimeEvent": {
-            "type": "object",
-            "properties": {
-                "time": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "devicemodel.AspectNode": {
-            "type": "object",
-            "properties": {
-                "ancestor_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "child_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "descendent_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "parent_id": {
-                    "type": "string"
-                },
-                "root_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "deviceselectionmodel.Configurable": {
-            "type": "object",
-            "properties": {
-                "aspect_node": {
-                    "$ref": "#/definitions/devicemodel.AspectNode"
-                },
-                "characteristic_id": {
-                    "type": "string"
-                },
-                "function_id": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "value": {}
-            }
-        },
-        "deviceselectionmodel.PathOption": {
-            "type": "object",
-            "properties": {
-                "aspectNode": {
-                    "$ref": "#/definitions/devicemodel.AspectNode"
-                },
-                "characteristicId": {
-                    "type": "string"
-                },
-                "configurables": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/deviceselectionmodel.Configurable"
-                    }
-                },
-                "functionId": {
-                    "type": "string"
-                },
-                "isVoid": {
-                    "type": "boolean"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "value": {}
             }
         },
         "github_com_SENERGY-Platform_process-sync_pkg_model_camundamodel.Variable": {
@@ -1652,105 +1275,6 @@ const docTemplate = `{
                 },
                 "value": {},
                 "valueInfo": {}
-            }
-        },
-        "importmodel.Import": {
-            "type": "object",
-            "properties": {
-                "configs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/importmodel.ImportConfig"
-                    }
-                },
-                "id": {
-                    "type": "string"
-                },
-                "image": {
-                    "type": "string"
-                },
-                "import_type_id": {
-                    "type": "string"
-                },
-                "kafka_topic": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "restart": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "importmodel.ImportConfig": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "value": {}
-            }
-        },
-        "importmodel.ImportContentVariable": {
-            "type": "object",
-            "properties": {
-                "aspect_id": {
-                    "type": "string"
-                },
-                "characteristic_id": {
-                    "type": "string"
-                },
-                "function_id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "sub_content_variables": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/importmodel.ImportContentVariable"
-                    }
-                },
-                "type": {
-                    "type": "string"
-                },
-                "use_as_tag": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "importmodel.ImportType": {
-            "type": "object",
-            "properties": {
-                "configs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/importmodel.ImportConfig"
-                    }
-                },
-                "default_restart": {
-                    "type": "boolean"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "image": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "output": {
-                    "$ref": "#/definitions/importmodel.ImportContentVariable"
-                },
-                "owner": {
-                    "type": "string"
-                }
             }
         },
         "model.Deployment": {
@@ -1831,12 +1355,12 @@ const docTemplate = `{
                     }
                 },
                 "diagram": {
-                    "$ref": "#/definitions/deploymentmodel.Diagram"
+                    "$ref": "#/definitions/models.Diagram"
                 },
                 "elements": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/deploymentmodel.Element"
+                        "$ref": "#/definitions/models.Element"
                     }
                 },
                 "event_descriptions": {
@@ -1852,7 +1376,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "incident_handling": {
-                    "$ref": "#/definitions/deploymentmodel.IncidentHandling"
+                    "$ref": "#/definitions/models.IncidentHandling"
                 },
                 "name": {
                     "type": "string"
@@ -1866,7 +1390,7 @@ const docTemplate = `{
                 "start_parameter": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/deploymentmodel.ProcessStartParameter"
+                        "$ref": "#/definitions/models.ProcessStartParameter"
                     }
                 },
                 "version": {
@@ -2012,6 +1536,9 @@ const docTemplate = `{
         "model.Incident": {
             "type": "object",
             "properties": {
+                "business_key": {
+                    "type": "string"
+                },
                 "deployment_name": {
                     "type": "string"
                 },
@@ -2160,6 +1687,41 @@ const docTemplate = `{
                 }
             }
         },
+        "models.AspectNode": {
+            "type": "object",
+            "properties": {
+                "ancestor_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "child_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "descendent_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parent_id": {
+                    "type": "string"
+                },
+                "root_id": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Attribute": {
             "type": "object",
             "properties": {
@@ -2172,6 +1734,53 @@ const docTemplate = `{
                 "value": {
                     "type": "string"
                 }
+            }
+        },
+        "models.ConditionalEvent": {
+            "type": "object",
+            "properties": {
+                "event_id": {
+                    "type": "string"
+                },
+                "qos": {
+                    "type": "integer"
+                },
+                "script": {
+                    "type": "string"
+                },
+                "selection": {
+                    "$ref": "#/definitions/models.Selection"
+                },
+                "value_variable": {
+                    "type": "string"
+                },
+                "variables": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.Configurable": {
+            "type": "object",
+            "properties": {
+                "aspect_node": {
+                    "$ref": "#/definitions/models.AspectNode"
+                },
+                "characteristic_id": {
+                    "type": "string"
+                },
+                "function_id": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "value": {}
             }
         },
         "models.Content": {
@@ -2236,6 +1845,66 @@ const docTemplate = `{
                 "value": {}
             }
         },
+        "models.Diagram": {
+            "type": "object",
+            "properties": {
+                "svg": {
+                    "type": "string"
+                },
+                "xml_deployed": {
+                    "type": "string"
+                },
+                "xml_raw": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Element": {
+            "type": "object",
+            "properties": {
+                "bpmn_id": {
+                    "type": "string"
+                },
+                "conditional_event": {
+                    "$ref": "#/definitions/models.ConditionalEvent"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "message_event": {
+                    "$ref": "#/definitions/models.MessageEvent"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notification": {
+                    "$ref": "#/definitions/models.Notification"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "task": {
+                    "$ref": "#/definitions/models.Task"
+                },
+                "time_event": {
+                    "$ref": "#/definitions/models.TimeEvent"
+                }
+            }
+        },
+        "models.GenericEventSource": {
+            "type": "object",
+            "properties": {
+                "filter_ids": {
+                    "type": "string"
+                },
+                "filter_type": {
+                    "type": "string"
+                },
+                "topic": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Hub": {
             "type": "object",
             "properties": {
@@ -2265,6 +1934,116 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Import": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ImportConfig"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "import_type_id": {
+                    "type": "string"
+                },
+                "kafka_topic": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "restart": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.ImportConfig": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "value": {}
+            }
+        },
+        "models.ImportContentVariable": {
+            "type": "object",
+            "properties": {
+                "aspect_id": {
+                    "type": "string"
+                },
+                "characteristic_id": {
+                    "type": "string"
+                },
+                "function_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sub_content_variables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ImportContentVariable"
+                    }
+                },
+                "type": {
+                    "$ref": "#/definitions/models.Type"
+                },
+                "use_as_tag": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.ImportType": {
+            "type": "object",
+            "properties": {
+                "configs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ImportConfig"
+                    }
+                },
+                "default_restart": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "output": {
+                    "$ref": "#/definitions/models.ImportContentVariable"
+                },
+                "owner": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.IncidentHandling": {
+            "type": "object",
+            "properties": {
+                "notify": {
+                    "type": "boolean"
+                },
+                "restart": {
+                    "type": "boolean"
+                }
+            }
+        },
         "models.Interaction": {
             "type": "string",
             "enum": [
@@ -2277,6 +2056,204 @@ const docTemplate = `{
                 "REQUEST",
                 "EVENT_AND_REQUEST"
             ]
+        },
+        "models.MessageEvent": {
+            "type": "object",
+            "properties": {
+                "event_id": {
+                    "type": "string"
+                },
+                "flow_id": {
+                    "type": "string"
+                },
+                "selection": {
+                    "$ref": "#/definitions/models.Selection"
+                },
+                "use_marshaller": {
+                    "type": "boolean"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Notification": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PathOption": {
+            "type": "object",
+            "properties": {
+                "aspectNode": {
+                    "$ref": "#/definitions/models.AspectNode"
+                },
+                "characteristicId": {
+                    "type": "string"
+                },
+                "configurables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Configurable"
+                    }
+                },
+                "functionId": {
+                    "type": "string"
+                },
+                "isVoid": {
+                    "type": "boolean"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "value": {}
+            }
+        },
+        "models.ProcessFilterCriteria": {
+            "type": "object",
+            "properties": {
+                "aspect_id": {
+                    "type": "string"
+                },
+                "characteristic_id": {
+                    "type": "string"
+                },
+                "device_class_id": {
+                    "type": "string"
+                },
+                "function_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ProcessStartParameter": {
+            "type": "object",
+            "properties": {
+                "default": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "properties": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Selection": {
+            "type": "object",
+            "properties": {
+                "filter_criteria": {
+                    "$ref": "#/definitions/models.ProcessFilterCriteria"
+                },
+                "selected_device_group_id": {
+                    "type": "string"
+                },
+                "selected_device_id": {
+                    "type": "string"
+                },
+                "selected_generic_event_source": {
+                    "$ref": "#/definitions/models.GenericEventSource"
+                },
+                "selected_import_id": {
+                    "type": "string"
+                },
+                "selected_path": {
+                    "$ref": "#/definitions/models.PathOption"
+                },
+                "selected_service_id": {
+                    "type": "string"
+                },
+                "selection_options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.SelectionOption"
+                    }
+                }
+            }
+        },
+        "models.SelectionDevice": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SelectionDeviceGroup": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SelectionOption": {
+            "type": "object",
+            "properties": {
+                "device": {
+                    "$ref": "#/definitions/models.SelectionDevice"
+                },
+                "device_group": {
+                    "$ref": "#/definitions/models.SelectionDeviceGroup"
+                },
+                "import": {
+                    "$ref": "#/definitions/models.Import"
+                },
+                "importType": {
+                    "$ref": "#/definitions/models.ImportType"
+                },
+                "path_options": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/models.PathOption"
+                        }
+                    }
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.SelectionService"
+                    }
+                }
+            }
+        },
+        "models.SelectionService": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
         },
         "models.Serialization": {
             "type": "string",
@@ -2331,6 +2308,37 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "service_group_key": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Task": {
+            "type": "object",
+            "properties": {
+                "parameter": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "prefer_event": {
+                    "type": "boolean"
+                },
+                "retries": {
+                    "type": "integer"
+                },
+                "selection": {
+                    "$ref": "#/definitions/models.Selection"
+                }
+            }
+        },
+        "models.TimeEvent": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }

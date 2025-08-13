@@ -228,7 +228,7 @@ func (this *Controller) ApiCreateDeployment(token string, networkId string, depl
 	return
 }
 
-func (this *Controller) ApiStartDeployment(networkId string, deploymentId string, parameter map[string]interface{}) (err error, errCode int) {
+func (this *Controller) ApiStartDeployment(networkId string, deploymentId string, businessKey string, parameter map[string]interface{}) (err error, errCode int) {
 	defer func() {
 		errCode = this.SetErrCode(err)
 	}()
@@ -257,7 +257,7 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 		return
 	}
 
-	err = this.mgw.SendDeploymentStartCommand(networkId, deploymentId, parameter)
+	err = this.mgw.SendDeploymentStartCommand(networkId, deploymentId, businessKey, parameter)
 	if err != nil {
 		debug.PrintStack()
 		return
