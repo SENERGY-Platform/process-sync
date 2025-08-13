@@ -18,6 +18,10 @@ package controller
 
 import (
 	"errors"
+	"log"
+	"net/http"
+	"runtime/debug"
+
 	"github.com/SENERGY-Platform/process-deployment/lib/auth"
 	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
@@ -25,9 +29,6 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
-	"log"
-	"net/http"
-	"runtime/debug"
 )
 
 func (this *Controller) UpdateDeployment(networkId string, deployment camundamodel.Deployment) {
@@ -191,7 +192,7 @@ func (this *Controller) ApiSearchDeployments(networkIds []string, search string,
 }
 
 func (this *Controller) ApiCreateDeployment(token string, networkId string, deployment deploymentmodel.Deployment) (err error, errCode int) {
-	err = deployment.Validate(deploymentmodel.ValidatePublish, map[string]bool{"service": true})
+	err = deployment.Validate(deploymentmodel.ValidatePublish, map[string]bool{"service": true}, deploymentmodel.DeploymentXmlValidator)
 	if err != nil {
 		return err, http.StatusBadRequest
 	}
