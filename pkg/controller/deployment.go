@@ -29,6 +29,7 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
+	"github.com/google/uuid"
 )
 
 func (this *Controller) UpdateDeployment(networkId string, deployment camundamodel.Deployment) {
@@ -250,6 +251,9 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 		err = IsMarkedAsMissingErr
 		return
 	}
+	if businessKey == "" {
+		businessKey = uuid.NewString()
+	}
 
 	definition, err := this.db.GetDefinitionByDeploymentId(networkId, deploymentId)
 	if err != nil {
@@ -272,6 +276,7 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 			Ended:        false,
 			Suspended:    false,
 			TenantId:     "senergy",
+			BusinessKey:  businessKey,
 		},
 		SyncInfo: model.SyncInfo{
 			NetworkId:       networkId,
@@ -291,6 +296,7 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 			ProcessDefinitionKey:     definition.Key,
 			ProcessDefinitionVersion: float64(definition.Version),
 			ProcessDefinitionId:      definition.Id,
+			BusinessKey:              businessKey,
 			StartTime:                now.Format(camundamodel.CamundaTimeFormat),
 			DurationInMillis:         0,
 			StartUserId:              "senergy",
