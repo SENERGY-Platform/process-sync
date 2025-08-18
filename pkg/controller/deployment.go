@@ -211,6 +211,8 @@ func (this *Controller) ApiCreateDeployment(token string, networkId string, depl
 		return
 	}
 	now := configuration.TimeNow()
+	//TODO: can we store the real deployment instead of the placeholder?
+	//TODO: should we store placeholder metadata?
 	err = this.db.SaveDeployment(model.Deployment{
 		Deployment: camundamodel.Deployment{
 			Id:             "placeholder-" + configuration.Id(),
@@ -239,6 +241,7 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 		debug.PrintStack()
 		return
 	}
+	//TODO: can we start unsynced deployments?
 	if current.IsPlaceholder {
 		err = IsPlaceholderProcessErr
 		return
@@ -255,6 +258,7 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 		businessKey = uuid.NewString()
 	}
 
+	//TODO: ? remove to enable start without synced deployment?
 	definition, err := this.db.GetDefinitionByDeploymentId(networkId, deploymentId)
 	if err != nil {
 		debug.PrintStack()
@@ -272,7 +276,7 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 	err = this.db.SaveProcessInstance(model.ProcessInstance{
 		ProcessInstance: camundamodel.ProcessInstance{
 			Id:           instanceId,
-			DefinitionId: definition.Id,
+			DefinitionId: definition.Id, //TODO: ? replace with placeholder to enable start without synced deployment?
 			Ended:        false,
 			Suspended:    false,
 			TenantId:     "senergy",
@@ -295,7 +299,7 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 			ProcessDefinitionName:    definition.Name,
 			ProcessDefinitionKey:     definition.Key,
 			ProcessDefinitionVersion: float64(definition.Version),
-			ProcessDefinitionId:      definition.Id,
+			ProcessDefinitionId:      definition.Id, //TODO: ? replace with placeholder to enable start without synced deployment?
 			BusinessKey:              businessKey,
 			StartTime:                now.Format(camundamodel.CamundaTimeFormat),
 			DurationInMillis:         0,
