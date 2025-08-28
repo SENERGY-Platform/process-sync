@@ -21,16 +21,17 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
-	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
-	"github.com/SENERGY-Platform/process-sync/pkg/model"
-	"github.com/SENERGY-Platform/process-sync/pkg/tests/server"
-	paho "github.com/eclipse/paho.mqtt.golang"
 	"net/http"
 	"net/url"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
+	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/model"
+	"github.com/SENERGY-Platform/process-sync/pkg/tests/server"
+	paho "github.com/eclipse/paho.mqtt.golang"
 )
 
 func TestSync(t *testing.T) {
@@ -41,7 +42,6 @@ func TestSync(t *testing.T) {
 	defer cancel()
 
 	config := configuration.Config{
-		Debug:                             true,
 		MqttClientId:                      "",
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
@@ -115,7 +115,6 @@ func TestKnown(t *testing.T) {
 	defer cancel()
 
 	config := configuration.Config{
-		Debug:                             true,
 		MqttClientId:                      "",
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
@@ -217,7 +216,6 @@ func TestMarkedAsMissingRetry(t *testing.T) {
 	defer cancel()
 
 	config := configuration.Config{
-		Debug:                             true,
 		MqttClientId:                      "",
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",

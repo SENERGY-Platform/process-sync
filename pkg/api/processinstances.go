@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -64,7 +63,7 @@ func (this *ProcessInstanceEndpoints) GetProcessInstance(config configuration.Co
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {
-			log.Println("ERROR: unable to encode response", err)
+			config.GetLogger().Error("unable to encode response", "error", err)
 		}
 		return
 	})
@@ -102,7 +101,7 @@ func (this *ProcessInstanceEndpoints) DeleteProcessInstance(config configuration
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(true)
 		if err != nil {
-			log.Println("ERROR: unable to encode response", err)
+			config.GetLogger().Error("unable to encode response", "error", err)
 		}
 		return
 	})
@@ -169,7 +168,7 @@ func (this *ProcessInstanceEndpoints) ListProcessInstances(config configuration.
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {
-			log.Println("ERROR: unable to encode response", err)
+			config.GetLogger().Error("unable to encode response", "error", err)
 		}
 		return
 	})

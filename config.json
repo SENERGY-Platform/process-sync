@@ -7,7 +7,6 @@
     "mqtt_client_id": "",
     "mqtt_group_id": "",
     "mqtt_clean_session": true,
-    "debug": true,
     "mongo_table": "sync",
     "mongo_deployment_collection": "deployments",
     "mongo_deployment_metadata_collection": "deployment_metadata",
@@ -33,5 +32,7 @@
 
     "developer_notification_url": "http://api.developer-notifications:8080",
 
-    "init_topics": false
+    "init_topics": false,
+
+    "log_level": "info"
 }

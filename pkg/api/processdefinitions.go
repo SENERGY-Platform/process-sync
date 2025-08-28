@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -64,7 +63,7 @@ func (this *ProcessDefinitionEndpoints) GetProcessDefinition(config configuratio
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {
-			log.Println("ERROR: unable to encode response", err)
+			config.GetLogger().Error("unable to encode response", "error", err)
 		}
 		return
 	})
@@ -131,7 +130,7 @@ func (this *ProcessDefinitionEndpoints) ListProcessDefinitions(config configurat
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {
-			log.Println("ERROR: unable to encode response", err)
+			config.GetLogger().Error("unable to encode response", "error", err)
 		}
 		return
 	})

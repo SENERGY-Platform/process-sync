@@ -17,11 +17,11 @@
 package security
 
 import (
+	"time"
+
 	permv2 "github.com/SENERGY-Platform/permissions-v2/pkg/client"
 	"github.com/SENERGY-Platform/permissions-v2/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
-	"log"
-	"time"
 )
 
 func New(config configuration.Config) *Security {
@@ -50,7 +50,7 @@ type IdWrapper struct {
 func (this *Security) IsAdmin(token string) bool {
 	roles, err := ReadTokenRoles(token)
 	if err != nil {
-		log.Println("ERROR: unable to parse auth token to check if user is admin:", err)
+		this.config.GetLogger().Error("unable to parse auth token to check if user is admin", "error", err)
 		return false
 	}
 	return contains(roles, "admin")

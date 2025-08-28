@@ -18,19 +18,18 @@ package controller
 
 import (
 	"errors"
+	"runtime/debug"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
-	"log"
-	"runtime/debug"
 )
 
 func (this *Controller) UpdateProcessInstance(networkId string, instance camundamodel.ProcessInstance) {
 	err := this.db.RemovePlaceholderProcessInstances(networkId)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	err = this.db.SaveProcessInstance(model.ProcessInstance{
 		ProcessInstance: instance,
@@ -42,34 +41,29 @@ func (this *Controller) UpdateProcessInstance(networkId string, instance camunda
 		},
 	})
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 }
 
 func (this *Controller) DeleteProcessInstance(networkId string, instanceId string) {
 	err := this.db.RemoveProcessInstance(networkId, instanceId)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	err = this.db.RemoveIncidentOfInstance(networkId, instanceId)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 }
 
 func (this *Controller) DeleteUnknownProcessInstances(networkId string, knownIds []string) {
 	err := this.db.RemoveUnknownProcessInstances(networkId, knownIds)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	err = this.db.RemoveIncidentOfNotInstances(networkId, knownIds)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 }
 

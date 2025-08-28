@@ -17,13 +17,13 @@
 package mongo
 
 import (
+	"time"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
-	"time"
 )
 
 var networkIdKey string
@@ -121,7 +121,7 @@ func (this *Mongo) RemoveOldElements(maxAge time.Duration) (err error) {
 	if err != nil {
 		return err
 	}
-	log.Println("remove old elements:", networkIds)
+	this.config.GetLogger().Info("remove old elements", "network_ids", networkIds)
 	if len(networkIds) == 0 {
 		return nil
 	}

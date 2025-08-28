@@ -18,23 +18,21 @@ package mgw
 
 import (
 	"encoding/json"
+	"runtime/debug"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	paho "github.com/eclipse/paho.mqtt.golang"
-	"log"
-	"runtime/debug"
 )
 
 func (this *Mgw) handleProcessInstanceUpdate(message paho.Message) {
 	processInstance := camundamodel.ProcessInstance{}
 	err := json.Unmarshal(message.Payload(), &processInstance)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	networkId, err := this.getNetworkId(message.Topic())
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	this.handler.LogNetworkInteraction(networkId)
 	this.handler.UpdateProcessInstance(networkId, processInstance)
@@ -43,8 +41,7 @@ func (this *Mgw) handleProcessInstanceUpdate(message paho.Message) {
 func (this *Mgw) handleProcessInstanceDelete(message paho.Message) {
 	networkId, err := this.getNetworkId(message.Topic())
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	this.handler.LogNetworkInteraction(networkId)
 	this.handler.DeleteProcessInstance(networkId, string(message.Payload()))
@@ -54,13 +51,11 @@ func (this *Mgw) handleProcessInstanceKnown(message paho.Message) {
 	knownIds := []string{}
 	err := json.Unmarshal(message.Payload(), &knownIds)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	networkId, err := this.getNetworkId(message.Topic())
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	this.handler.LogNetworkInteraction(networkId)
 	this.handler.DeleteUnknownProcessInstances(networkId, knownIds)

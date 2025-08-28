@@ -19,16 +19,17 @@ package mongo
 import (
 	"context"
 	"errors"
-	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"reflect"
 	"runtime/debug"
 	"strings"
 	"time"
+
+	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Mongo struct {
@@ -96,7 +97,7 @@ func (this *Mongo) ensureCompoundIndex(collection *mongo.Collection, indexname s
 }
 
 func (this *Mongo) Disconnect() {
-	log.Println(this.client.Disconnect(context.Background()))
+	this.config.GetLogger().Info("disconnect mongo", "error", this.client.Disconnect(context.Background()))
 }
 
 func (this *Mongo) getTimeoutContext() (context.Context, context.CancelFunc) {
@@ -153,12 +154,14 @@ type IndexDesc struct {
 	IsTextIndex bool
 }
 
+var emptyConf = &configuration.Config{}
+
 func prepareCollection(mongoCollectionName func(config configuration.Config) string, structure interface{}, keyMappings []KeyMapping, indexes []IndexDesc) {
 	for _, mapping := range keyMappings {
 		var err error
 		*(mapping.Key), err = getBsonFieldPath(structure, mapping.FieldName)
 		if err != nil {
-			debug.PrintStack()
+			emptyConf.GetLogger().Error("unable to get bson field path", "error", err, "field", mapping.FieldName, "stack", string(debug.Stack()))
 			log.Fatal(err)
 		}
 	}
@@ -173,7 +176,7 @@ func prepareCollection(mongoCollectionName func(config configuration.Config) str
 				}
 				keys = append(keys, *key)
 			}
-			log.Println("ensure index for", collectionName, index.Name, keys)
+			emptyConf.GetLogger().Info("ensure index", "collection", collectionName, "index", index.Name, "keys", strings.Join(keys, ","))
 			if len(keys) == 1 {
 				var err error
 				if index.IsTextIndex {

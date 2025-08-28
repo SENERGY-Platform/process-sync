@@ -18,23 +18,21 @@ package mgw
 
 import (
 	"encoding/json"
+	"runtime/debug"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	paho "github.com/eclipse/paho.mqtt.golang"
-	"log"
-	"runtime/debug"
 )
 
 func (this *Mgw) handleIncidentUpdate(message paho.Message) {
 	incident := camundamodel.Incident{}
 	err := json.Unmarshal(message.Payload(), &incident)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	networkId, err := this.getNetworkId(message.Topic())
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	this.handler.LogNetworkInteraction(networkId)
 	this.handler.UpdateIncident(networkId, incident)
@@ -43,8 +41,7 @@ func (this *Mgw) handleIncidentUpdate(message paho.Message) {
 func (this *Mgw) handleIncidentDelete(message paho.Message) {
 	networkId, err := this.getNetworkId(message.Topic())
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	this.handler.LogNetworkInteraction(networkId)
 	this.handler.DeleteIncident(networkId, string(message.Payload()))
@@ -54,13 +51,11 @@ func (this *Mgw) handleIncidentKnown(message paho.Message) {
 	knownIds := []string{}
 	err := json.Unmarshal(message.Payload(), &knownIds)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	networkId, err := this.getNetworkId(message.Topic())
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	this.handler.LogNetworkInteraction(networkId)
 	this.handler.DeleteUnknownIncidents(networkId, knownIds)

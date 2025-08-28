@@ -18,10 +18,10 @@ package controller
 
 import (
 	"encoding/json"
+	"runtime/debug"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
-	"log"
-	"runtime/debug"
 )
 
 func (this *Controller) ListDeploymentMetadata(query model.MetadataQuery) (result []model.DeploymentMetadata, err error) {
@@ -39,8 +39,7 @@ func (this *Controller) UpdateDeploymentMetadata(networkId string, metadata mode
 		},
 	})
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	this.notifyProcessDeploymentDone(metadata.DeploymentModel.Id)
 }
@@ -59,14 +58,12 @@ func (this *Controller) notifyProcessDeploymentDone(id string) {
 			Handler: "github.com/SENERGY-Platform/process-sync",
 		})
 		if err != nil {
-			log.Println("ERROR:", err)
-			debug.PrintStack()
+			this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 			return
 		}
 		err = this.deploymentDoneNotifier.Produce(id, msg)
 		if err != nil {
-			log.Println("ERROR:", err)
-			debug.PrintStack()
+			this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 			return
 		}
 	}

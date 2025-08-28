@@ -19,11 +19,6 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/SENERGY-Platform/api-docs-provider/lib/client"
-	"github.com/SENERGY-Platform/process-sync/docs"
-	"github.com/SENERGY-Platform/process-sync/pkg/api"
-	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
-	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 	"log"
 	"net/http"
 	"os"
@@ -31,6 +26,12 @@ import (
 	"runtime/debug"
 	"syscall"
 	"time"
+
+	"github.com/SENERGY-Platform/api-docs-provider/lib/client"
+	"github.com/SENERGY-Platform/process-sync/docs"
+	"github.com/SENERGY-Platform/process-sync/pkg/api"
+	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 )
 
 func main() {
@@ -48,12 +49,14 @@ func main() {
 
 	ctrl, err := controller.NewDefault(config, ctx)
 	if err != nil {
+		config.GetLogger().Error("FATAL", "error", err, "stack", debug.Stack())
 		debug.PrintStack()
 		log.Fatal("FATAL:", err)
 	}
 
 	err = api.Start(config, ctx, ctrl)
 	if err != nil {
+		config.GetLogger().Error("FATAL", "error", err, "stack", debug.Stack())
 		debug.PrintStack()
 		log.Fatal("FATAL:", err)
 	}
@@ -65,6 +68,7 @@ func main() {
 	if config.ApiDocsProviderBaseUrl != "" && config.ApiDocsProviderBaseUrl != "-" {
 		err = PublishAsyncApiDoc(config)
 		if err != nil {
+			config.GetLogger().Error("FATAL", "error", err, "stack", debug.Stack())
 			log.Fatal(err)
 		}
 	}
@@ -72,7 +76,7 @@ func main() {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 	sig := <-shutdown
-	log.Println("received shutdown signal", sig)
+	config.GetLogger().Info("received shutdown signal", "signal", sig)
 	cancel()
 	time.Sleep(1 * time.Second) //give connections time to close gracefully
 }
@@ -80,18 +84,18 @@ func main() {
 func cleanup(ctx context.Context, ctrl *controller.Controller, config configuration.Config) {
 	cleanupInterval, err := time.ParseDuration(config.CleanupInterval)
 	if err != nil {
-		log.Println("WARNING: invalid CleanupInterval", config.CleanupInterval, err)
+		config.GetLogger().Warn("invalid CleanupInterval", "error", err, "cleanup_interval", config.CleanupInterval)
 		return
 	}
 	maxAge, err := time.ParseDuration(config.CleanupMaxAge)
 	if err != nil {
-		log.Println("WARNING: invalid CleanupMaxAge", config.CleanupMaxAge, err)
+		config.GetLogger().Warn("invalid CleanupMaxAge", "error", err, "cleanup_max_age", config.CleanupMaxAge)
 		return
 	}
 
 	err = ctrl.RemoveOldEntities(maxAge)
 	if err != nil {
-		log.Println("WARNING: RemoveOldEntities() ->", err)
+		config.GetLogger().Warn("error in RemoveOldEntities", "error", err)
 	}
 	t := time.NewTicker(cleanupInterval)
 	for {
@@ -101,7 +105,7 @@ func cleanup(ctx context.Context, ctrl *controller.Controller, config configurat
 		case <-t.C:
 			err = ctrl.RemoveOldEntities(maxAge)
 			if err != nil {
-				log.Println("WARNING: RemoveOldEntities() ->", err)
+				config.GetLogger().Warn("error in RemoveOldEntities", "error", err)
 			}
 		}
 	}

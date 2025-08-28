@@ -18,10 +18,10 @@ package api
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
-	"log"
-	"net/http"
 )
 
 func init() {
@@ -53,7 +53,7 @@ func (this *NetworksEndpoints) ListNetworks(config configuration.Config, ctrl *c
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {
-			log.Println("ERROR: unable to encode response", err)
+			config.GetLogger().Error("unable to encode response", "error", err)
 		}
 		return
 	})

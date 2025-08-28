@@ -20,7 +20,6 @@ import (
 	devicerpo "github.com/SENERGY-Platform/device-repository/lib/client"
 	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
-	"log"
 	"net/http"
 	"runtime/debug"
 	"time"
@@ -64,7 +63,6 @@ func (this *Controller) LogNetworkInteraction(networkId string) {
 		Time:      time.Now(),
 	})
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 }

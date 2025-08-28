@@ -18,14 +18,16 @@ package mongo
 
 import (
 	"errors"
+	"fmt"
+	"log"
+	"runtime/debug"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
-	"runtime/debug"
 )
 
 var metadataDeploymentIdKey string
@@ -37,7 +39,7 @@ func init() {
 	var err error
 	metadataEventGroupIdKey, err = getBsonFieldPath(model.DeploymentMetadata{}, "Metadata.DeploymentModel.EventDescriptions")
 	if err != nil {
-		debug.PrintStack()
+		emptyConf.GetLogger().Error("unable to get bson field path", "error", err, "field", "Metadata.DeploymentModel.EventDescriptions", "stack", string(debug.Stack()))
 		log.Fatal(err)
 	}
 	metadataEventGroupIdKey = metadataEventGroupIdKey + ".device_group_id"
@@ -164,7 +166,7 @@ func (this *Mongo) ListDeploymentMetadata(query model.MetadataQuery) (result []m
 		result = append(result, element)
 	}
 	err = cursor.Err()
-	log.Printf("DEBUG: result = %#v\n %v\n", result, err)
+	this.config.GetLogger().Debug("ListDeploymentMetadata() result", "error", err, "result", fmt.Sprintf("%#v", result))
 	return
 }
 

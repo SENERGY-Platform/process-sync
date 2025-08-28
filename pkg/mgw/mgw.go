@@ -20,17 +20,16 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	paho "github.com/eclipse/paho.mqtt.golang"
-	"log"
-	"strings"
 )
 
 type Mgw struct {
 	mqtt    paho.Client
-	debug   bool
 	config  configuration.Config
 	handler Handler
 }
@@ -58,7 +57,6 @@ type Handler interface {
 func New(config configuration.Config, ctx context.Context, handler Handler) (*Mgw, error) {
 	client := &Mgw{
 		config:  config,
-		debug:   config.Debug,
 		handler: handler,
 	}
 	options := paho.NewClientOptions().
@@ -70,16 +68,16 @@ func New(config configuration.Config, ctx context.Context, handler Handler) (*Mg
 		AddBroker(config.MqttBroker).
 		SetResumeSubs(true).
 		SetConnectionLostHandler(func(_ paho.Client, err error) {
-			log.Println("connection to mqtt broker lost")
+			config.GetLogger().Error("connection to mqtt broker lost", "error", err)
 		}).
 		SetOnConnectHandler(func(m paho.Client) {
-			log.Println("connected to mqtt broker")
+			config.GetLogger().Info("connected to mqtt broker")
 			client.subscribe()
 		})
 
 	client.mqtt = paho.NewClient(options)
 	if token := client.mqtt.Connect(); token.Wait() && token.Error() != nil {
-		log.Println("Error on MqttStart.Connect(): ", token.Error())
+		config.GetLogger().Error("unable to connect to mqtt broker", "error", token.Error())
 		return nil, token.Error()
 	}
 
@@ -104,99 +102,67 @@ func (this *Mgw) subscribe() {
 	}
 
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", deploymentTopic), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleDeploymentUpdate(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", deploymentTopic, "delete"), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleDeploymentDelete(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", deploymentTopic, "known"), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleDeploymentKnown(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", deploymentTopic, "metadata"), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleDeploymentMetadata(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", incidentTopic), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleIncidentUpdate(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", incidentTopic, "delete"), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleIncidentDelete(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", incidentTopic, "known"), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleIncidentKnown(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", processDefinitionTopic), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleProcessDefinitionUpdate(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", processDefinitionTopic, "delete"), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleProcessDefinitionDelete(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", processDefinitionTopic, "known"), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleProcessDefinitionKnown(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", processInstanceTopic), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleProcessInstanceUpdate(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", processInstanceTopic, "delete"), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleProcessInstanceDelete(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", processInstanceTopic, "known"), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleProcessInstanceKnown(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", processInstanceHistoryTopic), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleHistoricProcessInstanceUpdate(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", processInstanceHistoryTopic, "delete"), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleHistoricProcessInstanceDelete(message)
 	})
 	this.mqtt.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", processInstanceHistoryTopic, "known"), 2, func(client paho.Client, message paho.Message) {
-		if this.debug {
-			log.Println("DEBUG: receive", message.Topic(), string(message.Payload()))
-		}
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleHistoricProcessInstanceKnown(message)
 	})
 }
@@ -237,18 +203,14 @@ func (this *Mgw) sendObj(topic string, message interface{}) error {
 	if err != nil {
 		return err
 	}
-	if this.debug {
-		log.Println("DEBUG: send", topic, string(msg))
-	}
+	this.config.GetLogger().Debug("send", "topic", topic, "payload", string(msg))
 	token := this.mqtt.Publish(topic, 2, false, msg)
 	token.Wait()
 	return token.Error()
 }
 
 func (this *Mgw) sendStr(topic string, message string) error {
-	if this.debug {
-		log.Println("DEBUG: send", topic, message)
-	}
+	this.config.GetLogger().Debug("send", "topic", topic, "payload", message)
 	token := this.mqtt.Publish(topic, 2, false, message)
 	token.Wait()
 	return token.Error()

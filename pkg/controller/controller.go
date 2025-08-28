@@ -19,6 +19,12 @@ package controller
 import (
 	"context"
 	"errors"
+	"log/slog"
+	"net/http"
+	"os"
+	"runtime/debug"
+	"time"
+
 	developerNotifications "github.com/SENERGY-Platform/developer-notifications/pkg/client"
 	eventinterfaces "github.com/SENERGY-Platform/event-deployment/lib/interfaces"
 	"github.com/SENERGY-Platform/event-deployment/lib/model"
@@ -33,11 +39,6 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/kafka"
 	"github.com/SENERGY-Platform/process-sync/pkg/mgw"
 	"github.com/SENERGY-Platform/process-sync/pkg/security"
-	"log/slog"
-	"net/http"
-	"os"
-	"runtime/debug"
-	"time"
 )
 
 type Controller struct {
@@ -94,7 +95,7 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 		return ctrl, err
 	}
 	if config.KafkaUrl != "" && config.KafkaUrl != "-" {
-		ctrl.deploymentDoneNotifier, err = kafka.NewProducer(ctx, config.KafkaUrl, config.ProcessDeploymentDoneTopic, config.Debug, config.InitTopics)
+		ctrl.deploymentDoneNotifier, err = kafka.NewProducer(ctx, config.KafkaUrl, config.ProcessDeploymentDoneTopic, config.GetLogger(), config.InitTopics)
 		if err != nil {
 			return ctrl, err
 		}

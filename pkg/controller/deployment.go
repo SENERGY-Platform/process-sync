@@ -18,7 +18,6 @@ package controller
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"runtime/debug"
 
@@ -35,8 +34,7 @@ import (
 func (this *Controller) UpdateDeployment(networkId string, deployment camundamodel.Deployment) {
 	err := this.db.RemovePlaceholderDeployments(networkId)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("failed to remove placeholder deployments", "error", err, "stack", debug.Stack())
 	}
 	err = this.db.SaveDeployment(model.Deployment{
 		Deployment: deployment,
@@ -48,8 +46,7 @@ func (this *Controller) UpdateDeployment(networkId string, deployment camundamod
 		},
 	})
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("unable to save deployment", "error", err, "stack", debug.Stack())
 	}
 }
 
@@ -60,8 +57,7 @@ func (this *Controller) DeleteDeployment(networkId string, deploymentId string) 
 		return
 	}
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 		return
 	}
 	_, err = this.db.ReadDeploymentMetadata(networkId, deploymentId)
@@ -70,8 +66,7 @@ func (this *Controller) DeleteDeployment(networkId string, deploymentId string) 
 		return
 	}
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 		return
 	}
 	if deployment.SyncInfo.MarkedForDelete {
@@ -80,8 +75,7 @@ func (this *Controller) DeleteDeployment(networkId string, deploymentId string) 
 		deployment.SyncInfo.MarkedAsMissing = true
 		err = this.db.SaveDeployment(deployment)
 		if err != nil {
-			log.Println("ERROR:", err)
-			debug.PrintStack()
+			this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 			return
 		}
 	}
@@ -90,21 +84,18 @@ func (this *Controller) DeleteDeployment(networkId string, deploymentId string) 
 func (this *Controller) deleteDeployment(networkId string, deploymentId string) {
 	err := this.db.RemoveDeploymentMetadata(networkId, deploymentId)
 	if err != nil && !errors.Is(err, database.ErrNotFound) {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	err = this.db.RemoveDeployment(networkId, deploymentId)
 	if err != nil && !errors.Is(err, database.ErrNotFound) {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 }
 
 func (this *Controller) DeleteUnknownDeployments(networkId string, knownIds []string) {
 	deployments, err := this.db.ListUnknownDeployments(networkId, knownIds)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 		return
 	}
 	handled := []string{}
@@ -123,20 +114,17 @@ func (this *Controller) DeleteUnknownDeployments(networkId string, knownIds []st
 			deployment.SyncInfo.MarkedAsMissing = true
 			err = this.db.SaveDeployment(deployment)
 			if err != nil {
-				log.Println("ERROR:", err)
-				debug.PrintStack()
+				this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 			}
 		}
 	}
 	err = this.db.RemoveUnknownDeployments(networkId, handled)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	err = this.db.RemoveUnknownDeploymentMetadata(networkId, handled)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 }
 
@@ -370,7 +358,7 @@ func (this *Controller) ExtendDeployments(deployments []model.Deployment) (resul
 func (this *Controller) deploymentModelWithEventDescriptions(token string, deployment deploymentmodel.Deployment) (result model.DeploymentWithEventDesc, err error) {
 	result.Deployment = deployment
 	if this.config.DeviceRepoUrl == "" {
-		log.Println("WARNING: deploymentModelWithEventDescriptions() not enabled; add config values for DeviceRepoUrl")
+		this.config.GetLogger().Warn("deploymentModelWithEventDescriptions() not enabled; add config values for DeviceRepoUrl")
 		return
 	}
 	result.EventDescriptions, err = transformer.New(this.config, this.baseDeviceRepoFactory, token).Transform("", deployment)

@@ -18,17 +18,18 @@ package mongo
 
 import (
 	"context"
+	"reflect"
+	"sort"
+	"sync"
+	"testing"
+	"time"
+
 	model2 "github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/tests/docker"
-	"reflect"
-	"sort"
-	"sync"
-	"testing"
-	"time"
 )
 
 func TestLastNetworkContact(t *testing.T) {
@@ -45,7 +46,6 @@ func TestLastNetworkContact(t *testing.T) {
 	}
 
 	config := configuration.Config{
-		Debug:                             true,
 		MongoUrl:                          "mongodb://localhost:" + mongoPort,
 		MongoTable:                        "processes",
 		MongoProcessDefinitionCollection:  "process_definition",

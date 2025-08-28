@@ -18,6 +18,10 @@ package tests
 
 import (
 	"context"
+	"sync"
+	"testing"
+	"time"
+
 	"github.com/SENERGY-Platform/event-deployment/lib/interfaces"
 	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/process-deployment/lib/auth"
@@ -29,9 +33,6 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/tests/docker"
 	"github.com/SENERGY-Platform/process-sync/pkg/tests/mocks"
-	"sync"
-	"testing"
-	"time"
 )
 
 func TestPlaceholderProcessInstanceDelete(t *testing.T) {
@@ -42,7 +43,6 @@ func TestPlaceholderProcessInstanceDelete(t *testing.T) {
 	defer cancel()
 
 	config := configuration.Config{
-		Debug:                             true,
 		MqttClientId:                      "",
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
@@ -180,7 +180,6 @@ func TestPlaceholderProcessInstanceStopWithHistoryId(t *testing.T) {
 	defer cancel()
 
 	config := configuration.Config{
-		Debug:                             true,
 		MqttClientId:                      "",
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",

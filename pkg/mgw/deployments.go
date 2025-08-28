@@ -18,7 +18,6 @@ package mgw
 
 import (
 	"encoding/json"
-	"log"
 	"runtime/debug"
 
 	model2 "github.com/SENERGY-Platform/event-worker/pkg/model"
@@ -31,13 +30,11 @@ func (this *Mgw) handleDeploymentUpdate(message paho.Message) {
 	deployment := camundamodel.Deployment{}
 	err := json.Unmarshal(message.Payload(), &deployment)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	networkId, err := this.getNetworkId(message.Topic())
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	this.handler.LogNetworkInteraction(networkId)
 	this.handler.UpdateDeployment(networkId, deployment)
@@ -47,13 +44,11 @@ func (this *Mgw) handleDeploymentMetadata(message paho.Message) {
 	metadata := model.Metadata{}
 	err := json.Unmarshal(message.Payload(), &metadata)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	networkId, err := this.getNetworkId(message.Topic())
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	this.handler.LogNetworkInteraction(networkId)
 	this.handler.UpdateDeploymentMetadata(networkId, metadata)
@@ -62,8 +57,7 @@ func (this *Mgw) handleDeploymentMetadata(message paho.Message) {
 func (this *Mgw) handleDeploymentDelete(message paho.Message) {
 	networkId, err := this.getNetworkId(message.Topic())
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	this.handler.LogNetworkInteraction(networkId)
 	this.handler.DeleteDeployment(networkId, string(message.Payload()))
@@ -73,13 +67,11 @@ func (this *Mgw) handleDeploymentKnown(message paho.Message) {
 	knownIds := []string{}
 	err := json.Unmarshal(message.Payload(), &knownIds)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	networkId, err := this.getNetworkId(message.Topic())
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 	this.handler.LogNetworkInteraction(networkId)
 	this.handler.DeleteUnknownDeployments(networkId, knownIds)

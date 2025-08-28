@@ -18,13 +18,14 @@ package mongo
 
 import (
 	"context"
+	"reflect"
+	"sync"
+	"testing"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/tests/docker"
-	"reflect"
-	"sync"
-	"testing"
 )
 
 func TestDeployment(t *testing.T) {
@@ -41,7 +42,6 @@ func TestDeployment(t *testing.T) {
 	}
 
 	config := configuration.Config{
-		Debug:                             true,
 		MongoUrl:                          "mongodb://localhost:" + mongoPort,
 		MongoTable:                        "processes",
 		MongoProcessDefinitionCollection:  "process_definition",
@@ -201,7 +201,6 @@ func TestDeploymentSearch(t *testing.T) {
 	}
 
 	config := configuration.Config{
-		Debug:                             true,
 		MongoUrl:                          "mongodb://localhost:" + mongoPort,
 		MongoTable:                        "processes",
 		MongoProcessDefinitionCollection:  "process_definition",

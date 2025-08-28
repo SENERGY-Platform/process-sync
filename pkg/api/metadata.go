@@ -21,7 +21,6 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
-	"log"
 	"net/http"
 )
 
@@ -79,7 +78,7 @@ func (this *MetadataEndpoints) ListMetadata(config configuration.Config, ctrl *c
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(metadata)
 		if err != nil {
-			log.Println("ERROR: unable to encode response", err)
+			config.GetLogger().Error("unable to encode response", "error", err)
 		}
 		return
 	})

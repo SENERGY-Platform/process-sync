@@ -17,11 +17,11 @@
 package controller
 
 import (
+	"runtime/debug"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
-	"log"
-	"runtime/debug"
 )
 
 func (this *Controller) UpdateIncident(networkId string, incident camundamodel.Incident) {
@@ -46,16 +46,14 @@ func (this *Controller) UpdateIncident(networkId string, incident camundamodel.I
 func (this *Controller) DeleteIncident(networkId string, incidentId string) {
 	err := this.db.RemoveIncident(networkId, incidentId)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 }
 
 func (this *Controller) DeleteUnknownIncidents(networkId string, knownIds []string) {
 	err := this.db.RemoveUnknownIncidents(networkId, knownIds)
 	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
 }
 

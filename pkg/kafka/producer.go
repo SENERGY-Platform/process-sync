@@ -18,11 +18,14 @@ package kafka
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/process-deployment/lib/interfaces"
-	"github.com/segmentio/kafka-go"
+	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"time"
+
+	"github.com/SENERGY-Platform/process-deployment/lib/interfaces"
+	"github.com/segmentio/kafka-go"
 )
 
 type Producer struct {
@@ -30,30 +33,32 @@ type Producer struct {
 	ctx    context.Context
 }
 
-func NewProducer(ctx context.Context, kafkaUrl string, topic string, debug bool, topicInit bool) (interfaces.Producer, error) {
+type DebugLogPrinter struct {
+	log *slog.Logger
+}
+
+func (this *DebugLogPrinter) Printf(s string, i ...interface{}) {
+	this.log.Debug(fmt.Sprintf(s, i...))
+}
+
+func NewProducer(ctx context.Context, kafkaUrl string, topic string, logger *slog.Logger, topicInit bool) (interfaces.Producer, error) {
 	result := &Producer{ctx: ctx}
 	broker, err := GetBroker(kafkaUrl)
 	if err != nil {
-		log.Println("ERROR: unable to get broker list", err)
+		logger.Error("unable to get broker list", "error", err)
 		return nil, err
 	}
 	if topicInit {
 		err = InitTopic(kafkaUrl, topic)
 		if err != nil {
-			log.Println("ERROR: unable to create topic", err)
+			logger.Error("unable to create topic", "error", err)
 			return nil, err
 		}
 	}
-
-	var logger kafka.Logger
-	if debug {
-		logger = log.New(os.Stdout, "KAFKA", 0)
-	}
-
 	result.writer = &kafka.Writer{
 		Addr:        kafka.TCP(broker...),
 		Topic:       topic,
-		Logger:      logger,
+		Logger:      &DebugLogPrinter{log: logger},
 		Async:       false,
 		BatchSize:   1,
 		Balancer:    &kafka.Hash{},

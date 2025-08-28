@@ -21,17 +21,18 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
-	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
-	"github.com/SENERGY-Platform/process-sync/pkg/model"
-	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
-	"github.com/SENERGY-Platform/process-sync/pkg/tests/server"
 	"net/http"
 	"net/url"
 	"reflect"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
+	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/model"
+	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
+	"github.com/SENERGY-Platform/process-sync/pkg/tests/server"
 )
 
 func TestStartWithParameter(t *testing.T) {
@@ -42,7 +43,6 @@ func TestStartWithParameter(t *testing.T) {
 	defer cancel()
 
 	config := configuration.Config{
-		Debug:                             true,
 		MqttClientId:                      "",
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",

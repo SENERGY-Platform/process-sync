@@ -20,11 +20,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
-	"github.com/segmentio/kafka-go"
 	"io"
 	"log"
 	"time"
+
+	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/segmentio/kafka-go"
 )
 
 var FetchError = errors.New("unable to fetch from kafka")
@@ -34,13 +35,13 @@ var CommitError = errors.New("unable to commit to kafka")
 func NewConsumer(ctx context.Context, config configuration.Config, topic string, listener func(delivery []byte) error, errorhandler func(err error) (fatal bool)) (err error) {
 	broker, err := GetBroker(config.KafkaUrl)
 	if err != nil {
-		log.Println("ERROR: unable to get broker list", err)
+		config.GetLogger().Error("unable to get broker list", "error", err)
 		return err
 	}
 	if config.InitTopics {
 		err = InitTopic(config.KafkaUrl, topic)
 		if err != nil {
-			log.Println("ERROR: unable to create topic", err)
+			config.GetLogger().Error("unable to create topic", "error", err)
 			return err
 		}
 	}
@@ -55,14 +56,14 @@ func NewConsumer(ctx context.Context, config configuration.Config, topic string,
 	})
 	go func() {
 		defer r.Close()
-		defer log.Println("close consumer for topic ", topic)
+		defer func() { config.GetLogger().Info("close consumer", "topic", topic) }()
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			default:
 				m, err := r.FetchMessage(ctx)
-				if err == io.EOF || err == context.Canceled {
+				if errors.Is(err, io.EOF) || errors.Is(err, context.Canceled) {
 					return
 				}
 				if err != nil {

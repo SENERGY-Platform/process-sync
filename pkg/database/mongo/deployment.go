@@ -18,6 +18,9 @@ package mongo
 
 import (
 	"errors"
+	"regexp"
+	"strings"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
@@ -25,9 +28,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
-	"regexp"
-	"strings"
 )
 
 var deploymentIdKey string
@@ -215,9 +215,7 @@ func (this *Mongo) ListDeployments(networkIds []string, limit int64, offset int6
 }
 
 func (this *Mongo) SearchDeployments(networkIds []string, search string, limit int64, offset int64, sort string) (result []model.Deployment, err error) {
-	if this.config.Debug {
-		log.Println("DEBUG: search for deployment", search)
-	}
+	this.config.GetLogger().Debug("search for deployment", "search", search)
 	opt := options.Find()
 	opt.SetLimit(limit)
 	opt.SetSkip(offset)

@@ -20,28 +20,27 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
+
 	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/process-sync/pkg/kafka"
-	"log"
 )
 
 func (this *Controller) initDeviceGroupWatcher(ctx context.Context) (err error) {
 	if this.config.KafkaUrl == "" || this.config.KafkaUrl == "-" {
-		log.Println("skip device-group handler: missing kafka url config")
+		this.config.GetLogger().Info("skip device-group handler: missing kafka url config")
 		return nil
 	}
 	if this.config.AuthEndpoint == "" || this.config.AuthEndpoint == "-" {
-		log.Println("skip device-group handler: missing auth url config")
+		this.config.GetLogger().Info("skip device-group handler: missing auth url config")
 		return nil
 	}
 	return kafka.NewConsumer(ctx, this.config, this.config.DeviceGroupTopic, func(msg []byte) error {
-		if this.config.Debug {
-			log.Println("DEBUG: receive device-group command:", string(msg))
-		}
+		this.config.GetLogger().Debug("receive device-group command", "msg", string(msg))
 		cmd := DeviceGroupCommand{}
 		err := json.Unmarshal(msg, &cmd)
 		if err != nil {
-			log.Println("WARNING: unable to interpret device group command:", err)
+			this.config.GetLogger().Warn("unable to interpret device group command", "error", err)
 			return nil //ignore uninterpretable commands
 		}
 		if cmd.Command != "PUT" {
@@ -54,14 +53,17 @@ func (this *Controller) initDeviceGroupWatcher(ctx context.Context) (err error) 
 		return this.UpdateDeviceGroup(token, cmd.Id)
 	}, func(err error) (fatal bool) {
 		if errors.Is(err, kafka.FetchError) {
+			this.config.GetLogger().Error("kafka fetch error", "error", err)
 			log.Fatal(err)
 			return true
 		}
 		if errors.Is(err, kafka.CommitError) {
+			this.config.GetLogger().Error("kafka commit error", "error", err)
 			log.Fatal(err)
 			return true
 		}
 		if errors.Is(err, kafka.HandlerError) {
+			this.config.GetLogger().Error("kafka handler error", "error", err)
 			log.Fatal(err)
 			return true
 		}
