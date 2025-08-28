@@ -18,7 +18,6 @@ package warden
 
 import (
 	"iter"
-	"time"
 
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 )

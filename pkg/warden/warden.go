@@ -31,6 +31,8 @@ func (this WardenInfo) IsOlderThen(duration time.Duration) bool {
 	return time.Unix(this.CreationTime, 0).Add(duration).After(time.Now())
 }
 
-func New(config Config) *Warden[WardenInfo, model.Deployment, model.ProcessInstance, model.HistoricProcessInstance, model.Incident] {
+type Warden = *GenericWarden[WardenInfo, model.Deployment, model.ProcessInstance, model.HistoricProcessInstance, model.Incident]
+
+func New(config Config) Warden {
 	return NewGeneric(config, &Processes{}, &Db{})
 }
