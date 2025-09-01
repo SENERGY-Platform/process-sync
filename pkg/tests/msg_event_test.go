@@ -44,7 +44,6 @@ func TestMsgEvents(t *testing.T) {
 	defer cancel()
 
 	config := configuration.Config{
-		MqttClientId:                      "",
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
 		MongoTable:                        "processes",
@@ -65,10 +64,10 @@ func TestMsgEvents(t *testing.T) {
 	}
 
 	options := paho.NewClientOptions().
-		SetPassword(config.MqttPw).
-		SetUsername(config.MqttUser).
+		SetPassword(config.Mqtt[0].Pw).
+		SetUsername(config.Mqtt[0].User).
 		SetAutoReconnect(true).
-		AddBroker(config.MqttBroker)
+		AddBroker(config.Mqtt[0].Broker)
 
 	mqtt := paho.NewClient(options)
 	if token := mqtt.Connect(); token.Wait() && token.Error() != nil {

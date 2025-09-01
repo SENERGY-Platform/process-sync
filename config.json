@@ -1,10 +1,14 @@
 {
     "api_port": "8080",
     "mongo_url": "",
-    "mqtt_broker": "",
-    "mqtt_user": "",
-    "mqtt_pw": "",
-    "mqtt_client_id": "",
+    "mqtt": [
+        {
+            "broker": "tcp://localhost:1883",
+            "client_id": "clientId",
+            "user": "user",
+            "pw": "password"
+        }
+    ],
     "mqtt_group_id": "",
     "mqtt_clean_session": true,
     "mongo_table": "sync",

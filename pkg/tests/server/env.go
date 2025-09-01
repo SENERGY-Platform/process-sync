@@ -18,6 +18,8 @@ package server
 
 import (
 	"context"
+	"sync"
+
 	"github.com/SENERGY-Platform/event-deployment/lib/interfaces"
 	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/process-deployment/lib/auth"
@@ -27,7 +29,6 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/database/mongo"
 	"github.com/SENERGY-Platform/process-sync/pkg/tests/docker"
 	"github.com/SENERGY-Platform/process-sync/pkg/tests/mocks"
-	"sync"
 )
 
 func Env(ctx context.Context, wg *sync.WaitGroup, initConf configuration.Config, networkId string) (config configuration.Config, err error) {
@@ -52,13 +53,15 @@ func Env(ctx context.Context, wg *sync.WaitGroup, initConf configuration.Config,
 	if err != nil {
 		return config, err
 	}
-	config.MqttBroker = "tcp://" + mqttip + ":1883"
+	config.Mqtt = []configuration.MqttConfig{{
+		Broker: "tcp://" + mqttip + ":1883",
+	}}
 
 	mongoPort, mongoIp, err := docker.Mongo(ctx, wg)
 	config.MongoUrl = "mongodb://localhost:" + mongoPort
 	clientMetadataStorageUrl := "mongodb://" + mongoIp + ":27017/metadata"
 
-	err = docker.MgwProcessSyncClient(ctx, wg, camundaDb, camundaUrl, config.MqttBroker, "mgw-test-sync-client", networkId, clientMetadataStorageUrl)
+	err = docker.MgwProcessSyncClient(ctx, wg, camundaDb, camundaUrl, config.Mqtt[0].Broker, "mgw-test-sync-client", networkId, clientMetadataStorageUrl)
 	if err != nil {
 		return config, err
 	}
@@ -95,7 +98,9 @@ func EnvForEventsCheck(ctx context.Context, wg *sync.WaitGroup, initConf configu
 	if err != nil {
 		return conf, err
 	}
-	conf.MqttBroker = "tcp://" + mqttip + ":1883"
+	conf.Mqtt = []configuration.MqttConfig{{
+		Broker: "tcp://" + mqttip + ":1883",
+	}}
 
 	mongoPort, _, err := docker.Mongo(ctx, wg)
 	conf.MongoUrl = "mongodb://localhost:" + mongoPort

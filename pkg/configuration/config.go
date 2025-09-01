@@ -46,12 +46,6 @@ type Config struct {
 
 	MongoUrl string `json:"mongo_url"`
 
-	MqttPw                            string `json:"mqtt_pw" config:"secret"`
-	MqttUser                          string `json:"mqtt_user" config:"secret"`
-	MqttClientId                      string `json:"mqtt_client_id" config:"secret"`
-	MqttBroker                        string `json:"mqtt_broker"`
-	MqttCleanSession                  bool   `json:"mqtt_clean_session"`
-	MqttGroupId                       string `json:"mqtt_group_id"` //optional
 	ApiPort                           string `json:"api_port"`
 	MongoTable                        string `json:"mongo_table"`
 	MongoProcessDefinitionCollection  string `json:"mongo_process_definition_collection"`
@@ -74,8 +68,19 @@ type Config struct {
 
 	InitTopics bool `json:"init_topics"`
 
+	Mqtt             []MqttConfig `json:"mqtt"`
+	MqttGroupId      string       `json:"mqtt_group_id"` //optional
+	MqttCleanSession bool         `json:"mqtt_clean_session"`
+
 	LogLevel string       `json:"log_level"`
 	logger   *slog.Logger `json:"-"`
+}
+
+type MqttConfig struct {
+	Broker   string `json:"broker"`
+	ClientId string `json:"client_id" config:"secret"`
+	User     string `json:"user" config:"secret"`
+	Pw       string `json:"pw" config:"secret"`
 }
 
 // loads config from json in location and used environment variables (e.g ZookeeperUrl --> ZOOKEEPER_URL)
@@ -89,7 +94,66 @@ func Load(location string) (config Config, err error) {
 		return config, err
 	}
 	handleEnvironmentVars(&config)
+	handleMqttConfig(&config)
 	return config, nil
+}
+
+func handleMqttConfig(config *Config) {
+	m := map[string]MqttConfig{}
+
+	for _, env := range os.Environ() {
+		parts := strings.Split(env, "=")
+		if len(parts) == 2 {
+			switch {
+			case parts[0] == "MQTT_BROKER":
+				key := ""
+				conf := m[key]
+				conf.Broker = parts[1]
+				m[key] = conf
+			case parts[0] == "MQTT_PW":
+				key := ""
+				conf := m[key]
+				conf.Pw = parts[1]
+				m[key] = conf
+			case parts[0] == "MQTT_USER":
+				key := ""
+				conf := m[key]
+				conf.User = parts[1]
+				m[key] = conf
+			case parts[0] == "MQTT_CLIENT_ID":
+				key := ""
+				conf := m[key]
+				conf.ClientId = parts[1]
+				m[key] = conf
+			case strings.HasPrefix(parts[0], "MQTT_BROKER_"):
+				key := strings.ToLower(strings.TrimPrefix(parts[0], "MQTT_BROKER_"))
+				conf := m[key]
+				conf.Broker = parts[1]
+				m[key] = conf
+			case strings.HasPrefix(parts[0], "MQTT_PW_"):
+				key := strings.ToLower(strings.TrimPrefix(parts[0], "MQTT_PW_"))
+				conf := m[key]
+				conf.Pw = parts[1]
+				m[key] = conf
+			case strings.HasPrefix(parts[0], "MQTT_USER_"):
+				key := strings.ToLower(strings.TrimPrefix(parts[0], "MQTT_USER_"))
+				conf := m[key]
+				conf.User = parts[1]
+				m[key] = conf
+			case strings.HasPrefix(parts[0], "MQTT_CLIENT_ID_"):
+				key := strings.ToLower(strings.TrimPrefix(parts[0], "MQTT_CLIENT_ID_"))
+				conf := m[key]
+				conf.ClientId = parts[1]
+				m[key] = conf
+			}
+		}
+	}
+	if len(m) > 0 {
+		config.Mqtt = []MqttConfig{}
+		for _, conf := range m {
+			config.Mqtt = append(config.Mqtt, conf)
+		}
+	}
 }
 
 var camel = regexp.MustCompile("(^[^A-Z]*|[A-Z]*)([A-Z][^A-Z]+|$)")

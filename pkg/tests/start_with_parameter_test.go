@@ -43,7 +43,6 @@ func TestStartWithParameter(t *testing.T) {
 	defer cancel()
 
 	config := configuration.Config{
-		MqttClientId:                      "",
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
 		MongoTable:                        "processes",

@@ -43,7 +43,6 @@ func TestPlaceholderProcessInstanceDelete(t *testing.T) {
 	defer cancel()
 
 	config := configuration.Config{
-		MqttClientId:                      "",
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
 		MongoTable:                        "processes",
@@ -84,7 +83,9 @@ func TestPlaceholderProcessInstanceDelete(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	config.MqttBroker = "tcp://" + mqttip + ":1883"
+	config.Mqtt = []configuration.MqttConfig{{
+		Broker: "tcp://" + mqttip + ":1883",
+	}}
 
 	mongoPort, mongoIp, err := docker.Mongo(ctx, wg)
 	config.MongoUrl = "mongodb://localhost:" + mongoPort
@@ -92,7 +93,7 @@ func TestPlaceholderProcessInstanceDelete(t *testing.T) {
 
 	clientCtx, clientStop := context.WithCancel(ctx)
 
-	err = docker.MgwProcessSyncClient(clientCtx, wg, camundaDb, camundaUrl, config.MqttBroker, "mgw-test-sync-client", networkId, clientMetadataStorageUrl)
+	err = docker.MgwProcessSyncClient(clientCtx, wg, camundaDb, camundaUrl, config.Mqtt[0].Broker, "mgw-test-sync-client", networkId, clientMetadataStorageUrl)
 	if err != nil {
 		t.Error(err)
 		return
@@ -180,7 +181,6 @@ func TestPlaceholderProcessInstanceStopWithHistoryId(t *testing.T) {
 	defer cancel()
 
 	config := configuration.Config{
-		MqttClientId:                      "",
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
 		MongoTable:                        "processes",
@@ -221,7 +221,9 @@ func TestPlaceholderProcessInstanceStopWithHistoryId(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	config.MqttBroker = "tcp://" + mqttip + ":1883"
+	config.Mqtt = []configuration.MqttConfig{{
+		Broker: "tcp://" + mqttip + ":1883",
+	}}
 
 	mongoPort, mongoIp, err := docker.Mongo(ctx, wg)
 	config.MongoUrl = "mongodb://localhost:" + mongoPort
@@ -229,7 +231,7 @@ func TestPlaceholderProcessInstanceStopWithHistoryId(t *testing.T) {
 
 	clientCtx, clientStop := context.WithCancel(ctx)
 
-	err = docker.MgwProcessSyncClient(clientCtx, wg, camundaDb, camundaUrl, config.MqttBroker, "mgw-test-sync-client", networkId, clientMetadataStorageUrl)
+	err = docker.MgwProcessSyncClient(clientCtx, wg, camundaDb, camundaUrl, config.Mqtt[0].Broker, "mgw-test-sync-client", networkId, clientMetadataStorageUrl)
 	if err != nil {
 		t.Error(err)
 		return
