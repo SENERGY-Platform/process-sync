@@ -17,13 +17,15 @@
 package mongo
 
 import (
+	"errors"
+	"strings"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"strings"
 )
 
 var definitionIdKey string
@@ -183,14 +185,14 @@ func (this *Mongo) GetDefinitionByDeploymentId(networkId string, deploymentId st
 			definitionNetworkIdKey:  networkId,
 		})
 	err = result.Err()
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return processDefinition, database.ErrNotFound
 	}
 	if err != nil {
 		return
 	}
 	err = result.Decode(&processDefinition)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return processDefinition, database.ErrNotFound
 	}
 	return processDefinition, err

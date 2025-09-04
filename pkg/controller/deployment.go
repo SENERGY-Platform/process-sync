@@ -140,6 +140,7 @@ func (this *Controller) ApiReadDeploymentMetadata(networkId string, deploymentId
 	return
 }
 
+// TODO: add warden handling
 func (this *Controller) ApiDeleteDeployment(networkId string, deploymentId string) (err error, errCode int) {
 	defer func() {
 		errCode = this.SetErrCode(err)
@@ -180,7 +181,11 @@ func (this *Controller) ApiSearchDeployments(networkIds []string, search string,
 	return
 }
 
+// TODO: add warden handling
 func (this *Controller) ApiCreateDeployment(token string, networkId string, deployment deploymentmodel.Deployment) (err error, errCode int) {
+	if deployment.Id == "" {
+		deployment.Id = uuid.NewString()
+	}
 	err = deployment.Validate(deploymentmodel.ValidatePublish, map[string]bool{"service": true}, deploymentmodel.DeploymentXmlValidator)
 	if err != nil {
 		return err, http.StatusBadRequest
@@ -194,16 +199,22 @@ func (this *Controller) ApiCreateDeployment(token string, networkId string, depl
 		return err, errCode
 	}
 
-	err = this.mgw.SendDeploymentCommand(networkId, withEvents)
+	err = this.DeployProcessWithoutWardenHandling(networkId, withEvents)
 	if err != nil {
-		return
+		return err, this.SetErrCode(err)
+	}
+	return nil, http.StatusOK
+}
+
+func (this *Controller) DeployProcessWithoutWardenHandling(networkId string, deployment model.DeploymentWithEventDesc) (err error) {
+	err = this.mgw.SendDeploymentCommand(networkId, deployment)
+	if err != nil {
+		return err
 	}
 	now := configuration.TimeNow()
-	//TODO: can we store the real deployment instead of the placeholder?
-	//TODO: should we store placeholder metadata?
-	err = this.db.SaveDeployment(model.Deployment{
+	return this.db.SaveDeployment(model.Deployment{
 		Deployment: camundamodel.Deployment{
-			Id:             "placeholder-" + configuration.Id(),
+			Id:             deployment.Id,
 			Name:           deployment.Name,
 			Source:         "senergy",
 			DeploymentTime: now,
@@ -216,29 +227,31 @@ func (this *Controller) ApiCreateDeployment(token string, networkId string, depl
 			SyncDate:        now,
 		},
 	})
-	return
 }
 
-func (this *Controller) ApiStartDeployment(networkId string, deploymentId string, businessKey string, parameter map[string]interface{}) (err error, errCode int) {
+func (this *Controller) StartDeploymentWithoutWardenHandling(networkId string, deploymentId string, businessKey string, parameter map[string]interface{}) (err error, errCode int) {
 	defer func() {
 		errCode = this.SetErrCode(err)
 	}()
-	var current model.Deployment
-	current, err = this.db.ReadDeployment(networkId, deploymentId)
+	var deployment model.Deployment
+	deployment, err = this.db.ReadDeployment(networkId, deploymentId)
 	if err != nil {
 		debug.PrintStack()
 		return
 	}
-	//TODO: can we start unsynced deployments?
-	if current.IsPlaceholder {
-		err = IsPlaceholderProcessErr
-		return
-	}
-	if current.MarkedForDelete {
+	//we want to be able to start placeholder deployments
+	/*
+		if deployment.IsPlaceholder {
+			err = IsPlaceholderProcessErr
+			return
+		}
+	*/
+
+	if deployment.MarkedForDelete {
 		err = IsMarkedForDeleteErr
 		return
 	}
-	if current.MarkedAsMissing {
+	if deployment.MarkedAsMissing {
 		err = IsMarkedAsMissingErr
 		return
 	}
@@ -246,12 +259,14 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 		businessKey = uuid.NewString()
 	}
 
-	//TODO: ? remove to enable start without synced deployment?
-	definition, err := this.db.GetDefinitionByDeploymentId(networkId, deploymentId)
-	if err != nil {
-		debug.PrintStack()
-		return
-	}
+	//we want to be able to start placeholder deployments
+	/*
+		definition, err := this.db.GetDefinitionByDeploymentId(networkId, deploymentId)
+		if err != nil {
+			debug.PrintStack()
+			return
+		}
+	*/
 
 	err = this.mgw.SendDeploymentStartCommand(networkId, deploymentId, businessKey, parameter)
 	if err != nil {
@@ -263,12 +278,12 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 	instanceId := "placeholder-" + configuration.Id()
 	err = this.db.SaveProcessInstance(model.ProcessInstance{
 		ProcessInstance: camundamodel.ProcessInstance{
-			Id:           instanceId,
-			DefinitionId: definition.Id, //TODO: ? replace with placeholder to enable start without synced deployment?
-			Ended:        false,
-			Suspended:    false,
-			TenantId:     "senergy",
-			BusinessKey:  businessKey,
+			Id: instanceId,
+			//DefinitionId: definition.Id, //we want to be able to start placeholder deployments
+			Ended:       false,
+			Suspended:   false,
+			TenantId:    "senergy",
+			BusinessKey: businessKey,
 		},
 		SyncInfo: model.SyncInfo{
 			NetworkId:       networkId,
@@ -282,18 +297,19 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 	}
 	err = this.db.SaveHistoricProcessInstance(model.HistoricProcessInstance{
 		HistoricProcessInstance: camundamodel.HistoricProcessInstance{
-			Id:                       instanceId,
-			SuperProcessInstanceId:   instanceId,
-			ProcessDefinitionName:    definition.Name,
-			ProcessDefinitionKey:     definition.Key,
-			ProcessDefinitionVersion: float64(definition.Version),
-			ProcessDefinitionId:      definition.Id, //TODO: ? replace with placeholder to enable start without synced deployment?
-			BusinessKey:              businessKey,
-			StartTime:                now.Format(camundamodel.CamundaTimeFormat),
-			DurationInMillis:         0,
-			StartUserId:              "senergy",
-			TenantId:                 "senergy",
-			State:                    "PLACEHOLDER",
+			Id:                     instanceId,
+			SuperProcessInstanceId: instanceId,
+			ProcessDefinitionName:  deployment.Name,
+			//we want to be able to start placeholder deployments --> no real definition values in placeholder
+			//ProcessDefinitionKey:     definition.Key,
+			//ProcessDefinitionVersion: float64(definition.Version),
+			//ProcessDefinitionId: 		definition.Id,
+			BusinessKey:      businessKey,
+			StartTime:        now.Format(camundamodel.CamundaTimeFormat),
+			DurationInMillis: 0,
+			StartUserId:      "senergy",
+			TenantId:         "senergy",
+			State:            "PLACEHOLDER",
 		},
 		SyncInfo: model.SyncInfo{
 			NetworkId:       networkId,
@@ -307,6 +323,11 @@ func (this *Controller) ApiStartDeployment(networkId string, deploymentId string
 		return
 	}
 	return
+}
+
+func (this *Controller) ApiStartDeployment(networkId string, deploymentId string, businessKey string, parameter map[string]interface{}) (err error, errCode int) {
+	//TODO: add warden handling
+	return this.StartDeploymentWithoutWardenHandling(networkId, deploymentId, businessKey, parameter)
 }
 
 func (this *Controller) ExtendDeployments(deployments []model.Deployment) (result []model.ExtendedDeployment) {

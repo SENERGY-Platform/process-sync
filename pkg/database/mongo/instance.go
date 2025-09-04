@@ -18,18 +18,20 @@ package mongo
 
 import (
 	"errors"
+	"strings"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"strings"
 )
 
 var instanceIdKey string
 var instanceNetworkIdKey string
 var instancePlaceholderKey string
+var instanceBusinessKeyKey string
 
 func init() {
 	prepareCollection(func(config configuration.Config) string {
@@ -40,6 +42,10 @@ func init() {
 			{
 				FieldName: "ProcessInstance.Id",
 				Key:       &instanceIdKey,
+			},
+			{
+				FieldName: "ProcessInstance.BusinessKey",
+				Key:       &instanceBusinessKeyKey,
 			},
 			{
 				FieldName: "SyncInfo.NetworkId",
@@ -143,6 +149,51 @@ func (this *Mongo) ReadProcessInstance(networkId string, processInstanceId strin
 		return processInstance, database.ErrNotFound
 	}
 	return processInstance, err
+}
+
+func (this *Mongo) FindProcessInstances(query model.InstanceQuery) (result []model.ProcessInstance, err error) {
+	opt := options.Find()
+	opt.SetLimit(query.Limit)
+	opt.SetSkip(query.Offset)
+
+	if query.Sort == "" {
+		query.Sort = "id"
+	}
+	parts := strings.Split(query.Sort, ".")
+	sortby := instanceIdKey
+	switch parts[0] {
+	case "id":
+		sortby = instanceIdKey
+	}
+	direction := int32(1)
+	if len(parts) > 1 && parts[1] == "desc" {
+		direction = int32(-1)
+	}
+	opt.SetSort(bson.D{{sortby, direction}})
+
+	filter := bson.M{}
+	if query.NetworkIds != nil {
+		filter[instanceNetworkIdKey] = bson.M{"$in": query.NetworkIds}
+	}
+	if query.BusinessKeys != nil {
+		filter[instanceBusinessKeyKey] = bson.M{"$in": query.BusinessKeys}
+	}
+
+	ctx, _ := this.getTimeoutContext()
+	cursor, err := this.processInstanceCollection().Find(ctx, filter, opt)
+	if err != nil {
+		return nil, err
+	}
+	for cursor.Next(ctx) {
+		element := model.ProcessInstance{}
+		err = cursor.Decode(&element)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, element)
+	}
+	err = cursor.Err()
+	return
 }
 
 func (this *Mongo) ListProcessInstances(networkIds []string, limit int64, offset int64, sort string) (result []model.ProcessInstance, err error) {

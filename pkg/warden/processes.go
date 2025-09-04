@@ -17,85 +17,174 @@
 package warden
 
 import (
+	"errors"
 	"iter"
+	"slices"
+	"strings"
 	"time"
 
+	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/controller"
+	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
+	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
+	"github.com/SENERGY-Platform/service-commons/pkg/cache"
 )
 
-type Processes struct{}
+type Processes struct {
+	db        database.Database
+	batchsize int64
+	config    configuration.Config
+	cache     *cache.Cache
+	ctrl      *controller.Controller
+}
 
-func (this *Processes) AllInstances() (iter.Seq[model.ProcessInstance], error) {
-	//TODO implement me
-	panic("implement me")
+func (this *Processes) AllInstances() iter.Seq2[model.ProcessInstance, error] {
+	var offset int64 = 0
+	return func(yield func(model.ProcessInstance, error) bool) {
+		finished := false
+		for !finished {
+			batch, err := this.db.FindProcessInstances(model.InstanceQuery{
+				Limit:  this.batchsize,
+				Offset: offset,
+			})
+			if err != nil {
+				yield(model.ProcessInstance{}, err)
+				return
+			}
+			for _, instance := range batch {
+				if !yield(instance, nil) {
+					return
+				}
+			}
+			offset += this.batchsize
+			if len(batch) < int(this.batchsize) {
+				finished = true
+			}
+		}
+	}
 }
 
 func (this *Processes) GetInstances(info WardenInfo) ([]model.ProcessInstance, error) {
-	//TODO implement me
-	panic("implement me")
+	return this.db.FindProcessInstances(model.InstanceQuery{
+		NetworkIds:   []string{info.NetworkId},
+		BusinessKeys: []string{info.BusinessKey},
+	})
+}
+
+func (this *Processes) getInstanceDate(instance model.ProcessInstance) (time.Time, error) {
+	return cache.Use(this.cache, "process-instance-age."+instance.Id, func() (time.Time, error) {
+		history, err := this.db.ReadHistoricProcessInstance(instance.NetworkId, instance.Id)
+		if err != nil {
+			this.config.GetLogger().Error("unable to read historic process instance to determine instance date --> use instance.SyncDate", "error", err, "instanceId", instance.Id, "networkId", instance.NetworkId)
+			return instance.SyncDate, nil
+		}
+		result, err := time.Parse(history.StartTime, camundamodel.CamundaTimeFormat)
+		if err != nil {
+			this.config.GetLogger().Error("unable to parse historic process instance start time to determine instance date --> use instance.SyncDate", "error", err, "instanceId", instance.Id, "networkId", instance.NetworkId)
+			return instance.SyncDate, nil
+		}
+		return result, nil
+	}, cache.NoValidation, time.Minute)
+}
+
+func GetYoungestElement[T any](list []T, elementTimeProvider func(T) (time.Time, error)) (result T, err error) {
+	if len(list) == 0 {
+		return result, errors.New("expect at least one element in GetYoungestElement()")
+	}
+	var sortErr error
+	slices.SortFunc(list, func(a, b T) int {
+		aTime, err := elementTimeProvider(a)
+		sortErr = errors.Join(sortErr, err)
+		bTime, err := elementTimeProvider(b)
+		sortErr = errors.Join(sortErr, err)
+		return int(aTime.Sub(bTime))
+	})
+	return list[0], sortErr
 }
 
 func (this *Processes) GetYoungestProcessInstance(instances []model.ProcessInstance) (model.ProcessInstance, error) {
-	//TODO implement me
-	panic("implement me")
+	return GetYoungestElement(instances, this.getInstanceDate)
 }
 
-func (this *Processes) InstanceIsOlderThen(instance model.ProcessInstance, duration time.Duration) bool {
-	//TODO implement me
-	panic("implement me")
+func (this *Processes) InstanceIsOlderThen(instance model.ProcessInstance, duration time.Duration) (bool, error) {
+	instanceDate, err := this.getInstanceDate(instance)
+	if err != nil {
+		return false, err
+	}
+	return instanceDate.Add(duration).Before(time.Now()), nil
 }
 
 func (this *Processes) InstanceIsCreatedWithWardenHandlingIntended(instance model.ProcessInstance) bool {
-	//TODO implement me
-	panic("implement me")
+	return strings.HasPrefix(instance.BusinessKey, "wardened:") //TODO: add prefix to business-key of instances when warden is used
 }
 
 func (this *Processes) GetInstanceHistories(info WardenInfo) ([]model.HistoricProcessInstance, error) {
-	//TODO implement me
-	panic("implement me")
+	return this.db.FindHistoricProcessInstances(model.InstanceQuery{
+		NetworkIds:   []string{info.NetworkId},
+		BusinessKeys: []string{info.BusinessKey},
+	})
+}
+
+func (this *Processes) getHistoryDate(history model.HistoricProcessInstance) (time.Time, error) {
+	result, err := time.Parse(history.StartTime, camundamodel.CamundaTimeFormat)
+	if err != nil {
+		this.config.GetLogger().Error("unable to parse historic process instance start time to determine history date --> use history.SyncDate", "error", err, "historyId", history.Id, "networkId", history.NetworkId)
+		return history.SyncDate, nil
+	}
+	return result, nil
 }
 
 func (this *Processes) GetYoungestHistory(histories []model.HistoricProcessInstance) (model.HistoricProcessInstance, error) {
-	//TODO implement me
-	panic("implement me")
+	return GetYoungestElement(histories, this.getHistoryDate)
 }
 
-func (this *Processes) HistoryIsOlderThen(history model.HistoricProcessInstance, duration time.Duration) bool {
-	//TODO implement me
-	panic("implement me")
+func (this *Processes) HistoryIsOlderThen(history model.HistoricProcessInstance, duration time.Duration) (bool, error) {
+	date, err := this.getHistoryDate(history)
+	if err != nil {
+		return false, err
+	}
+	return date.Add(duration).Before(time.Now()), nil
 }
 
 func (this *Processes) GetIncidents(history model.HistoricProcessInstance) ([]model.Incident, error) {
-	//TODO implement me
-	panic("implement me")
+	return this.db.FindIncidents(model.IncidentQuery{
+		NetworkIds:         []string{history.NetworkId},
+		ProcessInstanceIds: []string{history.Id},
+	})
 }
 
 func (this *Processes) GetYoungestIncident(incidents []model.Incident) (model.Incident, error) {
-	//TODO implement me
-	panic("implement me")
+	return GetYoungestElement(incidents, func(incident model.Incident) (time.Time, error) {
+		return incident.Time, nil
+	})
 }
 
 func (this *Processes) IncidentIsOlderThen(incident model.Incident, duration time.Duration) bool {
-	//TODO implement me
-	panic("implement me")
+	return incident.Time.Add(duration).Before(time.Now())
 }
 
-func (this *Processes) Start(info WardenInfo) (string, error) {
-	//TODO implement me
-	panic("implement me")
+func (this *Processes) Start(info WardenInfo) (err error) {
+	err, _ = this.ctrl.StartDeploymentWithoutWardenHandling(info.NetworkId, info.ProcessDeploymentId, info.BusinessKey, info.StartParameters)
+	return
 }
 
-func (this *Processes) Stop(instance model.ProcessInstance) error {
-	//TODO implement me
-	panic("implement me")
+func (this *Processes) Stop(instance model.ProcessInstance) (err error) {
+	err, _ = this.ctrl.StopProcessInstanceWithoutWardenHandling(instance.NetworkId, instance.Id)
+	return
 }
 
 func (this *Processes) DeploymentExists(info WardenInfo) (exist bool, err error) {
-	//TODO implement me
-	panic("implement me")
+	depl, err := this.db.ReadDeployment(info.NetworkId, info.ProcessDeploymentId)
+	if errors.Is(err, database.ErrNotFound) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return !depl.MarkedForDelete && !depl.MarkedAsMissing, nil
 }
 
-func (this *Processes) Deploy(deployment model.Deployment) error {
-	//TODO implement me
-	panic("implement me")
+func (this *Processes) Deploy(info WardenInfo, deployment model.DeploymentWithEventDesc) error {
+	return this.ctrl.DeployProcessWithoutWardenHandling(info.NetworkId, deployment)
 }

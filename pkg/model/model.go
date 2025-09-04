@@ -63,6 +63,14 @@ type Incident struct {
 	SyncInfo
 }
 
+type IncidentQuery struct {
+	NetworkIds         []string
+	ProcessInstanceIds []string
+	Sort               string
+	Limit              int64
+	Offset             int64
+}
+
 type ProcessDefinition struct {
 	camundamodel.ProcessDefinition
 	SyncInfo
@@ -71,6 +79,14 @@ type ProcessDefinition struct {
 type ProcessInstance struct {
 	camundamodel.ProcessInstance
 	SyncInfo
+}
+
+type InstanceQuery struct {
+	NetworkIds   []string
+	BusinessKeys []string
+	Sort         string
+	Limit        int64
+	Offset       int64
 }
 
 type StartMessage struct {

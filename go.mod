@@ -7,11 +7,13 @@ require (
 	github.com/SENERGY-Platform/developer-notifications v0.0.4
 	github.com/SENERGY-Platform/device-repository v0.2.27
 	github.com/SENERGY-Platform/event-deployment v0.0.37
-	github.com/SENERGY-Platform/event-worker v1.0.36
+	github.com/SENERGY-Platform/event-worker v1.0.37
+	github.com/SENERGY-Platform/go-service-base/struct-logger v0.4.1
 	github.com/SENERGY-Platform/models/go v0.0.0-20250417082304-c41a4b3157af
 	github.com/SENERGY-Platform/permissions-v2 v0.0.38
 	github.com/SENERGY-Platform/process-deployment v0.0.20
-	github.com/SENERGY-Platform/service-commons v0.0.0-20250707072258-a5b49118c926
+	github.com/SENERGY-Platform/process-incident-api v0.0.8
+	github.com/SENERGY-Platform/service-commons v0.0.0-20250903071414-1b34f1965afa
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.6.0
@@ -28,9 +30,8 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/SENERGY-Platform/api-docs-provider/lib/models v0.0.3 // indirect
-	github.com/SENERGY-Platform/camunda-engine-wrapper v1.0.5 // indirect
+	github.com/SENERGY-Platform/camunda-engine-wrapper v1.0.6 // indirect
 	github.com/SENERGY-Platform/go-base-http-client v0.1.0 // indirect
-	github.com/SENERGY-Platform/go-service-base/struct-logger v0.4.1 // indirect
 	github.com/beevik/etree v1.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect

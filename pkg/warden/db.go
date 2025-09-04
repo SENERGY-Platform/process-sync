@@ -39,7 +39,7 @@ func (this *Db) GetWardenInfoForDeploymentId(deploymentId string) ([]WardenInfo,
 	panic("implement me")
 }
 
-func (this *Db) GetDeployment(info WardenInfo) (result model.Deployment, exist bool, err error) {
+func (this *Db) GetDeployment(info WardenInfo) (result model.DeploymentWithEventDesc, exist bool, err error) {
 	//TODO implement me
 	panic("implement me")
 }

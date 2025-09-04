@@ -16,11 +16,11 @@ require (
 	github.com/SENERGY-Platform/developer-notifications v0.0.4 // indirect
 	github.com/SENERGY-Platform/device-repository v0.2.27 // indirect
 	github.com/SENERGY-Platform/event-deployment v0.0.37 // indirect
-	github.com/SENERGY-Platform/event-worker v1.0.36 // indirect
+	github.com/SENERGY-Platform/event-worker v1.0.37 // indirect
 	github.com/SENERGY-Platform/models/go v0.0.0-20250417082304-c41a4b3157af // indirect
 	github.com/SENERGY-Platform/permissions-v2 v0.0.38 // indirect
 	github.com/SENERGY-Platform/process-deployment v0.0.20 // indirect
-	github.com/SENERGY-Platform/service-commons v0.0.0-20250707072258-a5b49118c926 // indirect
+	github.com/SENERGY-Platform/service-commons v0.0.0-20250903071414-1b34f1965afa // indirect
 	github.com/beevik/etree v1.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect

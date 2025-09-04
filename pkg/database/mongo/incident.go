@@ -17,13 +17,14 @@
 package mongo
 
 import (
+	"strings"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"strings"
 )
 
 var incidentIdKey string
@@ -220,6 +221,53 @@ func (this *Mongo) ListIncidents(networkIds []string, processInstanceId string, 
 
 	ctx, _ := this.getTimeoutContext()
 	cursor, err := this.incidentCollection().Find(ctx, query, opt)
+	if err != nil {
+		return nil, err
+	}
+	for cursor.Next(ctx) {
+		element := model.Incident{}
+		err = cursor.Decode(&element)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, element)
+	}
+	err = cursor.Err()
+	return
+}
+
+func (this *Mongo) FindIncidents(query model.IncidentQuery) (result []model.Incident, err error) {
+	opt := options.Find()
+	opt.SetLimit(query.Limit)
+	opt.SetSkip(query.Offset)
+
+	if query.Sort == "" {
+		query.Sort = "id"
+	}
+	parts := strings.Split(query.Sort, ".")
+	sortby := definitionIdKey
+	switch parts[0] {
+	case "id":
+		sortby = incidentIdKey
+	case "time":
+		sortby = incidentTimeKey
+	}
+	direction := int32(1)
+	if len(parts) > 1 && parts[1] == "desc" {
+		direction = int32(-1)
+	}
+	opt.SetSort(bson.D{{sortby, direction}})
+
+	filter := bson.M{}
+	if query.NetworkIds != nil {
+		filter[incidentNetworkIdKey] = bson.M{"$in": query.NetworkIds}
+	}
+	if query.ProcessInstanceIds != nil {
+		filter[incidentProcessInstanceIdKey] = bson.M{"$in": query.ProcessInstanceIds}
+	}
+
+	ctx, _ := this.getTimeoutContext()
+	cursor, err := this.incidentCollection().Find(ctx, filter, opt)
 	if err != nil {
 		return nil, err
 	}

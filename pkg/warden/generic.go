@@ -23,6 +23,8 @@ import (
 	"iter"
 	"log/slog"
 	"time"
+
+	"github.com/SENERGY-Platform/process-sync/pkg/database"
 )
 
 type WardenInfoInterface interface {
@@ -30,25 +32,25 @@ type WardenInfoInterface interface {
 }
 
 type ProcessesInterface[WardenInfo WardenInfoInterface, Deployment any, ProcessInstance any, History any, Incident any] interface {
-	AllInstances() (iter.Seq[ProcessInstance], error)
+	AllInstances() iter.Seq2[ProcessInstance, error]
 	GetInstances(WardenInfo) ([]ProcessInstance, error)
 	GetYoungestProcessInstance(instances []ProcessInstance) (ProcessInstance, error)
-	InstanceIsOlderThen(ProcessInstance, time.Duration) bool
+	InstanceIsOlderThen(ProcessInstance, time.Duration) (bool, error)
 	InstanceIsCreatedWithWardenHandlingIntended(instance ProcessInstance) bool
 
 	GetInstanceHistories(WardenInfo) ([]History, error)
 	GetYoungestHistory([]History) (History, error) //by start time?
-	HistoryIsOlderThen(History, time.Duration) bool
+	HistoryIsOlderThen(History, time.Duration) (bool, error)
 
 	GetIncidents(History) ([]Incident, error)
 	GetYoungestIncident([]Incident) (Incident, error)
 	IncidentIsOlderThen(Incident, time.Duration) bool
 
-	Start(WardenInfo) (string, error)
+	Start(WardenInfo) error
 	Stop(ProcessInstance) error
 
 	DeploymentExists(WardenInfo) (exist bool, err error)
-	Deploy(Deployment) error
+	Deploy(WardenInfo, Deployment) error
 }
 
 type DbInterface[WardenInfo WardenInfoInterface, Deployment any, ProcessInstance any] interface {
@@ -70,7 +72,7 @@ type Config struct {
 
 type GenericWarden[WardenInfo WardenInfoInterface, Deployment any, ProcessInstance any, History any, Incident any] struct {
 	processes ProcessesInterface[WardenInfo, Deployment, ProcessInstance, History, Incident]
-	db        DbInterface[WardenInfo, Deployment, ProcessInstance]
+	wardendb  DbInterface[WardenInfo, Deployment, ProcessInstance]
 	config    Config
 }
 
@@ -80,21 +82,21 @@ func NewGeneric[WardenInfo WardenInfoInterface, Deployment any, ProcessInstance 
 	}
 	return &GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Incident]{
 		processes: processes,
-		db:        db,
+		wardendb:  db,
 		config:    config,
 	}
 }
 
 func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Incident]) Add(info WardenInfo) error {
-	return this.db.SetWardenInfo(info)
+	return this.wardendb.SetWardenInfo(info)
 }
 
 func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Incident]) Remove(info WardenInfo) error {
-	return this.db.RemoveWardenInfo(info)
+	return this.wardendb.RemoveWardenInfo(info)
 }
 
 func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Incident]) RemoveWardenInfoByInstance(instance ProcessInstance) error {
-	infos, err := this.db.GetWardenInfoForInstance(instance)
+	infos, err := this.wardendb.GetWardenInfoForInstance(instance)
 	if err != nil {
 		return err
 	}
@@ -125,9 +127,9 @@ func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Inci
 				now := time.Now()
 				this.config.Logger.Debug("start warden loop")
 				if this.config.RunDbLoop {
-					err := this.LoopDb()
+					err := this.LoopWardenDb()
 					if err != nil {
-						this.config.Logger.Error("error in db loop", "error", err)
+						this.config.Logger.Error("error in wardendb loop", "error", err)
 					}
 				}
 				if this.config.RunProcessLoop {
@@ -143,8 +145,8 @@ func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Inci
 	return nil
 }
 
-func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Incident]) LoopDb() error {
-	it, err := this.db.ListWardenInfo()
+func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Incident]) LoopWardenDb() error {
+	it, err := this.wardendb.ListWardenInfo()
 	if err != nil {
 		return err
 	}
@@ -158,11 +160,11 @@ func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Inci
 }
 
 func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Incident]) LoopProcesses() error {
-	it, err := this.processes.AllInstances()
-	if err != nil {
-		return err
-	}
-	for instance := range it {
+	it := this.processes.AllInstances()
+	for instance, err := range it {
+		if err != nil {
+			return err
+		}
 		err = this.CheckProcessInstance(instance)
 		if err != nil {
 			this.config.Logger.Error("error in process instance check", "error", err)
@@ -193,7 +195,7 @@ func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Inci
 }
 
 func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Incident]) CheckProcessInstance(instance ProcessInstance) error {
-	infos, err := this.db.GetWardenInfoForInstance(instance)
+	infos, err := this.wardendb.GetWardenInfoForInstance(instance)
 	if err != nil {
 		return err
 	}
@@ -223,26 +225,32 @@ func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Inci
 			this.config.Logger.Debug("missing process instance but warden info has become invalid, this may happen if a process-deployment is deleted --> remove info from warden", "info", fmt.Sprintf("%+v", info), "validation-result", err)
 			err = this.tryRedeployProcess(info)
 			if err != nil {
-				this.config.Logger.Error("unable to redeploy missing process-deployment --> remove warden", "error", err)
 				switch {
 				case errors.Is(err, ErrRetry):
+					this.config.Logger.Error("unable to redeploy missing process-deployment --> retry later", "error", err)
 					return nil
 				case errors.Is(err, ErrFinal):
+					this.config.Logger.Error("unable to redeploy missing process-deployment --> remove warden", "error", err)
 					return this.Remove(info)
 				default:
+					this.config.Logger.Error("unable to redeploy missing process-deployment --> remove warden", "error", err)
 					return this.Remove(info)
 				}
 			}
 		}
 		this.config.Logger.Debug("missing process instance --> start process instance", "info", fmt.Sprintf("%+v", info))
-		_, err = this.processes.Start(info)
+		err = this.processes.Start(info)
 		return err
 	}
 	history, err := this.processes.GetYoungestHistory(histories)
 	if err != nil {
 		return err
 	}
-	if !this.processes.HistoryIsOlderThen(history, this.config.AgeGate) {
+	isOlder, err := this.processes.HistoryIsOlderThen(history, this.config.AgeGate)
+	if err != nil {
+		return err
+	}
+	if !isOlder {
 		this.config.Logger.Debug("youngest process history change is immature --> no action", "info", fmt.Sprintf("%+v", info))
 		return nil
 	}
@@ -263,7 +271,7 @@ func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Inci
 		return nil
 	}
 	this.config.Logger.Debug("process finished with incident --> restart", "info", fmt.Sprintf("%+v", info))
-	_, err = this.processes.Start(info)
+	err = this.processes.Start(info)
 	return err
 }
 
@@ -272,7 +280,11 @@ func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Inci
 	if err != nil {
 		return err
 	}
-	if !this.processes.InstanceIsOlderThen(youngest, this.config.AgeGate) {
+	isOlder, err := this.processes.InstanceIsOlderThen(youngest, this.config.AgeGate)
+	if err != nil {
+		return err
+	}
+	if !isOlder {
 		this.config.Logger.Debug("youngest process instance change is immature --> no action", "info", fmt.Sprintf("%+v", info))
 		return nil
 	}
@@ -293,7 +305,7 @@ var ErrRetry = fmt.Errorf("will be retried")
 var ErrFinal = fmt.Errorf("will not be retried")
 
 func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Incident]) RemoveDeployment(deploymentId string) error {
-	infos, err := this.db.GetWardenInfoForDeploymentId(deploymentId)
+	infos, err := this.wardendb.GetWardenInfoForDeploymentId(deploymentId)
 	if err != nil {
 		return err
 	}
@@ -307,12 +319,15 @@ func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Inci
 }
 
 func (this *GenericWarden[WardenInfo, Deployment, ProcessInstance, History, Incident]) tryRedeployProcess(info WardenInfo) error {
-	depl, exists, err := this.db.GetDeployment(info)
+	depl, exists, err := this.wardendb.GetDeployment(info)
+	if errors.Is(err, database.ErrNotFound) {
+		return errors.Join(err, ErrFinal)
+	}
 	if err != nil {
 		return errors.Join(err, ErrRetry)
 	}
 	if !exists {
 		return fmt.Errorf("no deployment found for warden info (%w)", ErrFinal)
 	}
-	return this.processes.Deploy(depl)
+	return this.processes.Deploy(info, depl)
 }

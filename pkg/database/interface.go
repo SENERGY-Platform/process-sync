@@ -17,8 +17,9 @@
 package database
 
 import (
-	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"time"
+
+	"github.com/SENERGY-Platform/process-sync/pkg/model"
 )
 
 type Database interface {
@@ -37,6 +38,7 @@ type Database interface {
 	RemoveUnknownHistoricProcessInstances(networkId string, knownIds []string) error
 	ReadHistoricProcessInstance(networkId string, historicProcessInstanceId string) (historicProcessInstance model.HistoricProcessInstance, err error)
 	ListHistoricProcessInstances(networkIds []string, query model.HistoryQuery, limit int64, offset int64, sort string) (historicProcessInstance []model.HistoricProcessInstance, total int64, err error)
+	FindHistoricProcessInstances(query model.InstanceQuery) (result []model.HistoricProcessInstance, err error)
 
 	SaveProcessInstance(processInstance model.ProcessInstance) error
 	RemoveProcessInstance(networkId string, processInstanceId string) error
@@ -44,6 +46,7 @@ type Database interface {
 	RemoveUnknownProcessInstances(networkId string, knownIds []string) error
 	ReadProcessInstance(networkId string, processInstanceId string) (processInstance model.ProcessInstance, err error)
 	ListProcessInstances(networkIds []string, limit int64, offset int64, sort string) (processInstance []model.ProcessInstance, err error)
+	FindProcessInstances(query model.InstanceQuery) (result []model.ProcessInstance, err error)
 
 	SaveProcessDefinition(processDefinition model.ProcessDefinition) error
 	RemoveProcessDefinition(networkId string, processDefinitionId string) error
@@ -57,6 +60,7 @@ type Database interface {
 	RemoveUnknownIncidents(networkId string, knownIds []string) error
 	ReadIncident(networkId string, incidentId string) (incident model.Incident, err error)
 	ListIncidents(networkIds []string, processInstanceId string, limit int64, offset int64, sort string) (incident []model.Incident, err error)
+	FindIncidents(query model.IncidentQuery) (incident []model.Incident, err error)
 	RemoveIncidentOfInstance(networkId string, instanceId string) error
 	RemoveIncidentOfDefinition(networkId string, definitionId string) error
 	RemoveIncidentOfNotInstances(networkId string, notInstanceIds []string) error

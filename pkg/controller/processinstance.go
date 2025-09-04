@@ -73,7 +73,7 @@ func (this *Controller) ApiReadProcessInstance(networkId string, id string) (res
 	return
 }
 
-func (this *Controller) ApiDeleteProcessInstance(networkId string, id string) (err error, errCode int) {
+func (this *Controller) StopProcessInstanceWithoutWardenHandling(networkId string, id string) (err error, errCode int) {
 	defer func() {
 		errCode = this.SetErrCode(err)
 	}()
@@ -102,7 +102,15 @@ func (this *Controller) ApiDeleteProcessInstance(networkId string, id string) (e
 	return
 }
 
+// TODO: add warden handling
+func (this *Controller) ApiDeleteProcessInstance(networkId string, id string) (err error, errCode int) {
+	return this.StopProcessInstanceWithoutWardenHandling(networkId, id)
+}
+
 func (this *Controller) ApiListProcessInstances(networkIds []string, limit int64, offset int64, sort string) (result []model.ProcessInstance, err error, errCode int) {
+	if networkIds == nil {
+		networkIds = []string{}
+	}
 	result, err = this.db.ListProcessInstances(networkIds, limit, offset, sort)
 	errCode = this.SetErrCode(err)
 	if result == nil {

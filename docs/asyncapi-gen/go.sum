@@ -21,6 +21,7 @@ github.com/SENERGY-Platform/event-deployment v0.0.37/go.mod h1:iIkzmNva7zyIrKZes
 github.com/SENERGY-Platform/event-worker v1.0.21 h1:SVXKu/7+uE0xDVtwgRAjy/CwtKYYAbVKt4KAZISY0F0=
 github.com/SENERGY-Platform/event-worker v1.0.21/go.mod h1:zmntQ+02XCv02SRFoWFBWXNYFkmMvq1WJ9HWIAKdYPE=
 github.com/SENERGY-Platform/event-worker v1.0.36/go.mod h1:MoYuObFEh9qGJ39CswU2AE2Yh/O3mVkVH2sw3Ab+V94=
+github.com/SENERGY-Platform/event-worker v1.0.37/go.mod h1:MK/VyBzqkp4MhjuMJfkLQSntJ1+918JkYrhHLCsAAno=
 github.com/SENERGY-Platform/models/go v0.0.0-20241007061544-de7132ae94e4 h1:zS65f1cmjAoBQUA432nmJl2TXAwqqqJMz7sp2DHLAGc=
 github.com/SENERGY-Platform/models/go v0.0.0-20241007061544-de7132ae94e4/go.mod h1:bCREPNRN4P8oxLgpC3/ZKK4jXSy4MSPXoiomhohE+aw=
 github.com/SENERGY-Platform/models/go v0.0.0-20250417082304-c41a4b3157af/go.mod h1:bCREPNRN4P8oxLgpC3/ZKK4jXSy4MSPXoiomhohE+aw=
@@ -33,6 +34,7 @@ github.com/SENERGY-Platform/process-deployment v0.0.20/go.mod h1:f+QupwHDJUCCSCG
 github.com/SENERGY-Platform/service-commons v0.0.0-20240813072046-91b3195dd8fc h1:FbGDfHiDukp8wD1w4YNxjwiDpSNkRUG+Ymq9jjz3Auc=
 github.com/SENERGY-Platform/service-commons v0.0.0-20240813072046-91b3195dd8fc/go.mod h1:1p2CQPNtler5leXqNgaOfr7DlgZUydrQlQYA97ycm4k=
 github.com/SENERGY-Platform/service-commons v0.0.0-20250707072258-a5b49118c926/go.mod h1:1p2CQPNtler5leXqNgaOfr7DlgZUydrQlQYA97ycm4k=
+github.com/SENERGY-Platform/service-commons v0.0.0-20250903071414-1b34f1965afa/go.mod h1:1p2CQPNtler5leXqNgaOfr7DlgZUydrQlQYA97ycm4k=
 github.com/beevik/etree v1.4.0 h1:oz1UedHRepuY3p4N5OjE0nK1WLCqtzHf25bxplKOHLs=
 github.com/beevik/etree v1.4.0/go.mod h1:cyWiXwGoasx60gHvtnEh5x8+uIjUVnjWqBvEnhnqKDA=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
