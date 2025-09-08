@@ -120,3 +120,31 @@ type MetadataQuery struct {
 	CamundaDeploymentId *string `json:"camunda_deployment_id"`
 	DeploymentId        *string `json:"deployment_id"`
 }
+
+type WardenInfo struct {
+	UserId              string
+	CreationTime        int64 //unix timestamp
+	NetworkId           string
+	BusinessKey         string
+	ProcessDeploymentId string
+	StartParameters     map[string]interface{}
+}
+
+func (this WardenInfo) IsOlderThen(duration time.Duration) bool {
+	return time.Unix(this.CreationTime, 0).Add(duration).After(time.Now())
+}
+
+type WardenInfoQuery struct {
+	NetworkIds           []string
+	BusinessKeys         []string
+	ProcessDeploymentIds []string
+	Sort                 string
+	Limit                int64
+	Offset               int64
+}
+
+type DeploymentWardenInfo struct {
+	DeploymentId string                  `json:"deployment_id" bson:"deployment_id"`
+	NetworkId    string                  `json:"network_id" bson:"network_id"`
+	Deployment   DeploymentWithEventDesc `json:"deployment" bson:"deployment"`
+}

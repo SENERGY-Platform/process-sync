@@ -80,4 +80,12 @@ type Database interface {
 	FilterNetworkIds(networkIds []string) (result []string, err error)
 	GetOldNetworkIds(maxAge time.Duration) (result []string, err error)
 	RemoveOldElements(maxAge time.Duration) (err error)
+
+	SetDeploymentWardenInfo(info model.DeploymentWardenInfo) error
+	RemoveDeploymentWardenInfo(networkId string, deploymentId string) error
+	GetDeploymentWardenInfoByDeploymentId(networkId string, deploymentId string) (info model.DeploymentWardenInfo, exists bool, err error)
+
+	SetWardenInfo(info model.WardenInfo) error
+	RemoveWardenInfo(networkId string, businessKey string) error
+	FindWardenInfo(query model.WardenInfoQuery) ([]model.WardenInfo, error)
 }

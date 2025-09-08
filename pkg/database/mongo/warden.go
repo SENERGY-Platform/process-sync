@@ -14,42 +14,38 @@
  * limitations under the License.
  */
 
-package warden
+package mongo
 
 import (
-	"iter"
-
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 )
 
-type Db struct{}
-
-func (this *Db) ListWardenInfo() (iter.Seq[WardenInfo], error) {
-	//TODO implement me
+func (this *Mongo) SetDeploymentWardenInfo(info model.DeploymentWardenInfo) error {
+	//TODO
 	panic("implement me")
 }
 
-func (this *Db) GetWardenInfoForInstance(instance model.ProcessInstance) ([]WardenInfo, error) {
-	//TODO implement me
+func (this *Mongo) RemoveDeploymentWardenInfo(networkId string, deploymentId string) error {
+	//TODO
 	panic("implement me")
 }
 
-func (this *Db) GetWardenInfoForDeploymentId(deploymentId string) ([]WardenInfo, error) {
-	//TODO implement me
+func (this *Mongo) GetDeploymentWardenInfoByDeploymentId(networkId string, deploymentId string) (info model.DeploymentWardenInfo, exists bool, err error) {
+	//TODO
 	panic("implement me")
 }
 
-func (this *Db) GetDeployment(info WardenInfo) (result model.DeploymentWithEventDesc, exist bool, err error) {
-	//TODO implement me
+func (this *Mongo) SetWardenInfo(info model.WardenInfo) error {
+	//TODO
 	panic("implement me")
 }
 
-func (this *Db) SetWardenInfo(info WardenInfo) error {
-	//TODO implement me
+func (this *Mongo) RemoveWardenInfo(networkId string, businessKey string) error {
+	//TODO
 	panic("implement me")
 }
 
-func (this *Db) RemoveWardenInfo(info WardenInfo) error {
-	//TODO implement me
+func (this *Mongo) FindWardenInfo(query model.WardenInfoQuery) ([]model.WardenInfo, error) {
+	//TODO
 	panic("implement me")
 }

@@ -17,26 +17,13 @@
 package warden
 
 import (
-	"time"
-
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 )
 
-type WardenInfo struct {
-	UserId              string
-	CreationTime        int64 //unix timestamp
-	NetworkId           string
-	BusinessKey         string
-	ProcessDeploymentId string
-	StartParameters     map[string]interface{}
-}
-
-func (this WardenInfo) IsOlderThen(duration time.Duration) bool {
-	return time.Unix(this.CreationTime, 0).Add(duration).After(time.Now())
-}
+type WardenInfo = model.WardenInfo
 
 type Warden = *GenericWarden[WardenInfo, model.DeploymentWithEventDesc, model.ProcessInstance, model.HistoricProcessInstance, model.Incident]
 
 func New(config Config) Warden {
-	return NewGeneric(config, &Processes{}, &Db{})
+	return NewGeneric(config, &Processes{}, &WardenDb{}) //TODO: init processes and wardendb
 }
