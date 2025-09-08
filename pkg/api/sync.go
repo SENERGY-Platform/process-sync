@@ -47,12 +47,12 @@ type SyncEndpoints struct{}
 func (this *SyncEndpoints) ReSyncDeployments(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
 	router.HandleFunc("POST /sync/deployments/{networkId}", func(writer http.ResponseWriter, request *http.Request) {
 		networkId := request.PathValue("networkId")
-		token, err, errCode := ctrl.ApiCheckAccessReturnToken(request, networkId, "a")
+		_, err, errCode := ctrl.ApiCheckAccessReturnToken(request, networkId, "a")
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
 			return
 		}
-		err, errCode = ctrl.ApiSyncDeployments(token, networkId)
+		err, errCode = ctrl.ApiSyncDeployments(networkId)
 		if err != nil {
 			http.Error(writer, err.Error(), errCode)
 			return

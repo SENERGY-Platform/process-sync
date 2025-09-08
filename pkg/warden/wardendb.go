@@ -28,6 +28,32 @@ type WardenDb struct {
 	batchsize int64
 }
 
+func (this *WardenDb) ListDeploymentWardenInfo() iter.Seq2[DeploymentWardenInfo, error] {
+	var offset int64 = 0
+	return func(yield func(DeploymentWardenInfo, error) bool) {
+		finished := false
+		for !finished {
+			batch, err := this.db.FindDeploymentWardenInfo(model.DeploymentWardenInfoQuery{
+				Limit:  this.batchsize,
+				Offset: offset,
+			})
+			if err != nil {
+				yield(model.DeploymentWardenInfo{}, err)
+				return
+			}
+			for _, depl := range batch {
+				if !yield(depl, nil) {
+					return
+				}
+			}
+			offset += this.batchsize
+			if len(batch) < int(this.batchsize) {
+				finished = true
+			}
+		}
+	}
+}
+
 func (this *WardenDb) ListWardenInfo() iter.Seq2[WardenInfo, error] {
 	var offset int64 = 0
 	return func(yield func(WardenInfo, error) bool) {
@@ -62,7 +88,7 @@ func (this *WardenDb) GetWardenInfoForDeploymentId(deploymentId string) ([]Warde
 	return this.db.FindWardenInfo(model.WardenInfoQuery{ProcessDeploymentIds: []string{deploymentId}})
 }
 
-func (this *WardenDb) GetDeployment(info WardenInfo) (result model.DeploymentWithEventDesc, exists bool, err error) {
+func (this *WardenDb) GetDeploymentWardenInfo(info WardenInfo) (result DeploymentWardenInfo, exists bool, err error) {
 	deplInfo, exists, err := this.db.GetDeploymentWardenInfoByDeploymentId(info.NetworkId, info.ProcessDeploymentId)
 	if err != nil {
 		return result, exists, err
@@ -70,7 +96,7 @@ func (this *WardenDb) GetDeployment(info WardenInfo) (result model.DeploymentWit
 	if !exists {
 		return result, false, nil
 	}
-	return deplInfo.Deployment, true, nil
+	return deplInfo, true, nil
 }
 
 func (this *WardenDb) SetWardenInfo(info WardenInfo) error {

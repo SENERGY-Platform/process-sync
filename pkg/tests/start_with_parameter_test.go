@@ -53,6 +53,8 @@ func TestStartWithParameter(t *testing.T) {
 		MongoProcessInstanceCollection:    "instances",
 		MongoDeploymentMetadataCollection: "deployment_metadata",
 		MongoLastNetworkContactCollection: "last_network_collection",
+		MongoWardenCollection:             "warden",
+		MongoDeploymentWardenCollection:   "deployment_warden",
 	}
 
 	networkId := "test-network-id"

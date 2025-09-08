@@ -55,6 +55,8 @@ func TestProcesses_AllInstances(t *testing.T) {
 		MongoProcessInstanceCollection:    "instances",
 		MongoDeploymentMetadataCollection: "deployment_metadata",
 		MongoLastNetworkContactCollection: "last_network_collection",
+		MongoWardenCollection:             "warden",
+		MongoDeploymentWardenCollection:   "deployment_warden",
 	}
 
 	db, err := mongo.New(config)

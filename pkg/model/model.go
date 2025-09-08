@@ -122,12 +122,12 @@ type MetadataQuery struct {
 }
 
 type WardenInfo struct {
-	UserId              string
-	CreationTime        int64 //unix timestamp
-	NetworkId           string
-	BusinessKey         string
-	ProcessDeploymentId string
-	StartParameters     map[string]interface{}
+	UserId              string                 `json:"user_id" bson:"user_id"`
+	CreationTime        int64                  `json:"creation_time" bson:"creation_time"` //unix timestamp
+	NetworkId           string                 `json:"network_id" bson:"network_id"`
+	BusinessKey         string                 `json:"business_key" bson:"business_key"`
+	ProcessDeploymentId string                 `json:"process_deployment_id" bson:"process_deployment_id"`
+	StartParameters     map[string]interface{} `json:"start_parameters" bson:"start_parameters"`
 }
 
 func (this WardenInfo) IsOlderThen(duration time.Duration) bool {
@@ -147,4 +147,12 @@ type DeploymentWardenInfo struct {
 	DeploymentId string                  `json:"deployment_id" bson:"deployment_id"`
 	NetworkId    string                  `json:"network_id" bson:"network_id"`
 	Deployment   DeploymentWithEventDesc `json:"deployment" bson:"deployment"`
+}
+
+type DeploymentWardenInfoQuery struct {
+	NetworkIds           []string
+	ProcessDeploymentIds []string
+	Sort                 string
+	Limit                int64
+	Offset               int64
 }

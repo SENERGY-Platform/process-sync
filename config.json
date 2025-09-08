@@ -12,6 +12,8 @@
     "mqtt_group_id": "",
     "mqtt_clean_session": true,
     "mongo_table": "sync",
+    "mongo_warden_collection": "warden",
+    "mongo_deployment_warden_collection": "deployment_warden",
     "mongo_deployment_collection": "deployments",
     "mongo_deployment_metadata_collection": "deployment_metadata",
     "mongo_process_definition_collection": "process_definitions",

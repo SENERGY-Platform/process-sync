@@ -18,14 +18,15 @@ package controller
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
-	"net/http"
 )
 
-func (this *Controller) ApiSyncDeployments(token string, networkId string) (error, int) {
+func (this *Controller) ApiSyncDeployments(networkId string) (error, int) {
 	err := this.db.RemovePlaceholderDeployments(networkId)
 	if err != nil {
 		return err, http.StatusInternalServerError
@@ -57,9 +58,10 @@ func (this *Controller) ApiSyncDeployments(token string, networkId string) (erro
 					continue
 				}
 				now := configuration.TimeNow()
+				this.deleteDeployment(networkId, deployment.Id)
 				err = this.db.SaveDeployment(model.Deployment{
 					Deployment: camundamodel.Deployment{
-						Id:             "placeholder-" + configuration.Id(),
+						Id:             deployment.Id,
 						Name:           deployment.Name,
 						Source:         "senergy",
 						DeploymentTime: now,
@@ -81,7 +83,6 @@ func (this *Controller) ApiSyncDeployments(token string, networkId string) (erro
 					errorList = append(errorList, err)
 					continue
 				}
-				this.deleteDeployment(networkId, deployment.Id)
 			}
 		}
 		if int64(len(deployments)) <= limit {

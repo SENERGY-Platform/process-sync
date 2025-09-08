@@ -84,6 +84,7 @@ type Database interface {
 	SetDeploymentWardenInfo(info model.DeploymentWardenInfo) error
 	RemoveDeploymentWardenInfo(networkId string, deploymentId string) error
 	GetDeploymentWardenInfoByDeploymentId(networkId string, deploymentId string) (info model.DeploymentWardenInfo, exists bool, err error)
+	FindDeploymentWardenInfo(query model.DeploymentWardenInfoQuery) ([]model.DeploymentWardenInfo, error)
 
 	SetWardenInfo(info model.WardenInfo) error
 	RemoveWardenInfo(networkId string, businessKey string) error

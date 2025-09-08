@@ -51,6 +51,8 @@ func TestDeployment(t *testing.T) {
 		MongoProcessInstanceCollection:    "instances",
 		MongoDeploymentMetadataCollection: "deployment_metadata",
 		MongoLastNetworkContactCollection: "last_network_collection",
+		MongoWardenCollection:             "warden",
+		MongoDeploymentWardenCollection:   "deployment_warden",
 	}
 
 	db, err := New(config)
@@ -210,6 +212,8 @@ func TestDeploymentSearch(t *testing.T) {
 		MongoProcessInstanceCollection:    "instances",
 		MongoDeploymentMetadataCollection: "deployment_metadata",
 		MongoLastNetworkContactCollection: "last_network_collection",
+		MongoWardenCollection:             "warden",
+		MongoDeploymentWardenCollection:   "deployment_warden",
 	}
 
 	db, err := New(config)

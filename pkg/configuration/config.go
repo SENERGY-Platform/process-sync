@@ -48,6 +48,8 @@ type Config struct {
 
 	ApiPort                           string `json:"api_port"`
 	MongoTable                        string `json:"mongo_table"`
+	MongoWardenCollection             string `json:"mongo_warden_collection"`
+	MongoDeploymentWardenCollection   string `json:"mongo_deployment_warden_collection"`
 	MongoProcessDefinitionCollection  string `json:"mongo_process_definition_collection"`
 	MongoDeploymentCollection         string `json:"mongo_deployment_collection"`
 	MongoDeploymentMetadataCollection string `json:"mongo_deployment_metadata_collection"`

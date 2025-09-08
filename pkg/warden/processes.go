@@ -18,6 +18,7 @@ package warden
 
 import (
 	"errors"
+	"fmt"
 	"iter"
 	"slices"
 	"strings"
@@ -174,7 +175,7 @@ func (this *Processes) Stop(instance model.ProcessInstance) (err error) {
 	return
 }
 
-func (this *Processes) DeploymentExists(info WardenInfo) (exist bool, err error) {
+func (this *Processes) DeploymentExistsForWarden(info WardenInfo) (exist bool, err error) {
 	depl, err := this.db.ReadDeployment(info.NetworkId, info.ProcessDeploymentId)
 	if errors.Is(err, database.ErrNotFound) {
 		return false, nil
@@ -185,6 +186,53 @@ func (this *Processes) DeploymentExists(info WardenInfo) (exist bool, err error)
 	return !depl.MarkedForDelete && !depl.MarkedAsMissing, nil
 }
 
-func (this *Processes) Deploy(info WardenInfo, deployment model.DeploymentWithEventDesc) error {
-	return this.ctrl.DeployProcessWithoutWardenHandling(info.NetworkId, deployment)
+func (this *Processes) DeploymentExistsForDeploymentWarden(info DeploymentWardenInfo) (exist bool, err error) {
+	depl, err := this.db.ReadDeployment(info.NetworkId, info.DeploymentId)
+	if errors.Is(err, database.ErrNotFound) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return !depl.MarkedForDelete && !depl.MarkedAsMissing, nil
+}
+
+func (this *Processes) Redeploy(info DeploymentWardenInfo) error {
+	var exists, markedForDelete, markedAsMissing bool
+	exists = true
+	depl, err := this.db.ReadDeployment(info.NetworkId, info.DeploymentId)
+	if errors.Is(err, database.ErrNotFound) {
+		exists = false
+	}
+	if err != nil {
+		return errors.Join(fmt.Errorf("unable to redeploy process %v %v (unable to read existing): %w", info.Deployment, info.Deployment.Name, err), ErrRetry)
+	}
+	markedForDelete = depl.MarkedForDelete
+	markedAsMissing = depl.MarkedAsMissing
+	if !exists {
+		err = this.ctrl.DeployProcessWithoutWardenHandling(info.NetworkId, info.Deployment)
+		if err != nil {
+			return errors.Join(fmt.Errorf("unable to redeploy process %v %v: %w", info.Deployment, info.Deployment.Name, err), ErrRetry)
+		}
+		return nil
+	}
+	if markedForDelete {
+		//this is a bad state (user has selected to delete this deployment) -> rectify by deleting DeploymentWardenInfo and returning ErrFinal (deletes instance WardenInfo)
+		err = this.db.RemoveDeploymentWardenInfo(info.NetworkId, info.DeploymentId)
+		if err != nil && !errors.Is(err, database.ErrNotFound) {
+			return errors.Join(fmt.Errorf("error in removing deployment warden info for %v %v: %w", info.Deployment, info.Deployment.Name, err), ErrRetry) //retry to find the bad state again, in the hope to rectify it
+		}
+		return fmt.Errorf("unable to redeploy because deployment is marked for delete (%w)", ErrFinal) //signal instance WardenInfo removal
+	}
+	if markedAsMissing {
+		err = this.db.RemoveDeploymentMetadata(info.NetworkId, info.DeploymentId)
+		if err != nil {
+			return errors.Join(fmt.Errorf("unable to redeploy process %v %v (unable to remove old metadata): %w", info.Deployment, info.Deployment.Name, err), ErrRetry)
+		}
+		err = this.ctrl.DeployProcessWithoutWardenHandling(info.NetworkId, info.Deployment)
+		if err != nil {
+			return errors.Join(fmt.Errorf("unable to redeploy process %v %v: %w", info.Deployment, info.Deployment.Name, err), ErrRetry)
+		}
+	}
+	return nil
 }

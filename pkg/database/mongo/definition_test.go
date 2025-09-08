@@ -51,6 +51,8 @@ func TestDefinition(t *testing.T) {
 		MongoProcessInstanceCollection:    "instances",
 		MongoDeploymentMetadataCollection: "deployment_metadata",
 		MongoLastNetworkContactCollection: "last_network_collection",
+		MongoWardenCollection:             "warden",
+		MongoDeploymentWardenCollection:   "deployment_warden",
 	}
 
 	db, err := New(config)

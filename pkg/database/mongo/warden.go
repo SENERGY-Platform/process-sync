@@ -17,8 +17,76 @@
 package mongo
 
 import (
+	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 )
+
+var wardenDeploymentIdKey string
+var wardenNetworkIdKey string
+var wardenBusinessKeyKey string
+
+var deploymentWardenDeploymentIdKey string
+var deploymentWardenNetworkIdKey string
+
+func init() {
+	prepareCollection(func(config configuration.Config) string {
+		return config.MongoWardenCollection
+	},
+		model.WardenInfo{},
+		[]KeyMapping{
+			{
+				FieldName: "ProcessDeploymentId",
+				Key:       &wardenDeploymentIdKey,
+			},
+			{
+				FieldName: "NetworkId",
+				Key:       &wardenNetworkIdKey,
+			},
+			{
+				FieldName: "BusinessKey",
+				Key:       &wardenBusinessKeyKey,
+			},
+		},
+		[]IndexDesc{
+			{
+				Name:   "warden_deploymentid_index",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&wardenDeploymentIdKey},
+			},
+			{
+				Name:   "warden_networkid_businesskey_index",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&wardenNetworkIdKey, &wardenBusinessKeyKey},
+			},
+		},
+	)
+
+	prepareCollection(func(config configuration.Config) string {
+		return config.MongoDeploymentWardenCollection
+	},
+		model.DeploymentWardenInfo{},
+		[]KeyMapping{
+			{
+				FieldName: "DeploymentId",
+				Key:       &deploymentWardenDeploymentIdKey,
+			},
+			{
+				FieldName: "NetworkId",
+				Key:       &deploymentWardenNetworkIdKey,
+			},
+		},
+		[]IndexDesc{
+			{
+				Name:   "deploymentwarden_networkid_businesskey_index",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&deploymentWardenNetworkIdKey, &deploymentWardenDeploymentIdKey},
+			},
+		},
+	)
+}
 
 func (this *Mongo) SetDeploymentWardenInfo(info model.DeploymentWardenInfo) error {
 	//TODO
@@ -31,6 +99,11 @@ func (this *Mongo) RemoveDeploymentWardenInfo(networkId string, deploymentId str
 }
 
 func (this *Mongo) GetDeploymentWardenInfoByDeploymentId(networkId string, deploymentId string) (info model.DeploymentWardenInfo, exists bool, err error) {
+	//TODO
+	panic("implement me")
+}
+
+func (this *Mongo) FindDeploymentWardenInfo(query model.DeploymentWardenInfoQuery) ([]model.DeploymentWardenInfo, error) {
 	//TODO
 	panic("implement me")
 }

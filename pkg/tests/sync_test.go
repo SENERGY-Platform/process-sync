@@ -53,6 +53,8 @@ func TestSync(t *testing.T) {
 		MongoDeploymentMetadataCollection: "deployment_metadata",
 		MongoLastNetworkContactCollection: "last_network_collection",
 		DeviceRepoUrl:                     "placeholder",
+		MongoWardenCollection:             "warden",
+		MongoDeploymentWardenCollection:   "deployment_warden",
 	}
 
 	networkId := "test-network-id"
@@ -124,6 +126,8 @@ func TestKnown(t *testing.T) {
 		MongoProcessInstanceCollection:    "instances",
 		MongoDeploymentMetadataCollection: "deployment_metadata",
 		MongoLastNetworkContactCollection: "last_network_collection",
+		MongoWardenCollection:             "warden",
+		MongoDeploymentWardenCollection:   "deployment_warden",
 	}
 
 	networkId := "test-network-id"
@@ -224,6 +228,8 @@ func TestMarkedAsMissingRetry(t *testing.T) {
 		MongoProcessInstanceCollection:    "instances",
 		MongoDeploymentMetadataCollection: "deployment_metadata",
 		MongoLastNetworkContactCollection: "last_network_collection",
+		MongoWardenCollection:             "warden",
+		MongoDeploymentWardenCollection:   "deployment_warden",
 	}
 
 	networkId := "test-network-id"

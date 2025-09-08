@@ -21,9 +21,11 @@ import (
 )
 
 type WardenInfo = model.WardenInfo
+type DeploymentWardenInfo = model.DeploymentWardenInfo
 
-type Warden = *GenericWarden[WardenInfo, model.DeploymentWithEventDesc, model.ProcessInstance, model.HistoricProcessInstance, model.Incident]
+type Warden = *GenericWarden[WardenInfo, DeploymentWardenInfo, model.ProcessInstance, model.HistoricProcessInstance, model.Incident]
 
+// TODO: use
 func New(config Config) Warden {
 	return NewGeneric(config, &Processes{}, &WardenDb{}) //TODO: init processes and wardendb
 }
