@@ -35,8 +35,6 @@ github.com/SENERGY-Platform/permissions-v2 v0.0.38 h1:zrzIzQ2TB4LENaVZFLK+dpO4KB
 github.com/SENERGY-Platform/permissions-v2 v0.0.38/go.mod h1:YtsSQK77GjQ6Df+HBA6e1/VB2OUihY1XcfQAhv/dRf0=
 github.com/SENERGY-Platform/process-deployment v0.0.20 h1:yBE8cBX/ZXmB5bZiEmlcaq54jrhsxwYIdQkyT0SV5HQ=
 github.com/SENERGY-Platform/process-deployment v0.0.20/go.mod h1:f+QupwHDJUCCSCGI0uhoppKmC8ehXAaBRGMDCyzApXY=
-github.com/SENERGY-Platform/process-incident-api v0.0.8 h1:dkL1SzPsMZNEfjm7U3icj5Eh6CwgyduMgadduXBZPZ0=
-github.com/SENERGY-Platform/process-incident-api v0.0.8/go.mod h1:yD2wGOUp3a8s3OpCM6fxmNX0qLLuMRwi4GV/C2xBgJQ=
 github.com/SENERGY-Platform/service-commons v0.0.0-20250903071414-1b34f1965afa h1:M2zfxq28OMVM8CbVNYYfpjiFant7GeucJ8Kdb1FE5Oo=
 github.com/SENERGY-Platform/service-commons v0.0.0-20250903071414-1b34f1965afa/go.mod h1:1p2CQPNtler5leXqNgaOfr7DlgZUydrQlQYA97ycm4k=
 github.com/beevik/etree v1.4.0 h1:oz1UedHRepuY3p4N5OjE0nK1WLCqtzHf25bxplKOHLs=

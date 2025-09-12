@@ -12,7 +12,6 @@ require (
 	github.com/SENERGY-Platform/models/go v0.0.0-20250417082304-c41a4b3157af
 	github.com/SENERGY-Platform/permissions-v2 v0.0.38
 	github.com/SENERGY-Platform/process-deployment v0.0.20
-	github.com/SENERGY-Platform/process-incident-api v0.0.8
 	github.com/SENERGY-Platform/service-commons v0.0.0-20250903071414-1b34f1965afa
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/golang-jwt/jwt v3.2.2+incompatible
