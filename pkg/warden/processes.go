@@ -30,6 +30,7 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
 	"github.com/SENERGY-Platform/service-commons/pkg/cache"
+	"github.com/google/uuid"
 )
 
 type Processes struct {
@@ -116,8 +117,17 @@ func (this *Processes) InstanceIsOlderThen(instance model.ProcessInstance, durat
 	return instanceDate.Add(duration).Before(time.Now()), nil
 }
 
+func (this *Processes) MarkInstanceAsWardenHandled(instance *model.ProcessInstance) {
+	if instance.BusinessKey == "" {
+		instance.BusinessKey = uuid.NewString()
+	}
+	if !strings.HasPrefix(instance.BusinessKey, model.WardenBusinessKeyPrefix) {
+		instance.BusinessKey = model.WardenBusinessKeyPrefix + instance.BusinessKey
+	}
+}
+
 func (this *Processes) InstanceIsCreatedWithWardenHandlingIntended(instance model.ProcessInstance) bool {
-	return strings.HasPrefix(instance.BusinessKey, "wardened:") //TODO: add prefix to business-key of instances when warden is used
+	return strings.HasPrefix(instance.BusinessKey, model.WardenBusinessKeyPrefix) //TODO: add prefix to business-key of instances when warden is used
 }
 
 func (this *Processes) GetInstanceHistories(info WardenInfo) ([]model.HistoricProcessInstance, error) {

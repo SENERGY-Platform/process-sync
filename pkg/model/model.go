@@ -17,6 +17,9 @@
 package model
 
 import (
+	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
@@ -123,11 +126,32 @@ type MetadataQuery struct {
 
 type WardenInfo struct {
 	UserId              string                 `json:"user_id" bson:"user_id"`
-	CreationTime        int64                  `json:"creation_time" bson:"creation_time"` //unix timestamp
-	NetworkId           string                 `json:"network_id" bson:"network_id"`
-	BusinessKey         string                 `json:"business_key" bson:"business_key"`
-	ProcessDeploymentId string                 `json:"process_deployment_id" bson:"process_deployment_id"`
+	CreationTime        int64                  `json:"creation_time" bson:"creation_time"`                 //unix timestamp
+	NetworkId           string                 `json:"network_id" bson:"network_id"`                       //must be the same as the process-instance network-id
+	BusinessKey         string                 `json:"business_key" bson:"business_key"`                   //must be the same as the process-instance business-key and start with WardenBusinessKeyPrefix; the prefix may be set by Warden.MarkInstanceAsWardenHandled
+	ProcessDeploymentId string                 `json:"process_deployment_id" bson:"process_deployment_id"` //must be the same as the process-instance process-deployment-id
 	StartParameters     map[string]interface{} `json:"start_parameters" bson:"start_parameters"`
+}
+
+const WardenBusinessKeyPrefix = "wardened:"
+
+func (this WardenInfo) Validate() error {
+	if this.UserId == "" {
+		return errors.New("user-id must not be empty")
+	}
+	if this.CreationTime == 0 {
+		return errors.New("creation-time must not be 0")
+	}
+	if this.NetworkId == "" {
+		return errors.New("network-id must not be empty")
+	}
+	if !strings.HasPrefix(this.BusinessKey, WardenBusinessKeyPrefix) {
+		return fmt.Errorf("business-key must start with '%s'", WardenBusinessKeyPrefix)
+	}
+	if this.ProcessDeploymentId == "" {
+		return errors.New("process-deployment-id must not be empty")
+	}
+	return nil
 }
 
 func (this WardenInfo) IsOlderThen(duration time.Duration) bool {

@@ -29,6 +29,7 @@ import (
 
 type WardenInfoInterface interface {
 	IsOlderThen(time.Duration) bool
+	Validate() error
 }
 
 type ProcessesInterface[WardenInfo WardenInfoInterface, DeploymentWardenInfo, ProcessInstance any, History any, Incident any] interface {
@@ -37,6 +38,8 @@ type ProcessesInterface[WardenInfo WardenInfoInterface, DeploymentWardenInfo, Pr
 	GetYoungestProcessInstance(instances []ProcessInstance) (ProcessInstance, error)
 	InstanceIsOlderThen(ProcessInstance, time.Duration) (bool, error)
 	InstanceIsCreatedWithWardenHandlingIntended(instance ProcessInstance) bool
+
+	MarkInstanceAsWardenHandled(instance *ProcessInstance)
 
 	GetInstanceHistories(WardenInfo) ([]History, error)
 	GetYoungestHistory([]History) (History, error) //by start time?
@@ -101,7 +104,16 @@ func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, His
 	return this.wardendb.RemoveDeploymentWardenById(networkId, deploymentId)
 }
 
+// MarkInstanceAsWardenHandled is intended to be used before the instance is handled by other services
+func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, History, Incident]) MarkInstanceAsWardenHandled(instance *ProcessInstance) {
+	this.processes.MarkInstanceAsWardenHandled(instance)
+}
+
 func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, History, Incident]) AddInstanceWarden(info WardenInfo) error {
+	err := info.Validate()
+	if err != nil {
+		return err
+	}
 	return this.wardendb.SetWardenInfo(info)
 }
 
