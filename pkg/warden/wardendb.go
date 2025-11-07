@@ -118,3 +118,36 @@ func (this *WardenDb) SetDeploymentWardenInfo(info model.DeploymentWardenInfo) e
 func (this *WardenDb) RemoveDeploymentWardenById(networkId string, deploymentId string) error {
 	return this.db.RemoveDeploymentWardenInfo(networkId, deploymentId)
 }
+
+func (this *WardenDb) UpdateWardenInfoDeploymentId(networkId string, oldDeploymentId string, newDeploymentId string) error {
+	oldDeploymentWardenInfo, exists, err := this.db.GetDeploymentWardenInfoByDeploymentId(networkId, oldDeploymentId)
+	if err != nil {
+		return err
+	}
+	if exists {
+		newDeploymentWardenInfo := oldDeploymentWardenInfo
+		newDeploymentWardenInfo.DeploymentId = newDeploymentId
+		err = this.db.SetDeploymentWardenInfo(newDeploymentWardenInfo)
+		if err != nil {
+			return err
+		}
+		err = this.db.RemoveDeploymentWardenInfo(networkId, oldDeploymentId)
+		if err != nil {
+			return err
+		}
+	}
+
+	oldWardenInfos, err := this.db.FindWardenInfo(model.WardenInfoQuery{NetworkIds: []string{networkId}, ProcessDeploymentIds: []string{oldDeploymentId}})
+	if err != nil {
+		return err
+	}
+	for _, wardenInfo := range oldWardenInfos {
+		newWardenInfo := wardenInfo
+		newWardenInfo.ProcessDeploymentId = newDeploymentId
+		err = this.db.SetWardenInfo(newWardenInfo)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

@@ -68,6 +68,7 @@ type DbInterface[WardenInfo WardenInfoInterface, DeploymentWardenInfo any, Proce
 	RemoveDeploymentWardenById(networkId string, deploymentId string) error
 	RemoveWardenInfoByBusinessKey(networkId string, businessKey string) error
 	ListDeploymentWardenInfo() iter.Seq2[DeploymentWardenInfo, error]
+	UpdateWardenInfoDeploymentId(networkId string, oldDeploymentId string, newDeploymentId string) error
 }
 
 type Config struct {
@@ -392,4 +393,8 @@ func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, His
 		return this.processes.Redeploy(info)
 	}
 	return nil
+}
+
+func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, History, Incident]) UpdateWardenInfoDeploymentId(networkId string, oldDeploymentId string, newDeploymentId string) error {
+	return this.wardendb.UpdateWardenInfoDeploymentId(networkId, oldDeploymentId, newDeploymentId)
 }

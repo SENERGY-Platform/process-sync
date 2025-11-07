@@ -41,6 +41,10 @@ func (this *Controller) UpdateDeploymentMetadata(networkId string, metadata mode
 	if err != nil {
 		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
+	err = this.warden.UpdateWardenInfoDeploymentId(networkId, metadata.DeploymentModel.Id, metadata.CamundaDeploymentId)
+	if err != nil {
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
+	}
 	this.notifyProcessDeploymentDone(metadata.DeploymentModel.Id)
 }
 
