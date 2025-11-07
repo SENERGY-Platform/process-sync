@@ -318,10 +318,12 @@ func (this *Controller) StartDeploymentWithoutWardenHandling(networkId string, d
 		}
 	*/
 
-	err = this.mgw.SendDeploymentStartCommand(networkId, deploymentId, businessKey, parameter)
-	if err != nil {
-		debug.PrintStack()
-		return
+	if !deployment.IsPlaceholder {
+		err = this.mgw.SendDeploymentStartCommand(networkId, deploymentId, businessKey, parameter)
+		if err != nil {
+			debug.PrintStack()
+			return
+		}
 	}
 
 	now := configuration.TimeNow()

@@ -113,6 +113,11 @@ func (this *Processes) GetYoungestProcessInstance(instances []model.ProcessInsta
 	return GetYoungestElement(instances, this.getInstanceDate)
 }
 
+func (this *Processes) InstanceIsOldPlaceholder(instance model.ProcessInstance) (bool, error) {
+	isOld, err := this.InstanceIsOlderThen(instance, this.config.AgeGate)
+	return instance.IsPlaceholder && isOld, err
+}
+
 func (this *Processes) InstanceIsOlderThen(instance model.ProcessInstance, duration time.Duration) (bool, error) {
 	instanceDate, err := this.getInstanceDate(instance)
 	if err != nil {
@@ -181,6 +186,7 @@ func (this *Processes) IncidentIsOlderThen(incident model.Incident, duration tim
 }
 
 func (this *Processes) Start(info WardenInfo) (err error) {
+	this.config.Logger.Debug("warden start process", "deployment-id", info.ProcessDeploymentId, "business-key", info.BusinessKey)
 	err, _ = this.ctrl.StartDeploymentWithoutWardenHandling(info.NetworkId, info.ProcessDeploymentId, info.BusinessKey, info.StartParameters)
 	return
 }

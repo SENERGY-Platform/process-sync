@@ -41,5 +41,6 @@ func New(config Config, ctrl Controller, db database.Database) (Warden, error) {
 	}, &WardenDb{
 		db:        db,
 		batchsize: 100,
+		config:    config,
 	}), nil
 }

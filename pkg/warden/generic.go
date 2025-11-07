@@ -38,6 +38,7 @@ type ProcessesInterface[WardenInfo WardenInfoInterface, DeploymentWardenInfo, Pr
 	GetYoungestProcessInstance(instances []ProcessInstance) (ProcessInstance, error)
 	InstanceIsOlderThen(ProcessInstance, time.Duration) (bool, error)
 	InstanceIsCreatedWithWardenHandlingIntended(instance ProcessInstance) bool
+	InstanceIsOldPlaceholder(instance ProcessInstance) (bool, error)
 
 	MarkInstanceBusinessKeyAsWardenHandled(businessKey string) string
 
@@ -239,8 +240,14 @@ func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, His
 	case 0:
 		return this.missingInstance(info)
 	case 1:
-		// expected state; incidents would cause the stopping of the process-instance, but that is handled by other services
-		return nil
+		isOldPlaceholder, err := this.processes.InstanceIsOldPlaceholder(instances[0])
+		if err != nil {
+			return err
+		}
+		if isOldPlaceholder {
+			return this.oldPlaceholderInstance(info, instances[0])
+		}
+		return nil // expected state; incidents would cause the stopping of the process-instance, but that is handled by other services
 	default:
 		return this.duplicateInstances(info, instances)
 	}
@@ -260,6 +267,15 @@ func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, His
 		return this.processes.Stop(instance)
 	}
 	return nil
+}
+
+func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, History, Incident]) oldPlaceholderInstance(info WardenInfo, instance ProcessInstance) error {
+	this.config.Logger.Debug("old placeholder instance --> start process instance", "info", fmt.Sprintf("%+v", info))
+	err := this.processes.Stop(instance)
+	if err != nil {
+		this.config.Logger.Error("unable to stop old placeholder instance", "error", err)
+	}
+	return this.processes.Start(info)
 }
 
 func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, History, Incident]) missingInstance(info WardenInfo) error {

@@ -26,6 +26,7 @@ import (
 type WardenDb struct {
 	db        database.Database
 	batchsize int64
+	config    Config
 }
 
 func (this *WardenDb) ListDeploymentWardenInfo() iter.Seq2[DeploymentWardenInfo, error] {
@@ -124,6 +125,7 @@ func (this *WardenDb) UpdateWardenInfoDeploymentId(networkId string, oldDeployme
 	if err != nil {
 		return err
 	}
+	this.config.Logger.Debug("update DeploymentWardenInfo.DeploymentId", "networkId", networkId, "old-deployment-id", oldDeploymentId, "new-deployment-id", newDeploymentId, "exists", exists)
 	if exists {
 		newDeploymentWardenInfo := oldDeploymentWardenInfo
 		newDeploymentWardenInfo.DeploymentId = newDeploymentId
@@ -142,6 +144,7 @@ func (this *WardenDb) UpdateWardenInfoDeploymentId(networkId string, oldDeployme
 		return err
 	}
 	for _, wardenInfo := range oldWardenInfos {
+		this.config.Logger.Debug("update WardenInfo.ProcessDeploymentId", "networkId", networkId, "business-key", wardenInfo.BusinessKey, "old-deployment-id", oldDeploymentId, "new-deployment-id", newDeploymentId)
 		newWardenInfo := wardenInfo
 		newWardenInfo.ProcessDeploymentId = newDeploymentId
 		err = this.db.SetWardenInfo(newWardenInfo)

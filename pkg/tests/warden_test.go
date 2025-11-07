@@ -55,6 +55,10 @@ func TestWardenFailingProcess(t *testing.T) {
 	t.Skip("TODO") //TODO
 }
 
+func TestWardenWithParameterProcess(t *testing.T) {
+	t.Skip("TODO") //TODO
+}
+
 func TestWardenLongRunningProcess(t *testing.T) {
 	bpmn := resources.LongProcess
 	wg := &sync.WaitGroup{}
@@ -384,7 +388,7 @@ func TestWardenLongRunningProcess(t *testing.T) {
 			t.Run("get historic instances", testGetHistoricInstances(config.ApiPort, networkId, &historicInstances))
 			t.Run("check historic instance count", func(t *testing.T) {
 				if len(historicInstances) != 0 {
-					t.Error("expected 0 historicInstances")
+					t.Error("expected 0 historicInstances, got", len(historicInstances))
 				}
 			})
 		})

@@ -232,9 +232,9 @@ func testDeployProcessWithArgs(port string, networkId string, deploymentId strin
 			Name:        deploymentId + "-name",
 			Description: "test-description",
 			Diagram: deploymentmodel.Diagram{
-				XmlDeployed: processWithParameter,
+				XmlDeployed: bpmn,
 				Svg:         "<svg></svg>",
-				XmlRaw:      processWithParameter,
+				XmlRaw:      bpmn,
 			},
 			Executable: true,
 		})

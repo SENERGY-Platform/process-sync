@@ -1,5 +1,7 @@
 synchronises process states with a remote camunda instance by communicating with a github.com/SENERGY-Platform/mgw-process-sync-client via mqtt 
 
+deploymentIds are overwritten by camunda but they can be correlated by using `GET /metadata/{networkId}?deployment_id=foo` or `GET /metadata/{networkId}?camunda_deployment_id=foo`
+
 ## MQTT Config via ENV
 you can configure multiple mqtt brokers by using the following ENV variables:
 - MQTT_BROKER_{key}
