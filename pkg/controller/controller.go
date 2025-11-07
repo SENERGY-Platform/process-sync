@@ -39,6 +39,7 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/kafka"
 	"github.com/SENERGY-Platform/process-sync/pkg/mgw"
 	"github.com/SENERGY-Platform/process-sync/pkg/security"
+	"github.com/SENERGY-Platform/process-sync/pkg/warden"
 )
 
 type Controller struct {
@@ -51,6 +52,7 @@ type Controller struct {
 	deploymentDoneNotifier interfaces.Producer
 	devNotifications       developerNotifications.Client
 	logger                 *slog.Logger
+	warden                 warden.Warden
 }
 
 type BaseDeviceRepoFactory = func(token string, deviceRepoUrl string) eventinterfaces.Devices
@@ -90,10 +92,29 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 	if info, ok := debug.ReadBuildInfo(); ok {
 		logger = logger.With("go-module", info.Path)
 	}
-	ctrl = &Controller{config: config, db: db, security: security, baseDeviceRepoFactory: baseDeviceRepoFactory, devicerepo: d, logger: logger}
+
+	wardenInterval, err := time.ParseDuration(config.WardenInterval)
 	if err != nil {
 		return ctrl, err
 	}
+	wardenAgeGate, err := time.ParseDuration(config.WardenAgeGate)
+	if err != nil {
+		return ctrl, err
+	}
+
+	ctrl = &Controller{config: config, db: db, security: security, baseDeviceRepoFactory: baseDeviceRepoFactory, devicerepo: d, logger: logger}
+	w, err := warden.New(warden.Config{
+		Interval:          wardenInterval,
+		AgeGate:           wardenAgeGate,
+		RunDbLoop:         config.RunWardenDbLoop,
+		RunProcessLoop:    config.RunWardenProcessLoop,
+		RunDeploymentLoop: config.RunWardenDeploymentLoop,
+		Logger:            config.GetLogger(),
+	}, ctrl, db)
+	if err != nil {
+		return ctrl, err
+	}
+	ctrl.warden = w
 	if config.KafkaUrl != "" && config.KafkaUrl != "-" {
 		ctrl.deploymentDoneNotifier, err = kafka.NewProducer(ctx, config.KafkaUrl, config.ProcessDeploymentDoneTopic, config.GetLogger(), config.InitTopics)
 		if err != nil {
@@ -111,6 +132,12 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 	if err != nil {
 		return ctrl, err
 	}
+
+	err = w.Start(ctx)
+	if err != nil {
+		return ctrl, err
+	}
+	
 	return ctrl, nil
 }
 

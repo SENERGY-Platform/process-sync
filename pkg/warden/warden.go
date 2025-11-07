@@ -17,7 +17,9 @@
 package warden
 
 import (
+	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
+	"github.com/SENERGY-Platform/service-commons/pkg/cache"
 )
 
 type WardenInfo = model.WardenInfo
@@ -25,7 +27,19 @@ type DeploymentWardenInfo = model.DeploymentWardenInfo
 
 type Warden = *GenericWarden[WardenInfo, DeploymentWardenInfo, model.ProcessInstance, model.HistoricProcessInstance, model.Incident]
 
-// TODO: use
-func New(config Config) Warden {
-	return NewGeneric(config, &Processes{}, &WardenDb{}) //TODO: init processes and wardendb
+func New(config Config, ctrl Controller, db database.Database) (Warden, error) {
+	c, err := cache.New(cache.Config{})
+	if err != nil {
+		return nil, err
+	}
+	return NewGeneric(config, &Processes{
+		db:        db,
+		batchsize: 100,
+		config:    config,
+		cache:     c,
+		ctrl:      ctrl,
+	}, &WardenDb{
+		db:        db,
+		batchsize: 100,
+	}), nil
 }

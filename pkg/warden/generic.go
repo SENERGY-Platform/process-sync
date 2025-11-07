@@ -39,7 +39,7 @@ type ProcessesInterface[WardenInfo WardenInfoInterface, DeploymentWardenInfo, Pr
 	InstanceIsOlderThen(ProcessInstance, time.Duration) (bool, error)
 	InstanceIsCreatedWithWardenHandlingIntended(instance ProcessInstance) bool
 
-	MarkInstanceAsWardenHandled(instance *ProcessInstance)
+	MarkInstanceBusinessKeyAsWardenHandled(businessKey string) string
 
 	GetInstanceHistories(WardenInfo) ([]History, error)
 	GetYoungestHistory([]History) (History, error) //by start time?
@@ -105,8 +105,8 @@ func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, His
 }
 
 // MarkInstanceAsWardenHandled is intended to be used before the instance is handled by other services
-func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, History, Incident]) MarkInstanceAsWardenHandled(instance *ProcessInstance) {
-	this.processes.MarkInstanceAsWardenHandled(instance)
+func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, History, Incident]) MarkInstanceBusinessKeyAsWardenHandled(businessKey string) string {
+	return this.processes.MarkInstanceBusinessKeyAsWardenHandled(businessKey)
 }
 
 func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, History, Incident]) AddInstanceWarden(info WardenInfo) error {
@@ -156,6 +156,12 @@ func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, His
 			case <-ticker.C:
 				now := time.Now()
 				this.config.Logger.Debug("start warden loop")
+				if this.config.RunDeploymentLoop {
+					err := this.LoopDeploymentWardenDb()
+					if err != nil {
+						this.config.Logger.Error("error in deployment loop", "error", err)
+					}
+				}
 				if this.config.RunDbLoop {
 					err := this.LoopWardenDb()
 					if err != nil {
@@ -168,12 +174,7 @@ func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, His
 						this.config.Logger.Error("error in process loop", "error", err)
 					}
 				}
-				if this.config.RunDeploymentLoop {
-					err := this.LoopDeploymentWardenDb()
-					if err != nil {
-						this.config.Logger.Error("error in deployment loop", "error", err)
-					}
-				}
+
 				this.config.Logger.Debug("warden loop end", "loop-duration", time.Since(now).String())
 			}
 		}
@@ -255,7 +256,7 @@ func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, His
 			return nil
 		}
 		this.config.Logger.Debug("process instance without warden info --> remove", "instance", fmt.Sprintf("%+v", instance))
-		return this.RemoveWardenInfoByInstance(instance)
+		return this.processes.Stop(instance)
 	}
 	return nil
 }

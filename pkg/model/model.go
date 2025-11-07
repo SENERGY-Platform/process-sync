@@ -125,10 +125,9 @@ type MetadataQuery struct {
 }
 
 type WardenInfo struct {
-	UserId              string                 `json:"user_id" bson:"user_id"`
 	CreationTime        int64                  `json:"creation_time" bson:"creation_time"`                 //unix timestamp
 	NetworkId           string                 `json:"network_id" bson:"network_id"`                       //must be the same as the process-instance network-id
-	BusinessKey         string                 `json:"business_key" bson:"business_key"`                   //must be the same as the process-instance business-key and start with WardenBusinessKeyPrefix; the prefix may be set by Warden.MarkInstanceAsWardenHandled
+	BusinessKey         string                 `json:"business_key" bson:"business_key"`                   //must be the same as the process-instance business-key and start with WardenBusinessKeyPrefix; the prefix may be set by Warden.MarkInstanceBusinessKeyAsWardenHandled
 	ProcessDeploymentId string                 `json:"process_deployment_id" bson:"process_deployment_id"` //must be the same as the process-instance process-deployment-id
 	StartParameters     map[string]interface{} `json:"start_parameters" bson:"start_parameters"`
 }
@@ -136,9 +135,6 @@ type WardenInfo struct {
 const WardenBusinessKeyPrefix = "wardened:"
 
 func (this WardenInfo) Validate() error {
-	if this.UserId == "" {
-		return errors.New("user-id must not be empty")
-	}
 	if this.CreationTime == 0 {
 		return errors.New("creation-time must not be 0")
 	}
@@ -179,4 +175,8 @@ type DeploymentWardenInfoQuery struct {
 	Sort                 string
 	Limit                int64
 	Offset               int64
+}
+
+func NormalizeBpmnDeploymentId(id string) string {
+	return "deplid_" + strings.NewReplacer("-", "_", ":", "_", "#", "_").Replace(id)
 }

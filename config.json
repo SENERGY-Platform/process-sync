@@ -40,5 +40,11 @@
 
     "init_topics": false,
 
-    "log_level": "info"
+    "log_level": "info",
+
+    "warden_interval": "5m",
+    "warden_age_gate": "10s",
+    "run_warden_db_loop": true,
+    "run_warden_process_loop": true,
+    "run_warden_deployment_loop": true
 }

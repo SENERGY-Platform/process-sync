@@ -18,10 +18,14 @@ package docker
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"log"
+	"strings"
+	"sync"
+
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"log"
-	"sync"
 )
 
 func MgwProcessSyncClient(ctx context.Context, wg *sync.WaitGroup, camundaDb, camundaUrl, mqttUrl, mqttClientId, networkId, deploymentMetadataStorage string) (err error) {
@@ -37,6 +41,7 @@ func MgwProcessSyncClient(ctx context.Context, wg *sync.WaitGroup, camundaDb, ca
 				"NETWORK_ID":                  networkId,
 				"DEBUG":                       "true",
 				"DEPLOYMENT_METADATA_STORAGE": deploymentMetadataStorage,
+				"INITIAL_WAIT_DURATION":       "0.1s",
 			},
 			ExposedPorts:    []string{"8080/tcp"},
 			WaitingFor:      wait.ForListeningPort("8080/tcp"),
@@ -50,8 +55,20 @@ func MgwProcessSyncClient(ctx context.Context, wg *sync.WaitGroup, camundaDb, ca
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		defer func() {
+			log.Println("DEBUG: remove container mgw-process-sync-client", c.Terminate(context.Background()))
+		}()
 		<-ctx.Done()
-		log.Println("DEBUG: remove container mgw-process-sync-client", c.Terminate(context.Background()))
+		reader, err := c.Logs(context.Background())
+		if err != nil {
+			log.Println("ERROR: unable to get container log")
+			return
+		}
+		buf := new(strings.Builder)
+		io.Copy(buf, reader)
+		fmt.Println("CLIENT LOGS: ------------------------------------------")
+		fmt.Println(buf.String())
+		fmt.Println("\n---------------------------------------------------------------")
 	}()
 
 	return err

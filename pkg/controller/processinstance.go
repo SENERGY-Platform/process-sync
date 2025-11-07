@@ -73,38 +73,42 @@ func (this *Controller) ApiReadProcessInstance(networkId string, id string) (res
 	return
 }
 
-func (this *Controller) StopProcessInstanceWithoutWardenHandling(networkId string, id string) (err error, errCode int) {
+func (this *Controller) StopProcessInstanceWithoutWardenHandling(instance model.ProcessInstance) (err error, errCode int) {
 	defer func() {
 		errCode = this.SetErrCode(err)
 	}()
-	var current model.ProcessInstance
-	current, err = this.db.ReadProcessInstance(networkId, id)
-	if err != nil {
-		return
-	}
-	if current.IsPlaceholder {
-		err = this.db.RemoveHistoricProcessInstance(networkId, id)
+	if instance.IsPlaceholder {
+		err = this.db.RemoveHistoricProcessInstance(instance.NetworkId, instance.Id)
 		if err != nil && !errors.Is(err, database.ErrNotFound) {
 			return
 		}
-		err = this.db.RemoveProcessInstance(networkId, id)
+		err = this.db.RemoveProcessInstance(instance.NetworkId, instance.Id)
 		if err != nil {
 			return
 		}
 	} else {
-		err = this.mgw.SendProcessStopCommand(networkId, id)
+		err = this.mgw.SendProcessStopCommand(instance.NetworkId, instance.Id)
 		if err != nil {
 			return
 		}
-		current.MarkedForDelete = true
-		err = this.db.SaveProcessInstance(current)
+		instance.MarkedForDelete = true
+		err = this.db.SaveProcessInstance(instance)
 	}
 	return
 }
 
-// TODO: add warden handling
 func (this *Controller) ApiDeleteProcessInstance(networkId string, id string) (err error, errCode int) {
-	return this.StopProcessInstanceWithoutWardenHandling(networkId, id)
+	current, err := this.db.ReadProcessInstance(networkId, id)
+	if err != nil && !errors.Is(err, database.ErrNotFound) {
+		return err, this.SetErrCode(err)
+	}
+	if err == nil {
+		err = this.warden.RemoveWardenInfoByInstance(current)
+		if err != nil {
+			return err, this.SetErrCode(err)
+		}
+	}
+	return this.StopProcessInstanceWithoutWardenHandling(current)
 }
 
 func (this *Controller) ApiListProcessInstances(networkIds []string, limit int64, offset int64, sort string) (result []model.ProcessInstance, err error, errCode int) {

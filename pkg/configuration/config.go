@@ -76,6 +76,12 @@ type Config struct {
 
 	LogLevel string       `json:"log_level"`
 	logger   *slog.Logger `json:"-"`
+
+	WardenInterval          string `json:"warden_interval"`
+	WardenAgeGate           string `json:"warden_age_gate"`
+	RunWardenDbLoop         bool   `json:"run_warden_db_loop"`
+	RunWardenProcessLoop    bool   `json:"run_warden_process_loop"`
+	RunWardenDeploymentLoop bool   `json:"run_warden_deployment_loop"`
 }
 
 type MqttConfig struct {

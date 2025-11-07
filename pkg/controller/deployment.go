@@ -18,9 +18,14 @@ package controller
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"net/http"
 	"runtime/debug"
+	"strconv"
+	"time"
 
+	"github.com/SENERGY-Platform/camunda-engine-wrapper/etree"
 	"github.com/SENERGY-Platform/process-deployment/lib/auth"
 	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
@@ -28,6 +33,7 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
+	"github.com/SENERGY-Platform/process-sync/pkg/warden"
 	"github.com/google/uuid"
 )
 
@@ -81,15 +87,16 @@ func (this *Controller) DeleteDeployment(networkId string, deploymentId string) 
 	}
 }
 
-func (this *Controller) deleteDeployment(networkId string, deploymentId string) {
+func (this *Controller) deleteDeployment(networkId string, deploymentId string) error {
 	err := this.db.RemoveDeploymentMetadata(networkId, deploymentId)
 	if err != nil && !errors.Is(err, database.ErrNotFound) {
 		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
-	err = this.db.RemoveDeployment(networkId, deploymentId)
+	err = errors.Join(err, this.db.RemoveDeployment(networkId, deploymentId))
 	if err != nil && !errors.Is(err, database.ErrNotFound) {
 		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
+	return err
 }
 
 func (this *Controller) DeleteUnknownDeployments(networkId string, knownIds []string) {
@@ -140,18 +147,25 @@ func (this *Controller) ApiReadDeploymentMetadata(networkId string, deploymentId
 	return
 }
 
-// TODO: add warden handling
 func (this *Controller) ApiDeleteDeployment(networkId string, deploymentId string) (err error, errCode int) {
 	defer func() {
 		errCode = this.SetErrCode(err)
 	}()
+	err = this.warden.RemoveDeployment(deploymentId)
+	if err != nil {
+		return
+	}
+	err = this.warden.RemoveDeploymentWardenById(networkId, deploymentId)
+	if err != nil {
+		return
+	}
 	var current model.Deployment
 	current, err = this.db.ReadDeployment(networkId, deploymentId)
 	if err != nil {
 		return
 	}
 	if current.IsPlaceholder || current.MarkedAsMissing {
-		err = this.db.RemoveDeployment(networkId, deploymentId)
+		err = this.deleteDeployment(networkId, deploymentId)
 	} else {
 		err = this.mgw.SendDeploymentDeleteCommand(networkId, deploymentId)
 		if err != nil {
@@ -181,10 +195,39 @@ func (this *Controller) ApiSearchDeployments(networkIds []string, search string,
 	return
 }
 
-// TODO: add warden handling
+func SetProcessId(xml string, id string) (result string, err error) {
+	defer func() {
+		if r := recover(); r != nil && err == nil {
+			log.Printf("%s: %s", r, debug.Stack())
+			err = errors.New(fmt.Sprint("Recovered Error: ", r))
+		}
+	}()
+	doc := etree.NewDocument()
+	err = doc.ReadFromString(xml)
+	if err != nil {
+		return result, err
+	}
+	normalizedId := model.NormalizeBpmnDeploymentId(id)
+	for i, element := range doc.FindElements("//bpmn:process") {
+		attr := element.SelectAttr("id")
+		if attr != nil {
+			if i > 0 {
+				attr.Value = normalizedId + "_" + strconv.Itoa(i)
+			} else {
+				attr.Value = normalizedId
+			}
+		}
+	}
+	return doc.WriteToString()
+}
+
 func (this *Controller) ApiCreateDeployment(token string, networkId string, deployment deploymentmodel.Deployment) (err error, errCode int) {
 	if deployment.Id == "" {
 		deployment.Id = uuid.NewString()
+	}
+	deployment.Diagram.XmlDeployed, err = SetProcessId(deployment.Diagram.XmlDeployed, deployment.Id)
+	if err != nil {
+		return err, http.StatusInternalServerError
 	}
 	err = deployment.Validate(deploymentmodel.ValidatePublish, map[string]bool{"service": true}, deploymentmodel.DeploymentXmlValidator)
 	if err != nil {
@@ -198,8 +241,15 @@ func (this *Controller) ApiCreateDeployment(token string, networkId string, depl
 	if err != nil {
 		return err, errCode
 	}
-
 	err = this.DeployProcessWithoutWardenHandling(networkId, withEvents)
+	if err != nil {
+		return err, this.SetErrCode(err)
+	}
+	err = this.warden.AddDeploymentWarden(warden.DeploymentWardenInfo{
+		DeploymentId: deployment.Id,
+		NetworkId:    networkId,
+		Deployment:   withEvents,
+	})
 	if err != nil {
 		return err, this.SetErrCode(err)
 	}
@@ -326,8 +376,27 @@ func (this *Controller) StartDeploymentWithoutWardenHandling(networkId string, d
 }
 
 func (this *Controller) ApiStartDeployment(networkId string, deploymentId string, businessKey string, parameter map[string]interface{}) (err error, errCode int) {
-	//TODO: add warden handling
-	return this.StartDeploymentWithoutWardenHandling(networkId, deploymentId, businessKey, parameter)
+	businessKey = this.warden.MarkInstanceBusinessKeyAsWardenHandled(businessKey)
+	info := warden.WardenInfo{
+		CreationTime:        time.Now().Unix(),
+		NetworkId:           networkId,
+		BusinessKey:         businessKey,
+		ProcessDeploymentId: deploymentId,
+		StartParameters:     parameter,
+	}
+	err = this.warden.AddInstanceWarden(info)
+	if err != nil {
+		return err, this.SetErrCode(err)
+	}
+	err, errCode = this.StartDeploymentWithoutWardenHandling(networkId, deploymentId, businessKey, parameter)
+	if err != nil {
+		rollBackErr := this.warden.RemoveInstanceWarden(info)
+		if rollBackErr != nil {
+			this.config.GetLogger().Error("ApiStartDeployment() failed to roll back warden info on error handling", "error", rollBackErr, "info", info, "start-error", err)
+		}
+		return err, this.SetErrCode(err)
+	}
+	return nil, http.StatusOK
 }
 
 func (this *Controller) ExtendDeployments(deployments []model.Deployment) (result []model.ExtendedDeployment) {
