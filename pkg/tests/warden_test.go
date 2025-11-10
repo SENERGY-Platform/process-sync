@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"slices"
 	"strings"
 	"sync"
@@ -234,6 +235,14 @@ func TestWardenLongRunningProcess(t *testing.T) {
 			}
 		})
 
+		metadata := []model.DeploymentMetadata{}
+		t.Run("get metadata", testGetDeploymentMetadata("http://localhost:"+config.ApiPort, networkId, &metadata))
+		t.Run("check metadata count", func(t *testing.T) {
+			if len(metadata) != 0 {
+				t.Error("expected 0 metadata, got", len(metadata))
+			}
+		})
+
 		instances = []model.ProcessInstance{}
 		t.Run("get instances after delete", testGetInstances(config.ApiPort, networkId, &instances))
 		t.Run("check instance count after delete", func(t *testing.T) {
@@ -265,6 +274,14 @@ func TestWardenLongRunningProcess(t *testing.T) {
 		t.Run("check deployments count", func(t *testing.T) {
 			if len(deployments) != 2 {
 				t.Error("expected 2 deployments")
+			}
+		})
+
+		metadata := []model.DeploymentMetadata{}
+		t.Run("get metadata", testGetDeploymentMetadata("http://localhost:"+config.ApiPort, networkId, &metadata))
+		t.Run("check metadata count", func(t *testing.T) {
+			if len(metadata) != 0 {
+				t.Error("expected 0 metadata, got", len(metadata))
 			}
 		})
 
@@ -305,6 +322,14 @@ func TestWardenLongRunningProcess(t *testing.T) {
 			t.Run("check deployments count", func(t *testing.T) {
 				if len(deployments) != 2 {
 					t.Error("expected 2 deployments, got", len(deployments))
+				}
+			})
+
+			metadata := []model.DeploymentMetadata{}
+			t.Run("get metadata", testGetDeploymentMetadata("http://localhost:"+config.ApiPort, networkId, &metadata))
+			t.Run("check metadata count", func(t *testing.T) {
+				if len(metadata) != 2 {
+					t.Error("expected 2 metadata, got", len(metadata))
 				}
 			})
 
@@ -376,19 +401,19 @@ func TestWardenLongRunningProcess(t *testing.T) {
 				}
 			})
 
+			metadata := []model.DeploymentMetadata{}
+			t.Run("get metadata", testGetDeploymentMetadata("http://localhost:"+config.ApiPort, networkId, &metadata))
+			t.Run("check metadata count", func(t *testing.T) {
+				if len(metadata) != 0 {
+					t.Error("expected 0 metadata")
+				}
+			})
+
 			instances := []model.ProcessInstance{}
 			t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
 			t.Run("check instance count", func(t *testing.T) {
 				if len(instances) != 0 {
 					t.Error("expected 0 instances")
-				}
-			})
-
-			historicInstances := []model.HistoricProcessInstance{}
-			t.Run("get historic instances", testGetHistoricInstances(config.ApiPort, networkId, &historicInstances))
-			t.Run("check historic instance count", func(t *testing.T) {
-				if len(historicInstances) != 0 {
-					t.Error("expected 0 historicInstances, got", len(historicInstances))
 				}
 			})
 		})
@@ -433,6 +458,28 @@ func TestWardenLongRunningProcess(t *testing.T) {
 		}
 	})
 
+}
+
+func testGetDeploymentMetadata(syncUrl string, networkId string, metadata *[]model.DeploymentMetadata) func(t *testing.T) {
+	return func(t *testing.T) {
+		resp, err := http.Get(syncUrl + "/metadata/" + url.PathEscape(networkId))
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode >= 300 {
+			pl, _ := io.ReadAll(resp.Body)
+			err = fmt.Errorf("http error: %d %s", resp.StatusCode, string(pl))
+			t.Error(err)
+			return
+		}
+		err = json.NewDecoder(resp.Body).Decode(metadata)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
 }
 
 func testCamundaGetHistoricInstances(camundaUrl string, instances *[]model.HistoricProcessInstance) func(t *testing.T) {

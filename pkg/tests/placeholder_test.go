@@ -55,6 +55,11 @@ func TestPlaceholderProcessInstanceDelete(t *testing.T) {
 		MongoLastNetworkContactCollection: "last_network_collection",
 		MongoWardenCollection:             "warden",
 		MongoDeploymentWardenCollection:   "deployment_warden",
+		WardenAgeGate:                     "2s",
+		WardenInterval:                    "5s",
+		RunWardenDbLoop:                   true,
+		RunWardenProcessLoop:              true,
+		RunWardenDeploymentLoop:           true,
 	}
 
 	networkId := "test-network-id"
@@ -113,7 +118,10 @@ func TestPlaceholderProcessInstanceDelete(t *testing.T) {
 	}, func(token string, baseUrl string, deviceId string) (result models.Device, err error, code int) {
 		return d.GetDevice(auth.Token{Token: token}, deviceId)
 	})
-
+	if err != nil {
+		t.Error(err)
+		return
+	}
 	err = api.Start(config, ctx, ctrl)
 	if err != nil {
 		t.Error(err)
@@ -195,6 +203,11 @@ func TestPlaceholderProcessInstanceStopWithHistoryId(t *testing.T) {
 		MongoLastNetworkContactCollection: "last_network_collection",
 		MongoWardenCollection:             "warden",
 		MongoDeploymentWardenCollection:   "deployment_warden",
+		WardenAgeGate:                     "2s",
+		WardenInterval:                    "5s",
+		RunWardenDbLoop:                   true,
+		RunWardenProcessLoop:              true,
+		RunWardenDeploymentLoop:           true,
 	}
 
 	networkId := "test-network-id"
@@ -253,6 +266,10 @@ func TestPlaceholderProcessInstanceStopWithHistoryId(t *testing.T) {
 	}, func(token string, baseUrl string, deviceId string) (result models.Device, err error, code int) {
 		return d.GetDevice(auth.Token{Token: token}, deviceId)
 	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	err = api.Start(config, ctx, ctrl)
 	if err != nil {

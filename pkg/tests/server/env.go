@@ -37,6 +37,15 @@ func Env(ctx context.Context, wg *sync.WaitGroup, initConf configuration.Config,
 	if err != nil {
 		return config, err
 	}
+	if config.WardenAgeGate == "" {
+		config.WardenAgeGate = "2s"
+	}
+	if config.WardenInterval == "" {
+		config.WardenInterval = "5s"
+	}
+	config.RunWardenDbLoop = true
+	config.RunWardenProcessLoop = true
+	config.RunWardenDeploymentLoop = true
 
 	var camundaPgIp string
 	camundaDb, camundaPgIp, _, err := docker.PostgresWithNetwork(ctx, wg, "camunda")
@@ -77,7 +86,9 @@ func Env(ctx context.Context, wg *sync.WaitGroup, initConf configuration.Config,
 	}, func(token string, baseUrl string, deviceId string) (result models.Device, err error, code int) {
 		return d.GetDevice(auth.Token{Token: token}, deviceId)
 	})
-
+	if err != nil {
+		return config, err
+	}
 	err = api.Start(config, ctx, ctrl)
 	if err != nil {
 		return config, err
@@ -93,6 +104,15 @@ func EnvForEventsCheck(ctx context.Context, wg *sync.WaitGroup, initConf configu
 		return conf, err
 	}
 	conf.DeviceRepoUrl = "placeholder"
+	if conf.WardenAgeGate == "" {
+		conf.WardenAgeGate = "2s"
+	}
+	if conf.WardenInterval == "" {
+		conf.WardenInterval = "5s"
+	}
+	conf.RunWardenDbLoop = true
+	conf.RunWardenProcessLoop = true
+	conf.RunWardenDeploymentLoop = true
 
 	_, mqttip, err := docker.Mqtt(ctx, wg)
 	if err != nil {
@@ -117,6 +137,9 @@ func EnvForEventsCheck(ctx context.Context, wg *sync.WaitGroup, initConf configu
 	}, func(token string, baseUrl string, deviceId string) (result models.Device, err error, code int) {
 		return d.GetDevice(auth.Token{Token: token}, deviceId)
 	})
+	if err != nil {
+		return conf, err
+	}
 
 	err = api.Start(conf, ctx, ctrl)
 	if err != nil {
