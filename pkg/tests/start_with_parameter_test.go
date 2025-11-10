@@ -113,6 +113,37 @@ func TestStartWithParameter(t *testing.T) {
 	t.Run("check process metadata after delete", testCheckProcessMetadata(config, networkId, &deploymentsPreDelete, 0, false))
 }
 
+func testStartDeploymentWithKeyAndParameter(port string, networkId string, list *[]model.Deployment, index int, businessKey string, parameter url.Values) func(t *testing.T) {
+	return func(t *testing.T) {
+		if index >= len(*list) {
+			t.Error(len(*list), index)
+			return
+		}
+		deployment := (*list)[index]
+		parameter.Add("business_key", businessKey)
+		req, err := http.NewRequest("GET", "http://localhost:"+port+"/deployments/"+networkId+"/"+deployment.Id+"/start?"+parameter.Encode(), nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode >= 300 {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(resp.Body)
+			err = errors.New(buf.String())
+		}
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
+}
+
 func testStartDeploymentWithKey(port string, networkId string, list *[]model.Deployment, index int, businessKey string) func(t *testing.T) {
 	return func(t *testing.T) {
 		if index >= len(*list) {

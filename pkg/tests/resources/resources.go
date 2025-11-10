@@ -31,3 +31,6 @@ var RepoFallbackFile string
 
 //go:embed finishing.bpmn
 var Finishing string
+
+//go:embed test_with_parameter.bpmn
+var WithParameter string
