@@ -29,6 +29,10 @@ func (this *Controller) UpdateHistoricProcessInstance(networkId string, historic
 	if err != nil {
 		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
+	err = this.db.RemovePlaceholderProcessInstances(networkId)
+	if err != nil {
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
+	}
 	err = this.db.SaveHistoricProcessInstance(model.HistoricProcessInstance{
 		HistoricProcessInstance: historicProcessInstance,
 		SyncInfo: model.SyncInfo{

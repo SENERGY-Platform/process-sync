@@ -44,6 +44,20 @@ import (
 	paho "github.com/eclipse/paho.mqtt.golang"
 )
 
+func TestWardenWithPreexistingDatabase(t *testing.T) {
+	t.Skip("TODO") //TODO
+	//deploy ghcr.io/senergy-platform/process-sync:v0.0.24
+	//start some processes
+	//stop docker process-sync
+	//start current sync controller+api
+	//start additional processes
+	//check state (old + new should be present)
+}
+
+func TestWardenWithClientReset(t *testing.T) {
+	t.Skip("TODO") //TODO
+}
+
 func TestWardenWithParameterProcess(t *testing.T) {
 	t.Skip("TODO") //TODO
 }
