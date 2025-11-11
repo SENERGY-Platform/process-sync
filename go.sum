@@ -27,8 +27,8 @@ github.com/SENERGY-Platform/event-worker v1.0.37 h1:5aE8gYeZtZ6UCtijtOt9dwTwJEnS
 github.com/SENERGY-Platform/event-worker v1.0.37/go.mod h1:MK/VyBzqkp4MhjuMJfkLQSntJ1+918JkYrhHLCsAAno=
 github.com/SENERGY-Platform/go-base-http-client v0.1.0 h1:PUiZVEj7/cMSZJ0g5G611tjY9bSh1Eby+tcktrgpiZ0=
 github.com/SENERGY-Platform/go-base-http-client v0.1.0/go.mod h1:NfKW/relIVTkMXhz4OqZlzJXYPQUYEKxwqou8D0B/Kw=
-github.com/SENERGY-Platform/go-service-base/struct-logger v0.4.1 h1:FF4jhIpxYbXkBQRm4oV/1KiTq1U7a5EQ0x5jqGhZDoY=
-github.com/SENERGY-Platform/go-service-base/struct-logger v0.4.1/go.mod h1:WuvuHGXhnLtXn2ry2kfTaQwco3EY3XTCefLeNqUT+jg=
+github.com/SENERGY-Platform/go-service-base/struct-logger v0.5.1 h1:Ufh33YSFAogDAlRyyQRJSuD5oAjETC4RWzdNmRLQW2k=
+github.com/SENERGY-Platform/go-service-base/struct-logger v0.5.1/go.mod h1:z9cf8WOUMLoifRj5Tqts1MNe6QoPFq5Msxj899ZC11g=
 github.com/SENERGY-Platform/models/go v0.0.0-20250417082304-c41a4b3157af h1:AcVaajXNyGoGNr16s7MUKj3A28JSRK9a8suO5zp9dZY=
 github.com/SENERGY-Platform/models/go v0.0.0-20250417082304-c41a4b3157af/go.mod h1:bCREPNRN4P8oxLgpC3/ZKK4jXSy4MSPXoiomhohE+aw=
 github.com/SENERGY-Platform/permissions-v2 v0.0.38 h1:zrzIzQ2TB4LENaVZFLK+dpO4KBFlOmvCDcwRzzOoRAE=

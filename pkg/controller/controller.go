@@ -21,7 +21,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"os"
 	"runtime/debug"
 	"time"
 
@@ -88,7 +87,7 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 	if err != nil {
 		return ctrl, err
 	}
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	logger := config.GetLogger()
 	if info, ok := debug.ReadBuildInfo(); ok {
 		logger = logger.With("go-module", info.Path)
 	}
@@ -137,7 +136,7 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 	if err != nil {
 		return ctrl, err
 	}
-	
+
 	return ctrl, nil
 }
 

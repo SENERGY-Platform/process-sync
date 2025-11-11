@@ -85,7 +85,7 @@ func (this *Processes) getInstanceDate(instance model.ProcessInstance) (time.Tim
 			this.config.Logger.Error("unable to read historic process instance to determine instance date --> use instance.SyncDate", "error", err, "instanceId", instance.Id, "networkId", instance.NetworkId)
 			return instance.SyncDate, nil
 		}
-		result, err := time.Parse(history.StartTime, camundamodel.CamundaTimeFormat)
+		result, err := time.Parse(camundamodel.CamundaTimeFormat, history.StartTime)
 		if err != nil {
 			this.config.Logger.Error("unable to parse historic process instance start time to determine instance date --> use instance.SyncDate", "error", err, "instanceId", instance.Id, "networkId", instance.NetworkId)
 			return instance.SyncDate, nil
@@ -148,7 +148,7 @@ func (this *Processes) GetInstanceHistories(info WardenInfo) ([]model.HistoricPr
 }
 
 func (this *Processes) getHistoryDate(history model.HistoricProcessInstance) (time.Time, error) {
-	result, err := time.Parse(history.StartTime, camundamodel.CamundaTimeFormat)
+	result, err := time.Parse(camundamodel.CamundaTimeFormat, history.StartTime)
 	if err != nil {
 		this.config.Logger.Error("unable to parse historic process instance start time to determine history date --> use history.SyncDate", "error", err, "historyId", history.Id, "networkId", history.NetworkId)
 		return history.SyncDate, nil

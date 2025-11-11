@@ -34,3 +34,6 @@ var Finishing string
 
 //go:embed test_with_parameter.bpmn
 var WithParameter string
+
+//go:embed test_long_with_parameter.bpmn
+var LongWithParameter string

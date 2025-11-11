@@ -79,6 +79,7 @@ func (this *Controller) DeleteDeployment(networkId string, deploymentId string) 
 		this.deleteDeployment(networkId, deploymentId)
 	} else {
 		deployment.SyncInfo.MarkedAsMissing = true
+		//deployment.SyncInfo.IsPlaceholder = true
 		err = this.db.SaveDeployment(deployment)
 		if err != nil {
 			this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
@@ -119,6 +120,7 @@ func (this *Controller) DeleteUnknownDeployments(networkId string, knownIds []st
 		}
 		if !deployment.SyncInfo.MarkedAsMissing {
 			deployment.SyncInfo.MarkedAsMissing = true
+			//deployment.SyncInfo.IsPlaceholder = true
 			err = this.db.SaveDeployment(deployment)
 			if err != nil {
 				this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())

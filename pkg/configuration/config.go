@@ -74,8 +74,10 @@ type Config struct {
 	MqttGroupId      string       `json:"mqtt_group_id"` //optional
 	MqttCleanSession bool         `json:"mqtt_clean_session"`
 
-	LogLevel string       `json:"log_level"`
-	logger   *slog.Logger `json:"-"`
+	LogLevel             string       `json:"log_level"`
+	LoggerTrimFormat     string       `json:"logger_trim_format"`
+	LoggerTrimAttributes string       `json:"logger_trim_attributes"`
+	logger               *slog.Logger `json:"-"`
 
 	WardenInterval          string `json:"warden_interval"`
 	WardenAgeGate           string `json:"warden_age_gate"`
@@ -241,16 +243,18 @@ func (this *Config) GetLogger() *slog.Logger {
 		}
 		this.logger = struct_logger.New(
 			struct_logger.Config{
-				Handler:    struct_logger.JsonHandlerSelector,
-				Level:      this.LogLevel,
-				TimeFormat: time.RFC3339Nano,
-				TimeUtc:    true,
-				AddMeta:    true,
+				Handler:        struct_logger.JsonHandlerSelector,
+				Level:          this.LogLevel,
+				TimeFormat:     time.RFC3339Nano,
+				TimeUtc:        true,
+				AddMeta:        true,
+				TrimFormat:     this.LoggerTrimFormat,
+				TrimAttributes: this.LoggerTrimAttributes,
 			},
 			os.Stdout,
 			org,
 			project,
-		).With("project-group", "process")
+		)
 	}
 	return this.logger
 }

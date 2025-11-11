@@ -18,10 +18,7 @@ package docker
 
 import (
 	"context"
-	"fmt"
-	"io"
 	"log"
-	"strings"
 	"sync"
 
 	"github.com/testcontainers/testcontainers-go"
@@ -59,16 +56,18 @@ func MgwProcessSyncClient(ctx context.Context, wg *sync.WaitGroup, camundaDb, ca
 			log.Println("DEBUG: remove container mgw-process-sync-client", c.Terminate(context.Background()))
 		}()
 		<-ctx.Done()
-		reader, err := c.Logs(context.Background())
-		if err != nil {
-			log.Println("ERROR: unable to get container log")
-			return
-		}
-		buf := new(strings.Builder)
-		io.Copy(buf, reader)
-		fmt.Println("CLIENT LOGS: ------------------------------------------")
-		fmt.Println(buf.String())
-		fmt.Println("\n---------------------------------------------------------------")
+		/*
+			reader, err := c.Logs(context.Background())
+			if err != nil {
+				log.Println("ERROR: unable to get container log")
+				return
+			}
+			buf := new(strings.Builder)
+			io.Copy(buf, reader)
+			fmt.Println("CLIENT LOGS: ------------------------------------------")
+			fmt.Println(buf.String())
+			fmt.Println("\n---------------------------------------------------------------")
+		*/
 	}()
 
 	return err
