@@ -49,6 +49,14 @@ func (this *Controller) ApiSyncDeployments(networkId string) (error, int) {
 				}
 			}
 			if deployment.SyncInfo.MarkedAsMissing {
+				_, exists, err := this.db.GetDeploymentWardenInfoByDeploymentId(networkId, deployment.Id)
+				if err != nil {
+					errorList = append(errorList, err)
+					continue
+				}
+				if exists {
+					continue //is handled by warden --> no manual sync
+				}
 				metadata, err := this.db.ReadDeploymentMetadata(networkId, deployment.Id)
 				if err != nil && !errors.Is(err, database.ErrNotFound) {
 					errorList = append(errorList, err)

@@ -514,6 +514,7 @@ func TestWardenWithPreexistingDatabase(t *testing.T) {
 			instancIndexByKey[instance.BusinessKey] = i
 		}
 		t.Run("delete deployment long", testRemoveDeployment(config.ApiPort, networkId, &deployments, deploymentIndexById["long"]))
+		time.Sleep(time.Second)
 		t.Run("stop instance param", testDeleteInstances(config.ApiPort, networkId, &instances, instancIndexByKey["param"]))
 	})
 

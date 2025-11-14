@@ -24,12 +24,15 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"slices"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/database/mongo"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/tests/server"
 	paho "github.com/eclipse/paho.mqtt.golang"
@@ -218,6 +221,9 @@ func TestMarkedAsMissingRetry(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	wardenInterval := time.Second * 5
+	wardenAgeGate := time.Second * 2
+
 	config := configuration.Config{
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
@@ -231,6 +237,12 @@ func TestMarkedAsMissingRetry(t *testing.T) {
 		MongoLastNetworkContactCollection: "last_network_collection",
 		MongoWardenCollection:             "warden",
 		MongoDeploymentWardenCollection:   "deployment_warden",
+
+		WardenAgeGate:           wardenInterval.String(),
+		WardenInterval:          wardenAgeGate.String(),
+		RunWardenDeploymentLoop: true,
+		RunWardenProcessLoop:    true,
+		RunWardenDbLoop:         true,
 	}
 
 	networkId := "test-network-id"
@@ -242,18 +254,42 @@ func TestMarkedAsMissingRetry(t *testing.T) {
 
 	time.Sleep(2 * time.Second)
 
-	t.Run("deploy process 1", testDeployExampleProcess(config.ApiPort, networkId))
-	t.Run("deploy process 2", testDeployExampleProcess(config.ApiPort, networkId))
+	t.Run("deploy process 1", testDeployExampleProcessWithName(config.ApiPort, networkId, "n1"))
+	t.Run("deploy process 2", testDeployExampleProcessWithName(config.ApiPort, networkId, "n2"))
+
+	time.Sleep(3 * wardenInterval)
 
 	deployments := []model.Deployment{}
-
-	time.Sleep(5 * time.Second)
 	t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
+	slices.SortFunc(deployments, func(a, b model.Deployment) int {
+		return strings.Compare(a.Name, b.Name)
+	})
+
+	t.Run("delete warden infos for processes", func(t *testing.T) {
+		//to simulate pre warden deployment
+		db, err := mongo.New(config)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		for _, id := range []string{deployments[0].Id, deployments[1].Id} {
+			err = db.RemoveDeploymentWardenInfo(networkId, id)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+		}
+
+	})
+
+	t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
+	slices.SortFunc(deployments, func(a, b model.Deployment) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 	t.Run("check deployments is placeholder", testCheckDeploymentsPlaceholder(&deployments, []bool{false, false}))
 	t.Run("check deployments is marked delete", testCheckDeploymentsMarkedDelete(&deployments, []bool{false, false}))
 
-	//send 'known' message
-	t.Run("send known message", func(t *testing.T) {
+	t.Run("delete deployment on client side", func(t *testing.T) {
 		options := paho.NewClientOptions().
 			SetPassword(config.Mqtt[0].Pw).
 			SetUsername(config.Mqtt[0].User).
@@ -272,10 +308,13 @@ func TestMarkedAsMissingRetry(t *testing.T) {
 		}
 	})
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * wardenInterval)
 
 	//check result after 'known' message
 	t.Run("get deployments after delete", testGetDeployments(config.ApiPort, networkId, &deployments))
+	slices.SortFunc(deployments, func(a, b model.Deployment) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 	t.Run("check deployments is placeholder after delete", testCheckDeploymentsPlaceholder(&deployments, []bool{false, false}))
 	t.Run("check deployments is marked delete after delete", testCheckDeploymentsMarkedDelete(&deployments, []bool{false, false}))
 	t.Run("check deployments is marked missing after client side delete", testCheckDeploymentsMarkedMissing(&deployments, []bool{false, true}))
@@ -301,8 +340,11 @@ func TestMarkedAsMissingRetry(t *testing.T) {
 			return
 		}
 	})
-	time.Sleep(2 * time.Second)
+	time.Sleep(3 * wardenInterval)
 	t.Run("get deployments after sync", testGetDeployments(config.ApiPort, networkId, &deployments))
+	slices.SortFunc(deployments, func(a, b model.Deployment) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 	t.Run("check deployments is placeholder after sync", testCheckDeploymentsPlaceholder(&deployments, []bool{false, false}))
 	t.Run("check deployments is marked delete after sync", testCheckDeploymentsMarkedDelete(&deployments, []bool{false, false}))
 	t.Run("check deployments is marked missing after sync", testCheckDeploymentsMarkedMissing(&deployments, []bool{false, false}))
@@ -884,7 +926,7 @@ func testCheckDeploymentsMarkedMissing(deployments *[]model.Deployment, bools []
 		for i, b := range bools {
 			depl := (*deployments)[i]
 			if depl.MarkedAsMissing != b {
-				t.Error(i, depl)
+				t.Error(i, depl.Name, depl.MarkedAsMissing, depl)
 				return
 			}
 		}
@@ -1053,6 +1095,48 @@ func testFindDeployments(port string, searchtext string, networkId string, resul
 			return
 		}
 		*result = temp
+	}
+}
+
+func testDeployExampleProcessWithName(port string, networkId string, name string) func(t *testing.T) {
+	return func(t *testing.T) {
+		requestBody := new(bytes.Buffer)
+		err := json.NewEncoder(requestBody).Encode(deploymentmodel.Deployment{
+			Version:     deploymentmodel.CurrentVersion,
+			Id:          "test-id",
+			Name:        name,
+			Description: "test-description",
+			Diagram: deploymentmodel.Diagram{
+				XmlDeployed: deploymentExampleXml,
+				Svg:         "<svg></svg>",
+				XmlRaw:      deploymentExampleXml,
+			},
+			Executable: true,
+		})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		req, err := http.NewRequest("POST", "http://localhost:"+port+"/deployments/"+url.PathEscape(networkId), requestBody)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode >= 300 {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(resp.Body)
+			err = errors.New(buf.String())
+		}
+		if err != nil {
+			t.Error(err)
+			return
+		}
 	}
 }
 
