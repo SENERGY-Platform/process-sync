@@ -5,8 +5,8 @@
         {
             "broker": "tcp://localhost:1883",
             "client_id": "clientId",
-            "user": "user",
-            "pw": "password"
+            "user": "",
+            "pw": ""
         }
     ],
     "mqtt_group_id": "",
@@ -22,6 +22,7 @@
     "mongo_process_instance_collection": "process_instances",
     "mongo_last_network_contact_collection": "last_network_contact",
     "permissions_v2_url": "http://permv2.permissions:8080",
+    "device_repo_url": "",
     "analytics_envelope_prefix": "",
 
     "cleanup_max_age": "730h",

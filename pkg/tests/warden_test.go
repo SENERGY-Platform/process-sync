@@ -23,6 +23,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"slices"
 	"strings"
 	"sync"
@@ -32,6 +33,7 @@ import (
 	"github.com/SENERGY-Platform/event-deployment/lib/interfaces"
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
 	"github.com/SENERGY-Platform/models/go/models"
+	"github.com/SENERGY-Platform/permissions-v2/pkg/client"
 	"github.com/SENERGY-Platform/process-deployment/lib/auth"
 	"github.com/SENERGY-Platform/process-sync/pkg/api"
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
@@ -46,13 +48,561 @@ import (
 )
 
 func TestWardenWithPreexistingDatabase(t *testing.T) {
-	t.Skip("TODO") //TODO
-	//deploy ghcr.io/senergy-platform/process-sync:v0.0.24
-	//start some processes
-	//stop docker process-sync
-	//start current sync controller+api
-	//start additional processes
-	//check state (old + new should be present)
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	wardenInterval := time.Second * 5
+	wardenAgeGate := time.Second * 2
+
+	config := configuration.Config{
+		MqttCleanSession:                  true,
+		MqttGroupId:                       "",
+		MongoTable:                        "sync",
+		MongoProcessDefinitionCollection:  "process_definitions",
+		MongoDeploymentCollection:         "deployments",
+		MongoProcessHistoryCollection:     "process_history",
+		MongoIncidentCollection:           "incidents",
+		MongoProcessInstanceCollection:    "process_instances",
+		MongoDeploymentMetadataCollection: "deployment_metadata",
+		MongoLastNetworkContactCollection: "last_network_contact",
+		MongoWardenCollection:             "warden",
+		MongoDeploymentWardenCollection:   "deployment_warden",
+
+		LogLevel:             "debug",
+		LoggerTrimFormat:     "100:[...]:100",
+		LoggerTrimAttributes: "payload",
+
+		WardenAgeGate:           wardenInterval.String(),
+		WardenInterval:          wardenAgeGate.String(),
+		RunWardenDeploymentLoop: true,
+		RunWardenProcessLoop:    true,
+		RunWardenDbLoop:         true,
+	}
+
+	networkId := "test-network-id"
+
+	var err error
+
+	_, mqttip, err := docker.Mqtt(ctx, wg)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	config.Mqtt = []configuration.MqttConfig{{
+		Broker: "tcp://" + mqttip + ":1883",
+	}}
+
+	mongoPort, mongoip, err := docker.Mongo(ctx, wg)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	config.MongoUrl = "mongodb://localhost:" + mongoPort
+
+	oldSyncWg := sync.WaitGroup{}
+	oldSyncCtx, oldSyncClose := context.WithCancel(ctx)
+
+	t.Setenv("auth_token", client.InternalAdminToken)
+
+	mqttMsgMux := sync.Mutex{}
+	mqttMessages := map[string][]string{}
+	mqttclient := multimqtt.NewClient(config.Mqtt, func(options *paho.ClientOptions) {
+		options.SetCleanSession(true)
+		options.SetResumeSubs(true)
+		options.SetConnectionLostHandler(func(c paho.Client, err error) {
+			o := c.OptionsReader()
+			config.GetLogger().Error("connection to mqtt broker lost", "error", err, "client", o.ClientID())
+		})
+		options.SetOnConnectHandler(func(c paho.Client) {
+			o := c.OptionsReader()
+			config.GetLogger().Info("connected to mqtt broker", "client", o.ClientID())
+			c.Subscribe("#", 1, func(c paho.Client, msg paho.Message) {
+				mqttMsgMux.Lock()
+				defer mqttMsgMux.Unlock()
+				fmt.Println("mqtt message:", msg.Topic(), struct_logger.Trim(string(msg.Payload()), "...", 200, 0))
+				mqttMessages[msg.Topic()] = append(mqttMessages[msg.Topic()], struct_logger.Trim(string(msg.Payload()), "...", 200, 0))
+			})
+		})
+	})
+
+	token := mqttclient.Connect()
+	if token.Wait() && token.Error() != nil {
+		t.Error(token.Error())
+		return
+	}
+
+	t.Run("start old process-sync", func(t *testing.T) {
+		config.ApiPort, err = docker.MgwProcessSync(oldSyncCtx, &oldSyncWg, "mongodb://"+mongoip+":27017", config.Mqtt[0].Broker)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	})
+
+	var camundaUrl string
+
+	t.Run("start client", func(t *testing.T) {
+		_, mongoIp, err := docker.Mongo(ctx, wg)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		clientMetadataStorageUrl := "mongodb://" + mongoIp + ":27017/metadata"
+
+		var camundaPgIp string
+		camundaDb, camundaPgIp, _, err := docker.PostgresWithNetwork(ctx, wg, "camunda")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		camundaUrl, err = docker.Camunda(ctx, wg, camundaPgIp, "5432")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		err = docker.TaskWorker(ctx, wg, config.Mqtt[0].Broker, camundaUrl, networkId)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		err = docker.MgwProcessSyncClient(ctx, wg, camundaDb, camundaUrl, config.Mqtt[0].Broker, "mgw-test-sync-client", networkId, clientMetadataStorageUrl)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	})
+
+	t.Run("run commands on old sync", func(t *testing.T) {
+		t.Run("deploy process long", testDeployProcessWithArgs(config.ApiPort, networkId, "long", resources.LongProcess))
+		t.Run("deploy process finishing", testDeployProcessWithArgs(config.ApiPort, networkId, "finishing", resources.Finishing))
+		t.Run("deploy process param", testDeployProcessWithArgs(config.ApiPort, networkId, "param", resources.LongWithParameter))
+		t.Run("deploy process incident", testDeployProcessWithArgs(config.ApiPort, networkId, "incident", resources.IncidentWithDurBpmn))
+
+		time.Sleep(3 * wardenInterval)
+
+		deployments := []model.Deployment{}
+		deploymentIndexById := map[string]int{}
+		t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
+		t.Run("check deployments count", func(t *testing.T) {
+			if len(deployments) != 4 {
+				t.Error("expected 4 deployments")
+			}
+			for i, deployment := range deployments {
+				deploymentIndexById[deployment.Id] = i
+			}
+		})
+
+		metadata := []model.DeploymentMetadata{}
+		deploymentOrigIdToClientId := map[string]string{}
+		t.Run("get metadata", testGetDeploymentMetadata("http://localhost:"+config.ApiPort, networkId, &metadata))
+		for _, m := range metadata {
+			deploymentOrigIdToClientId[m.DeploymentModel.Id] = m.CamundaDeploymentId
+		}
+
+		t.Run("start deployment long", testStartDeploymentWithKey(config.ApiPort, networkId, &deployments, deploymentIndexById[deploymentOrigIdToClientId["long"]], "long"))
+		t.Run("start deployment finishing", testStartDeploymentWithKey(config.ApiPort, networkId, &deployments, deploymentIndexById[deploymentOrigIdToClientId["finishing"]], "finishing"))
+		t.Run("start deployment param", testStartDeploymentWithKeyAndParameter(config.ApiPort, networkId, &deployments, deploymentIndexById[deploymentOrigIdToClientId["param"]], "param", url.Values{"testinput": {"42"}}))
+		t.Run("start deployment incident", testStartDeploymentWithKey(config.ApiPort, networkId, &deployments, deploymentIndexById[deploymentOrigIdToClientId["incident"]], "incident"))
+	})
+
+	expectedBusinessKeys := []string{"long", "param"}
+
+	t.Run("check state after start", func(t *testing.T) {
+		time.Sleep(3 * wardenInterval)
+
+		t.Run("backend", func(t *testing.T) {
+			deployments := []model.Deployment{}
+			t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
+			t.Run("check deployments count", func(t *testing.T) {
+				if len(deployments) != 4 {
+					t.Error("expected 4 deployments, got", len(deployments))
+				}
+			})
+
+			metadata := []model.DeploymentMetadata{}
+			t.Run("get metadata", testGetDeploymentMetadata("http://localhost:"+config.ApiPort, networkId, &metadata))
+			t.Run("check metadata count", func(t *testing.T) {
+				if len(metadata) != 4 {
+					t.Error("expected 4 metadata, got", len(metadata))
+				}
+			})
+
+			instances := []model.ProcessInstance{}
+			instancesByBusinessKey := map[string]model.ProcessInstance{}
+			t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+			t.Run("check instance count", func(t *testing.T) {
+				if len(instances) != 2 { //finishing process should not appear
+					t.Error("expected 2 instances, got", len(instances))
+					for _, instance := range instances {
+						t.Error("got", instance.BusinessKey)
+					}
+				}
+				for _, instance := range instances {
+					instancesByBusinessKey[instance.BusinessKey] = instance
+				}
+				for _, key := range expectedBusinessKeys {
+					if _, ok := instancesByBusinessKey[key]; !ok {
+						t.Error("expected to find key", key)
+					}
+				}
+			})
+		})
+
+		t.Run("client", func(t *testing.T) {
+			deployments := []model.Deployment{}
+			t.Run("get deployments", testCamundaGetDeployments(camundaUrl, &deployments))
+			t.Run("check deployments count", func(t *testing.T) {
+				if len(deployments) != 4 {
+					t.Error("expected 4 deployments, got", len(deployments))
+				}
+			})
+
+			instances := []model.ProcessInstance{}
+			instancesByBusinessKey := map[string]model.ProcessInstance{}
+			t.Run("get instances", testCamundaGetInstances(camundaUrl, &instances))
+			t.Run("check instance count", func(t *testing.T) {
+				if len(instances) != 2 {
+					t.Error("expected 2 instances, got", len(instances))
+				}
+				for _, instance := range instances {
+					instancesByBusinessKey[instance.BusinessKey] = instance
+				}
+				for _, key := range expectedBusinessKeys {
+					if _, ok := instancesByBusinessKey[key]; !ok {
+						t.Error("expected to find key", key)
+					}
+				}
+			})
+		})
+	})
+
+	t.Run("stop old sync", func(t *testing.T) {
+		oldSyncClose()
+		oldSyncWg.Wait()
+	})
+
+	t.Run("start new sync", func(t *testing.T) {
+		config.ApiPort, err = docker.GetFreePortStr()
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		db, err := mongo.New(config)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		d := &mocks.Devices{}
+
+		ctrl, err := controller.New(config, ctx, db, mocks.Security(), func(token string, deviceRepoUrl string) interfaces.Devices {
+			return d
+		}, func(token string, baseUrl string, deviceId string) (result models.Device, err error, code int) {
+			return d.GetDevice(auth.Token{Token: token}, deviceId)
+		})
+
+		err = api.Start(config, ctx, ctrl)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	})
+
+	t.Run("check state after migration", func(t *testing.T) {
+		time.Sleep(3 * wardenInterval)
+
+		t.Run("backend", func(t *testing.T) {
+			deployments := []model.Deployment{}
+			t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
+			t.Run("check deployments count", func(t *testing.T) {
+				if len(deployments) != 4 {
+					t.Error("expected 4 deployments, got", len(deployments))
+				}
+			})
+
+			metadata := []model.DeploymentMetadata{}
+			t.Run("get metadata", testGetDeploymentMetadata("http://localhost:"+config.ApiPort, networkId, &metadata))
+			t.Run("check metadata count", func(t *testing.T) {
+				if len(metadata) != 4 {
+					t.Error("expected 4 metadata, got", len(metadata))
+				}
+			})
+
+			instances := []model.ProcessInstance{}
+			instancesByBusinessKey := map[string]model.ProcessInstance{}
+			t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+			t.Run("check instance count", func(t *testing.T) {
+				if len(instances) != 2 { //finishing process should not appear
+					t.Error("expected 2 instances, got", len(instances))
+				}
+				for _, instance := range instances {
+					instancesByBusinessKey[instance.BusinessKey] = instance
+				}
+				for _, key := range expectedBusinessKeys {
+					if _, ok := instancesByBusinessKey[key]; !ok {
+						t.Error("expected to find key", key)
+					}
+				}
+			})
+		})
+
+		t.Run("client", func(t *testing.T) {
+			deployments := []model.Deployment{}
+			t.Run("get deployments", testCamundaGetDeployments(camundaUrl, &deployments))
+			t.Run("check deployments count", func(t *testing.T) {
+				if len(deployments) != 4 {
+					t.Error("expected 4 deployments, got", len(deployments))
+				}
+			})
+
+			instances := []model.ProcessInstance{}
+			instancesByBusinessKey := map[string]model.ProcessInstance{}
+			t.Run("get instances", testCamundaGetInstances(camundaUrl, &instances))
+			t.Run("check instance count", func(t *testing.T) {
+				if len(instances) != 2 {
+					t.Error("expected 2 instances, got", len(instances))
+				}
+				for _, instance := range instances {
+					instancesByBusinessKey[instance.BusinessKey] = instance
+				}
+				for _, key := range expectedBusinessKeys {
+					if _, ok := instancesByBusinessKey[key]; !ok {
+						t.Error("expected to find key", key)
+					}
+				}
+			})
+		})
+	})
+
+	expectedBusinessKeys = []string{"long", "param", "wardened:long2", "wardened:param2", "wardened:incident2"}
+
+	t.Run("updates", func(t *testing.T) {
+		t.Run("deploy process long2", testDeployProcessWithArgs(config.ApiPort, networkId, "long2", resources.LongProcess))
+		t.Run("deploy process finishing2", testDeployProcessWithArgs(config.ApiPort, networkId, "finishing2", resources.Finishing))
+		t.Run("deploy process param2", testDeployProcessWithArgs(config.ApiPort, networkId, "param2", resources.LongWithParameter))
+		t.Run("deploy process incident2", testDeployProcessWithArgs(config.ApiPort, networkId, "incident2", resources.IncidentWithDurBpmn))
+
+		deployments := []model.Deployment{}
+		deploymentIndexById := map[string]int{}
+		t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
+		t.Run("check deployments count", func(t *testing.T) {
+			if len(deployments) != 8 {
+				t.Error("expected 8 deployments, got", len(deployments))
+			}
+			for i, deployment := range deployments {
+				deploymentIndexById[deployment.Id] = i
+			}
+		})
+
+		t.Run("start deployment long", testStartDeploymentWithKey(config.ApiPort, networkId, &deployments, deploymentIndexById["long2"], "long2"))
+		t.Run("start deployment finishing", testStartDeploymentWithKey(config.ApiPort, networkId, &deployments, deploymentIndexById["finishing2"], "finishing2"))
+		t.Run("start deployment param", testStartDeploymentWithKeyAndParameter(config.ApiPort, networkId, &deployments, deploymentIndexById["param2"], "param2", url.Values{"testinput": {"42"}}))
+		t.Run("start deployment incident", testStartDeploymentWithKey(config.ApiPort, networkId, &deployments, deploymentIndexById["incident2"], "incident2"))
+
+		instances := []model.ProcessInstance{}
+		t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+		slices.SortFunc(instances, func(a, b model.ProcessInstance) int {
+			return strings.Compare(a.BusinessKey, b.BusinessKey)
+		})
+		t.Run("check instance count", func(t *testing.T) {
+			if len(instances) != 6 {
+				t.Error("expected 6 instances, got", len(instances))
+				for _, v := range instances {
+					t.Log(v.BusinessKey)
+				}
+			}
+		})
+
+		historicInstances := []model.HistoricProcessInstance{}
+		t.Run("get historic instances", testGetHistoricInstances(config.ApiPort, networkId, &historicInstances))
+		t.Run("check historic instance count", func(t *testing.T) {
+			if len(historicInstances) != 8 {
+				t.Error("expected 8 historicInstances, got", len(historicInstances))
+			}
+		})
+	})
+
+	t.Run("check state after updates", func(t *testing.T) {
+		time.Sleep(3 * wardenInterval)
+
+		t.Run("backend", func(t *testing.T) {
+			deployments := []model.Deployment{}
+			t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
+			t.Run("check deployments count", func(t *testing.T) {
+				if len(deployments) != 8 {
+					t.Error("expected 8 deployments, got", len(deployments))
+				}
+			})
+
+			metadata := []model.DeploymentMetadata{}
+			t.Run("get metadata", testGetDeploymentMetadata("http://localhost:"+config.ApiPort, networkId, &metadata))
+			t.Run("check metadata count", func(t *testing.T) {
+				if len(metadata) != 8 {
+					t.Error("expected 8 metadata, got", len(metadata))
+				}
+			})
+
+			instances := []model.ProcessInstance{}
+			instancesByBusinessKey := map[string]model.ProcessInstance{}
+			t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+			t.Run("check instance count", func(t *testing.T) {
+				if len(instances) != 5 { //finishing process should not appear
+					t.Error("expected 5 instances, got", len(instances))
+					for _, v := range instances {
+						t.Log(v.BusinessKey)
+					}
+				}
+				for _, instance := range instances {
+					instancesByBusinessKey[instance.BusinessKey] = instance
+				}
+				for _, key := range expectedBusinessKeys {
+					if _, ok := instancesByBusinessKey[key]; !ok {
+						t.Error("expected to find key", key)
+					}
+				}
+			})
+		})
+
+		t.Run("client", func(t *testing.T) {
+			deployments := []model.Deployment{}
+			t.Run("get deployments", testCamundaGetDeployments(camundaUrl, &deployments))
+			t.Run("check deployments count", func(t *testing.T) {
+				if len(deployments) != 8 {
+					t.Error("expected 8 deployments, got", len(deployments))
+				}
+			})
+
+			instances := []model.ProcessInstance{}
+			instancesByBusinessKey := map[string]model.ProcessInstance{}
+			t.Run("get instances", testCamundaGetInstances(camundaUrl, &instances))
+			t.Run("check instance count", func(t *testing.T) {
+				if len(instances) != 5 {
+					t.Error("expected 5 instances, got", len(instances))
+					for _, v := range instances {
+						t.Log(v.BusinessKey)
+					}
+				}
+				for _, instance := range instances {
+					instancesByBusinessKey[instance.BusinessKey] = instance
+				}
+				for _, key := range expectedBusinessKeys {
+					if _, ok := instancesByBusinessKey[key]; !ok {
+						t.Error("expected to find key", key)
+					}
+				}
+			})
+		})
+	})
+
+	t.Run("deletes", func(t *testing.T) {
+		deployments := []model.Deployment{}
+		deploymentIndexById := map[string]int{}
+		t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
+		for i, deployment := range deployments {
+			deploymentIndexById[deployment.Id] = i
+		}
+		instances := []model.ProcessInstance{}
+		instancIndexByKey := map[string]int{}
+		t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+		for i, instance := range instances {
+			instancIndexByKey[instance.BusinessKey] = i
+		}
+		t.Run("delete deployment long", testRemoveDeployment(config.ApiPort, networkId, &deployments, deploymentIndexById["long"]))
+		t.Run("stop instance param", testDeleteInstances(config.ApiPort, networkId, &instances, instancIndexByKey["param"]))
+	})
+
+	expectedBusinessKeys = []string{"wardened:long2", "wardened:param2", "wardened:incident2"}
+
+	t.Run("check state after deletes", func(t *testing.T) {
+		time.Sleep(3 * wardenInterval)
+
+		t.Run("backend", func(t *testing.T) {
+			deployments := []model.Deployment{}
+			t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
+			t.Run("check deployments count", func(t *testing.T) {
+				if len(deployments) != 7 {
+					t.Error("expected 7 deployments, got", len(deployments))
+				}
+			})
+
+			metadata := []model.DeploymentMetadata{}
+			t.Run("get metadata", testGetDeploymentMetadata("http://localhost:"+config.ApiPort, networkId, &metadata))
+			t.Run("check metadata count", func(t *testing.T) {
+				if len(metadata) != 7 {
+					t.Error("expected 7 metadata, got", len(metadata))
+				}
+			})
+
+			instances := []model.ProcessInstance{}
+			instancesByBusinessKey := map[string]model.ProcessInstance{}
+			t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+			t.Run("check instance count", func(t *testing.T) {
+				if len(instances) != 3 { //finishing process should not appear
+					t.Error("expected 3 instances, got", len(instances))
+					for _, v := range instances {
+						t.Log(v.BusinessKey)
+					}
+				}
+				for _, instance := range instances {
+					instancesByBusinessKey[instance.BusinessKey] = instance
+				}
+				for _, key := range expectedBusinessKeys {
+					if _, ok := instancesByBusinessKey[key]; !ok {
+						t.Error("expected to find key", key)
+					}
+				}
+			})
+		})
+
+		t.Run("client", func(t *testing.T) {
+			deployments := []model.Deployment{}
+			t.Run("get deployments", testCamundaGetDeployments(camundaUrl, &deployments))
+			t.Run("check deployments count", func(t *testing.T) {
+				if len(deployments) != 7 {
+					t.Error("expected 7 deployments, got", len(deployments))
+				}
+			})
+
+			instances := []model.ProcessInstance{}
+			instancesByBusinessKey := map[string]model.ProcessInstance{}
+			t.Run("get instances", testCamundaGetInstances(camundaUrl, &instances))
+			t.Run("check instance count", func(t *testing.T) {
+				if len(instances) != 3 {
+					t.Error("expected 3 instances, got", len(instances))
+					for _, v := range instances {
+						t.Log(v.BusinessKey)
+					}
+				}
+				for _, instance := range instances {
+					instancesByBusinessKey[instance.BusinessKey] = instance
+				}
+				for _, key := range expectedBusinessKeys {
+					if _, ok := instancesByBusinessKey[key]; !ok {
+						t.Error("expected to find key", key)
+					}
+				}
+			})
+		})
+	})
+
+	t.Run("mqtt msg log", func(t *testing.T) {
+		mqttMsgMux.Lock()
+		defer mqttMsgMux.Unlock()
+		fmt.Println("mqtt messages")
+		for k, v := range mqttMessages {
+			fmt.Println("--------------")
+			fmt.Println(k)
+			for _, vv := range v {
+				fmt.Println(vv)
+			}
+		}
+	})
 }
 
 func TestWardenWithClientReset(t *testing.T) {
@@ -1842,7 +2392,15 @@ func TestWardenLongRunningProcess(t *testing.T) {
 
 func testGetDeploymentMetadata(syncUrl string, networkId string, metadata *[]model.DeploymentMetadata) func(t *testing.T) {
 	return func(t *testing.T) {
-		resp, err := http.Get(syncUrl + "/metadata/" + url.PathEscape(networkId))
+		req, err := http.NewRequest("GET", syncUrl+"/metadata/"+url.PathEscape(networkId), nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if token := os.Getenv("auth_token"); token != "" {
+			req.Header.Set("Authorization", token)
+		}
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)
 			return
@@ -1864,7 +2422,15 @@ func testGetDeploymentMetadata(syncUrl string, networkId string, metadata *[]mod
 
 func testCamundaGetHistoricInstances(camundaUrl string, instances *[]model.HistoricProcessInstance) func(t *testing.T) {
 	return func(t *testing.T) {
-		resp, err := http.Get(camundaUrl + "/engine-rest/history/process-instance")
+		req, err := http.NewRequest("GET", camundaUrl+"/engine-rest/history/process-instance", nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if token := os.Getenv("auth_token"); token != "" {
+			req.Header.Set("Authorization", token)
+		}
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)
 			return

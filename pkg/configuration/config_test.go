@@ -33,8 +33,8 @@ func TestMqttConfig(t *testing.T) {
 			{
 				Broker:   "tcp://localhost:1883",
 				ClientId: "clientId",
-				User:     "user",
-				Pw:       "password",
+				User:     "",
+				Pw:       "",
 			},
 		}) {
 			t.Error("unexpected mqtt config")

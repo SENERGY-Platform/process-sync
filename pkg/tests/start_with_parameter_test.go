@@ -23,6 +23,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"os"
 	"reflect"
 	"sync"
 	"testing"
@@ -126,6 +127,9 @@ func testStartDeploymentWithKeyAndParameter(port string, networkId string, list 
 			t.Error(err)
 			return
 		}
+		if token := os.Getenv("auth_token"); token != "" {
+			req.Header.Set("Authorization", token)
+		}
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)
@@ -155,6 +159,9 @@ func testStartDeploymentWithKey(port string, networkId string, list *[]model.Dep
 		if err != nil {
 			t.Error(err)
 			return
+		}
+		if token := os.Getenv("auth_token"); token != "" {
+			req.Header.Set("Authorization", token)
 		}
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -278,6 +285,11 @@ func testDeployProcessWithArgs(port string, networkId string, deploymentId strin
 			t.Error(err)
 			return
 		}
+
+		if token := os.Getenv("auth_token"); token != "" {
+			req.Header.Set("Authorization", token)
+		}
+
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)

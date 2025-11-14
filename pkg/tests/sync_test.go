@@ -23,6 +23,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -644,6 +645,9 @@ func testGetInstances(port string, networkId string, result *[]model.ProcessInst
 			t.Error(err)
 			return
 		}
+		if token := os.Getenv("auth_token"); token != "" {
+			req.Header.Set("Authorization", token)
+		}
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)
@@ -741,6 +745,9 @@ func testGetHistoricInstances(port string, networkId string, result *[]model.His
 		if err != nil {
 			t.Error(err)
 			return
+		}
+		if token := os.Getenv("auth_token"); token != "" {
+			req.Header.Set("Authorization", token)
 		}
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -928,6 +935,9 @@ func testGetDeployments(port string, networkId string, result *[]model.Deploymen
 		if err != nil {
 			t.Error(err)
 			return
+		}
+		if token := os.Getenv("auth_token"); token != "" {
+			req.Header.Set("Authorization", token)
 		}
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
