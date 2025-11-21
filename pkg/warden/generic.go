@@ -111,6 +111,10 @@ func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, His
 	return this.processes.MarkInstanceBusinessKeyAsWardenHandled(businessKey)
 }
 
+func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, History, Incident]) InstanceIsCreatedWithWardenHandlingIntended(instance ProcessInstance) bool {
+	return this.processes.InstanceIsCreatedWithWardenHandlingIntended(instance)
+}
+
 func (this *GenericWarden[WardenInfo, DeploymentWardenInfo, ProcessInstance, History, Incident]) AddInstanceWarden(info WardenInfo) error {
 	err := info.Validate()
 	if err != nil {

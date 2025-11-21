@@ -19,12 +19,116 @@ package controller
 import (
 	"errors"
 	"net/http"
+	"slices"
 
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"github.com/SENERGY-Platform/process-sync/pkg/model/camundamodel"
+	"github.com/SENERGY-Platform/process-sync/pkg/warden"
+	"github.com/SENERGY-Platform/service-commons/pkg/util"
 )
+
+func (this *Controller) MigrateToWarden(token string, networkId string) (error, int) {
+	deployments := []model.Deployment{}
+	deplIter := util.IterBatch(100, func(limit int64, offset int64) ([]model.Deployment, error) {
+		return this.db.ListDeployments([]string{networkId}, limit, offset, "id.asc")
+	})
+	for depl, err := range deplIter {
+		if err != nil {
+			return err, http.StatusInternalServerError
+		}
+		_, exists, err := this.db.GetDeploymentWardenInfoByDeploymentId(networkId, depl.Id)
+		if err != nil {
+			return err, http.StatusInternalServerError
+		}
+		if !exists {
+			deployments = append(deployments, depl)
+		}
+	}
+
+	metadataByDeploymentId := map[string]model.DeploymentMetadata{}
+	metadataIter := util.IterBatch(100, func(limit int64, offset int64) ([]model.DeploymentMetadata, error) {
+		return this.db.ListDeploymentMetadata(model.MetadataQuery{NetworkId: &networkId})
+	})
+	for metadata, err := range metadataIter {
+		if err != nil {
+			return err, http.StatusInternalServerError
+		}
+		index := slices.IndexFunc(deployments, func(deployment model.Deployment) bool {
+			return deployment.Id == metadata.CamundaDeploymentId
+		})
+		if index >= 0 {
+			metadataByDeploymentId[metadata.CamundaDeploymentId] = metadata
+		}
+	}
+
+	definitionById := map[string]model.ProcessDefinition{}
+	definitionIter := util.IterBatch(100, func(limit int64, offset int64) ([]model.ProcessDefinition, error) {
+		return this.db.ListProcessDefinitions([]string{networkId}, limit, offset, "id.asc")
+	})
+	for def, err := range definitionIter {
+		if err != nil {
+			return err, http.StatusInternalServerError
+		}
+		index := slices.IndexFunc(deployments, func(deployment model.Deployment) bool {
+			return deployment.Id == def.DeploymentId
+		})
+		if index >= 0 {
+			definitionById[def.Id] = def
+		}
+	}
+
+	instancesByDeploymentId := map[string][]model.ProcessInstance{}
+	instanceIter := util.IterBatch(100, func(limit int64, offset int64) ([]model.ProcessInstance, error) {
+		return this.db.FindProcessInstances(model.InstanceQuery{NetworkIds: []string{networkId}, Limit: limit, Offset: offset})
+	})
+	for instance, err := range instanceIter {
+		if err != nil {
+			return err, http.StatusInternalServerError
+		}
+		if this.warden.InstanceIsCreatedWithWardenHandlingIntended(instance) {
+			continue
+		}
+		if def, ok := definitionById[instance.DefinitionId]; ok {
+			instancesByDeploymentId[def.DeploymentId] = append(instancesByDeploymentId[def.DeploymentId], instance)
+		}
+	}
+
+	for _, deployment := range deployments {
+		err := this.warden.AddDeploymentWarden(warden.DeploymentWardenInfo{
+			DeploymentId: deployment.Id,
+			NetworkId:    networkId,
+			Deployment:   metadataByDeploymentId[deployment.Id].DeploymentModel,
+		})
+		if err != nil {
+			return err, http.StatusInternalServerError
+		}
+		metadata := metadataByDeploymentId[deployment.Id]
+		if len(metadata.ProcessParameter) == 0 { //only restart process instances where no parameters are needed
+			for _, instance := range instancesByDeploymentId[deployment.Id] {
+				businessKey := instance.BusinessKey
+				if businessKey == "" {
+					businessKey = "migration_of_" + instance.Id
+				}
+				err, _ = this.ApiStartDeployment(networkId, deployment.Id, businessKey, map[string]interface{}{})
+				if err != nil {
+					return err, http.StatusInternalServerError
+				}
+				err, _ = this.ApiDeleteProcessInstance(networkId, instance.Id)
+				if err != nil {
+					this.config.GetLogger().Error("MigrateToWarden(): unable to delete old instance", "error", err, "instanceId", instance.Id)
+					wardenErr := this.warden.RemoveInstanceWardenByBusinessKey(networkId, businessKey) //instance.Id is not stable --> use businessKey --> warden will remove the unneeded instance later
+					if wardenErr != nil {
+						this.config.GetLogger().Error("MigrateToWarden(): unable to remove instance from warden", "error", wardenErr, "businessKey", businessKey)
+					}
+					return err, http.StatusInternalServerError
+				}
+			}
+		}
+	}
+	return nil, http.StatusOK
+}
 
 func (this *Controller) ApiSyncDeployments(networkId string) (error, int) {
 	err := this.db.RemovePlaceholderDeployments(networkId)

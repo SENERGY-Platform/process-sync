@@ -47,6 +47,10 @@ import (
 	paho "github.com/eclipse/paho.mqtt.golang"
 )
 
+func TestControllerMigrateToWarden(t *testing.T) {
+	t.Error("TODO: implement test") //TODO
+}
+
 func TestWardenWithPreexistingDatabase(t *testing.T) {
 	wg := &sync.WaitGroup{}
 	defer wg.Wait()
