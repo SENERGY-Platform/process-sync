@@ -16,6 +16,8 @@
 
 package camundamodel
 
+import "time"
+
 type Variable struct {
 	Value     interface{} `json:"value"`
 	Type      string      `json:"type"`
@@ -134,4 +136,20 @@ type HistoricProcessInstancesWithTotal = struct {
 }
 
 var CamundaTimeFormat = "2006-01-02T15:04:05.000Z0700"
-var AlternativeCamundaTimeFormat = "2006-01-02T15:04:05.000"
+var CamundaTimeFormatsList = []string{
+	CamundaTimeFormat,
+	"2006-01-02T15:04:05.000",
+	"2006-01-02T15:04:05.00",
+	"2006-01-02T15:04:05.0",
+	"2006-01-02T15:04:05",
+}
+
+func ParseCamundaTime(timeStr string) (result time.Time, err error) {
+	for _, format := range CamundaTimeFormatsList {
+		result, err = time.Parse(format, timeStr)
+		if err == nil {
+			return result, nil
+		}
+	}
+	return result, err
+}
