@@ -85,11 +85,12 @@ type ProcessInstance struct {
 }
 
 type InstanceQuery struct {
-	NetworkIds   []string
-	BusinessKeys []string
-	Sort         string
-	Limit        int64
-	Offset       int64
+	NetworkIds    []string
+	BusinessKeys  []string
+	DefinitionIds []string
+	Sort          string
+	Limit         int64
+	Offset        int64
 }
 
 type StartMessage struct {

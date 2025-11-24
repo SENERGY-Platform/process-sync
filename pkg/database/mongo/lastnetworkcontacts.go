@@ -116,6 +116,24 @@ func (this *Mongo) GetOldNetworkIds(maxAge time.Duration) (result []string, err 
 	return result, err
 }
 
+func (this *Mongo) ListKnownNetworkIds() (result []string, err error) {
+	ctx, _ := this.getTimeoutContext()
+	cursor, err := this.lastNetworkContactCollection().Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	for cursor.Next(ctx) {
+		element := model.LastNetworkContact{}
+		err = cursor.Decode(&element)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, element.NetworkId)
+	}
+	err = cursor.Err()
+	return result, err
+}
+
 func (this *Mongo) RemoveOldElements(maxAge time.Duration) (err error) {
 	networkIds, err := this.GetOldNetworkIds(maxAge)
 	if err != nil {

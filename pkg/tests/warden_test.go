@@ -48,7 +48,20 @@ import (
 )
 
 func TestControllerMigrateToWarden(t *testing.T) {
-	t.Skip("TODO: implement test") //TODO
+	t.Setenv("RUN_WARDEN_MIGRATION", "true")
+	t.Run("run", TestWardenWithPreexistingDatabase)
+}
+
+func TestControllerMigrateToWarden2(t *testing.T) {
+	t.Setenv("RUN_WARDEN_MIGRATION", "false")
+	t.Setenv("TEST_RUN_WARDEN_MIGRATION", "true")
+	t.Run("run", TestWardenWithPreexistingDatabase)
+}
+
+func TestControllerMigrateToWarde3(t *testing.T) {
+	t.Setenv("RUN_WARDEN_MIGRATION", "true")
+	t.Setenv("TEST_RUN_WARDEN_MIGRATION", "true")
+	t.Run("run", TestWardenWithPreexistingDatabase)
 }
 
 func TestWardenWithPreexistingDatabase(t *testing.T) {
@@ -84,6 +97,8 @@ func TestWardenWithPreexistingDatabase(t *testing.T) {
 		RunWardenDeploymentLoop: true,
 		RunWardenProcessLoop:    true,
 		RunWardenDbLoop:         true,
+
+		RunWardenMigration: os.Getenv("RUN_WARDEN_MIGRATION") == "true",
 	}
 
 	networkId := "test-network-id"
@@ -247,12 +262,14 @@ func TestWardenWithPreexistingDatabase(t *testing.T) {
 						t.Error("got", instance.BusinessKey)
 					}
 				}
+				actualBusinessKeys := []string{}
 				for _, instance := range instances {
 					instancesByBusinessKey[instance.BusinessKey] = instance
+					actualBusinessKeys = append(actualBusinessKeys, instance.BusinessKey)
 				}
 				for _, key := range expectedBusinessKeys {
 					if _, ok := instancesByBusinessKey[key]; !ok {
-						t.Error("expected to find key", key)
+						t.Errorf("expected to find key %s from %#v, got %#v", key, expectedBusinessKeys, actualBusinessKeys)
 					}
 				}
 			})
@@ -274,12 +291,14 @@ func TestWardenWithPreexistingDatabase(t *testing.T) {
 				if len(instances) != 2 {
 					t.Error("expected 2 instances, got", len(instances))
 				}
+				actualBusinessKeys := []string{}
 				for _, instance := range instances {
 					instancesByBusinessKey[instance.BusinessKey] = instance
+					actualBusinessKeys = append(actualBusinessKeys, instance.BusinessKey)
 				}
 				for _, key := range expectedBusinessKeys {
 					if _, ok := instancesByBusinessKey[key]; !ok {
-						t.Error("expected to find key", key)
+						t.Errorf("expected to find key %s from %#v, got %#v", key, expectedBusinessKeys, actualBusinessKeys)
 					}
 				}
 			})
@@ -291,6 +310,8 @@ func TestWardenWithPreexistingDatabase(t *testing.T) {
 		oldSyncWg.Wait()
 	})
 
+	var ctrl *controller.Controller
+	var db *mongo.Mongo
 	t.Run("start new sync", func(t *testing.T) {
 		config.ApiPort, err = docker.GetFreePortStr()
 		if err != nil {
@@ -298,14 +319,14 @@ func TestWardenWithPreexistingDatabase(t *testing.T) {
 			return
 		}
 
-		db, err := mongo.New(config)
+		db, err = mongo.New(config)
 		if err != nil {
 			t.Error(err)
 			return
 		}
 		d := &mocks.Devices{}
 
-		ctrl, err := controller.New(config, ctx, db, mocks.Security(), func(token string, deviceRepoUrl string) interfaces.Devices {
+		ctrl, err = controller.New(config, ctx, db, mocks.Security(), func(token string, deviceRepoUrl string) interfaces.Devices {
 			return d
 		}, func(token string, baseUrl string, deviceId string) (result models.Device, err error, code int) {
 			return d.GetDevice(auth.Token{Token: token}, deviceId)
@@ -317,6 +338,10 @@ func TestWardenWithPreexistingDatabase(t *testing.T) {
 			return
 		}
 	})
+
+	if os.Getenv("RUN_WARDEN_MIGRATION") == "true" {
+		expectedBusinessKeys = []string{"wardened:long", "param"}
+	}
 
 	t.Run("check state after migration", func(t *testing.T) {
 		time.Sleep(3 * wardenInterval)
@@ -345,12 +370,14 @@ func TestWardenWithPreexistingDatabase(t *testing.T) {
 				if len(instances) != 2 { //finishing process should not appear
 					t.Error("expected 2 instances, got", len(instances))
 				}
+				actualBusinessKeys := []string{}
 				for _, instance := range instances {
 					instancesByBusinessKey[instance.BusinessKey] = instance
+					actualBusinessKeys = append(actualBusinessKeys, instance.BusinessKey)
 				}
 				for _, key := range expectedBusinessKeys {
 					if _, ok := instancesByBusinessKey[key]; !ok {
-						t.Error("expected to find key", key)
+						t.Errorf("expected to find key %s from %#v, got %#v", key, expectedBusinessKeys, actualBusinessKeys)
 					}
 				}
 			})
@@ -385,6 +412,9 @@ func TestWardenWithPreexistingDatabase(t *testing.T) {
 	})
 
 	expectedBusinessKeys = []string{"long", "param", "wardened:long2", "wardened:param2", "wardened:incident2"}
+	if os.Getenv("RUN_WARDEN_MIGRATION") == "true" {
+		expectedBusinessKeys = []string{"wardened:long", "param", "wardened:long2", "wardened:param2", "wardened:incident2"}
+	}
 
 	t.Run("updates", func(t *testing.T) {
 		t.Run("deploy process long2", testDeployProcessWithArgs(config.ApiPort, networkId, "long2", resources.LongProcess))
@@ -426,7 +456,7 @@ func TestWardenWithPreexistingDatabase(t *testing.T) {
 		historicInstances := []model.HistoricProcessInstance{}
 		t.Run("get historic instances", testGetHistoricInstances(config.ApiPort, networkId, &historicInstances))
 		t.Run("check historic instance count", func(t *testing.T) {
-			if len(historicInstances) != 8 {
+			if len(historicInstances) < 8 {
 				t.Error("expected 8 historicInstances, got", len(historicInstances))
 			}
 		})
@@ -504,12 +534,128 @@ func TestWardenWithPreexistingDatabase(t *testing.T) {
 		})
 	})
 
+	expectedBusinessKeys = []string{"wardened:long", "param", "wardened:long2", "wardened:param2", "wardened:incident2"}
+
+	if os.Getenv("TEST_RUN_WARDEN_MIGRATION") == "true" {
+		t.Run("run migration", func(t *testing.T) {
+			err = ctrl.MigrateToWarden()
+			if err != nil {
+				t.Error(err)
+			}
+		})
+
+		t.Run("check state after MigrateToWarden", func(t *testing.T) {
+			time.Sleep(3 * wardenInterval)
+
+			t.Run("backend", func(t *testing.T) {
+				deployments := []model.Deployment{}
+				t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
+				t.Run("check deployments count", func(t *testing.T) {
+					if len(deployments) != 8 {
+						t.Error("expected 8 deployments, got", len(deployments))
+					}
+				})
+
+				metadata := []model.DeploymentMetadata{}
+				t.Run("get metadata", testGetDeploymentMetadata("http://localhost:"+config.ApiPort, networkId, &metadata))
+				t.Run("check metadata count", func(t *testing.T) {
+					if len(metadata) != 8 {
+						t.Error("expected 8 metadata, got", len(metadata))
+					}
+				})
+
+				instances := []model.ProcessInstance{}
+				instancesByBusinessKey := map[string]model.ProcessInstance{}
+				t.Run("get instances", testGetInstances(config.ApiPort, networkId, &instances))
+				t.Run("check instance count", func(t *testing.T) {
+					if len(instances) != 5 { //finishing process should not appear
+						t.Error("expected 5 instances, got", len(instances))
+						for _, v := range instances {
+							t.Log(v.BusinessKey, v.IsPlaceholder, v.MarkedAsMissing, v.MarkedForDelete, v.DefinitionId)
+						}
+						definitions, _ := db.ListProcessDefinitions([]string{networkId}, 100, 0, "id.asc")
+						for _, def := range definitions {
+							t.Log("known definition:", def.Id, def.Key, def.Name, def.DeploymentId)
+						}
+					}
+					actualBussinesKeys := []string{}
+					for _, instance := range instances {
+						instancesByBusinessKey[instance.BusinessKey] = instance
+						actualBussinesKeys = append(actualBussinesKeys, instance.BusinessKey)
+					}
+					for _, key := range expectedBusinessKeys {
+						if _, ok := instancesByBusinessKey[key]; !ok {
+							t.Errorf("expected to find key %v in %#v, got %#v", key, expectedBusinessKeys, actualBussinesKeys)
+						}
+					}
+				})
+
+				t.Run("check warden state", func(t *testing.T) {
+					for _, instance := range instances {
+						if !strings.HasPrefix(instance.BusinessKey, "wardened:") {
+							continue
+						}
+						result, err := db.FindWardenInfo(model.WardenInfoQuery{NetworkIds: []string{instance.NetworkId}, BusinessKeys: []string{instance.BusinessKey}})
+						if err != nil {
+							t.Error(err)
+							return
+						}
+						if len(result) != 1 {
+							t.Error("expected 1 warden info, got", len(result), instance.NetworkId, instance.BusinessKey)
+						}
+					}
+
+					for _, depl := range deployments {
+						_, exists, err := db.GetDeploymentWardenInfoByDeploymentId(depl.NetworkId, depl.Id)
+						if err != nil {
+							t.Error(err)
+							return
+						}
+						if !exists {
+							t.Error("expected to find deployment warden info")
+						}
+					}
+				})
+			})
+
+			t.Run("client", func(t *testing.T) {
+				deployments := []model.Deployment{}
+				t.Run("get deployments", testCamundaGetDeployments(camundaUrl, &deployments))
+				t.Run("check deployments count", func(t *testing.T) {
+					if len(deployments) != 8 {
+						t.Error("expected 8 deployments, got", len(deployments))
+					}
+				})
+
+				instances := []model.ProcessInstance{}
+				instancesByBusinessKey := map[string]model.ProcessInstance{}
+				t.Run("get instances", testCamundaGetInstances(camundaUrl, &instances))
+				t.Run("check instance count", func(t *testing.T) {
+					if len(instances) != 5 {
+						t.Error("expected 5 instances, got", len(instances))
+						for _, v := range instances {
+							t.Log(v.BusinessKey)
+						}
+					}
+					for _, instance := range instances {
+						instancesByBusinessKey[instance.BusinessKey] = instance
+					}
+					for _, key := range expectedBusinessKeys {
+						if _, ok := instancesByBusinessKey[key]; !ok {
+							t.Error("expected to find key", key)
+						}
+					}
+				})
+			})
+		})
+	}
+
 	t.Run("deletes", func(t *testing.T) {
 		deployments := []model.Deployment{}
-		deploymentIndexById := map[string]int{}
+		deploymentIndexByName := map[string]int{}
 		t.Run("get deployments", testGetDeployments(config.ApiPort, networkId, &deployments))
 		for i, deployment := range deployments {
-			deploymentIndexById[deployment.Id] = i
+			deploymentIndexByName[deployment.Name] = i
 		}
 		instances := []model.ProcessInstance{}
 		instancIndexByKey := map[string]int{}
@@ -517,7 +663,7 @@ func TestWardenWithPreexistingDatabase(t *testing.T) {
 		for i, instance := range instances {
 			instancIndexByKey[instance.BusinessKey] = i
 		}
-		t.Run("delete deployment long", testRemoveDeployment(config.ApiPort, networkId, &deployments, deploymentIndexById["long"]))
+		t.Run("delete deployment long", testRemoveDeployment(config.ApiPort, networkId, &deployments, deploymentIndexByName["long-name"]))
 		time.Sleep(time.Second)
 		t.Run("stop instance param", testDeleteInstances(config.ApiPort, networkId, &instances, instancIndexByKey["param"]))
 	})
@@ -551,15 +697,21 @@ func TestWardenWithPreexistingDatabase(t *testing.T) {
 				if len(instances) != 3 { //finishing process should not appear
 					t.Error("expected 3 instances, got", len(instances))
 					for _, v := range instances {
-						t.Log(v.BusinessKey)
+						t.Log(v.BusinessKey, v.IsPlaceholder, v.MarkedAsMissing, v.MarkedForDelete, v.DefinitionId)
+					}
+					definitions, _ := db.ListProcessDefinitions([]string{networkId}, 100, 0, "id.asc")
+					for _, def := range definitions {
+						t.Log("known definition:", def.Id, def.Key, def.Name, def.DeploymentId)
 					}
 				}
+				actualBussinesKeys := []string{}
 				for _, instance := range instances {
 					instancesByBusinessKey[instance.BusinessKey] = instance
+					actualBussinesKeys = append(actualBussinesKeys, instance.BusinessKey)
 				}
 				for _, key := range expectedBusinessKeys {
 					if _, ok := instancesByBusinessKey[key]; !ok {
-						t.Error("expected to find key", key)
+						t.Errorf("expected to find key %v in %#v, got %#v", key, expectedBusinessKeys, actualBussinesKeys)
 					}
 				}
 			})

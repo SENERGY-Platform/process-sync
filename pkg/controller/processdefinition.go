@@ -44,6 +44,10 @@ func (this *Controller) DeleteProcessDefinition(networkId string, definitionId s
 	if err != nil {
 		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
 	}
+	err = this.db.RemoveProcessInstancesByDefinitionId(networkId, definitionId)
+	if err != nil {
+		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())
+	}
 	err = this.db.RemoveIncidentOfDefinition(networkId, definitionId)
 	if err != nil {
 		this.config.GetLogger().Error("error", "error", err, "stack", debug.Stack())

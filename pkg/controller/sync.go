@@ -29,22 +29,40 @@ import (
 	"github.com/SENERGY-Platform/service-commons/pkg/util"
 )
 
-func (this *Controller) MigrateToWarden(token string, networkId string) (error, int) {
+func (this *Controller) MigrateToWarden() (err error) {
+	networkIds, err := this.db.ListKnownNetworkIds()
+	if err != nil {
+		return err
+	}
+	for _, networkId := range networkIds {
+		tempErr := this.migrateToWarden(networkId)
+		if tempErr != nil {
+			this.config.GetLogger().Error("unable to migrate network to warden", "networkId", networkId, "error", err)
+			err = errors.Join(err, tempErr)
+		}
+	}
+	return err
+}
+
+func (this *Controller) migrateToWarden(networkId string) error {
 	deployments := []model.Deployment{}
 	deplIter := util.IterBatch(100, func(limit int64, offset int64) ([]model.Deployment, error) {
 		return this.db.ListDeployments([]string{networkId}, limit, offset, "id.asc")
 	})
 	for depl, err := range deplIter {
 		if err != nil {
-			return err, http.StatusInternalServerError
+			return err
 		}
 		_, exists, err := this.db.GetDeploymentWardenInfoByDeploymentId(networkId, depl.Id)
 		if err != nil {
-			return err, http.StatusInternalServerError
+			return err
 		}
 		if !exists {
 			deployments = append(deployments, depl)
 		}
+	}
+	if len(deployments) == 0 {
+		return nil //no deployments to migrate
 	}
 
 	metadataByDeploymentId := map[string]model.DeploymentMetadata{}
@@ -53,7 +71,7 @@ func (this *Controller) MigrateToWarden(token string, networkId string) (error, 
 	})
 	for metadata, err := range metadataIter {
 		if err != nil {
-			return err, http.StatusInternalServerError
+			return err
 		}
 		index := slices.IndexFunc(deployments, func(deployment model.Deployment) bool {
 			return deployment.Id == metadata.CamundaDeploymentId
@@ -69,7 +87,7 @@ func (this *Controller) MigrateToWarden(token string, networkId string) (error, 
 	})
 	for def, err := range definitionIter {
 		if err != nil {
-			return err, http.StatusInternalServerError
+			return err
 		}
 		index := slices.IndexFunc(deployments, func(deployment model.Deployment) bool {
 			return deployment.Id == def.DeploymentId
@@ -85,7 +103,7 @@ func (this *Controller) MigrateToWarden(token string, networkId string) (error, 
 	})
 	for instance, err := range instanceIter {
 		if err != nil {
-			return err, http.StatusInternalServerError
+			return err
 		}
 		if this.warden.InstanceIsCreatedWithWardenHandlingIntended(instance) {
 			continue
@@ -102,7 +120,7 @@ func (this *Controller) MigrateToWarden(token string, networkId string) (error, 
 			Deployment:   metadataByDeploymentId[deployment.Id].DeploymentModel,
 		})
 		if err != nil {
-			return err, http.StatusInternalServerError
+			return err
 		}
 		metadata := metadataByDeploymentId[deployment.Id]
 		if len(metadata.ProcessParameter) == 0 { //only restart process instances where no parameters are needed
@@ -113,7 +131,7 @@ func (this *Controller) MigrateToWarden(token string, networkId string) (error, 
 				}
 				err, _ = this.ApiStartDeployment(networkId, deployment.Id, businessKey, map[string]interface{}{})
 				if err != nil {
-					return err, http.StatusInternalServerError
+					return err
 				}
 				err, _ = this.ApiDeleteProcessInstance(networkId, instance.Id)
 				if err != nil {
@@ -122,12 +140,12 @@ func (this *Controller) MigrateToWarden(token string, networkId string) (error, 
 					if wardenErr != nil {
 						this.config.GetLogger().Error("MigrateToWarden(): unable to remove instance from warden", "error", wardenErr, "businessKey", businessKey)
 					}
-					return err, http.StatusInternalServerError
+					return err
 				}
 			}
 		}
 	}
-	return nil, http.StatusOK
+	return nil
 }
 
 func (this *Controller) ApiSyncDeployments(networkId string) (error, int) {

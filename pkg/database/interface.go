@@ -54,6 +54,7 @@ type Database interface {
 	ReadProcessDefinition(networkId string, processDefinitionId string) (processDefinition model.ProcessDefinition, err error)
 	ListProcessDefinitions(networkIds []string, limit int64, offset int64, sort string) (processDefinition []model.ProcessDefinition, err error)
 	GetDefinitionByDeploymentId(networkId string, deploymentId string) (processDefinition model.ProcessDefinition, err error)
+	RemoveProcessInstancesByDefinitionId(networkId string, processDefinitionId string) error
 
 	SaveIncident(incident model.Incident) (newDocument bool, err error)
 	RemoveIncident(networkId string, incidentId string) error
@@ -79,6 +80,7 @@ type Database interface {
 	SaveLastContact(lastContact model.LastNetworkContact) error
 	FilterNetworkIds(networkIds []string) (result []string, err error)
 	GetOldNetworkIds(maxAge time.Duration) (result []string, err error)
+	ListKnownNetworkIds() (result []string, err error)
 	RemoveOldElements(maxAge time.Duration) (err error)
 
 	SetDeploymentWardenInfo(info model.DeploymentWardenInfo) error

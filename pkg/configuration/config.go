@@ -84,6 +84,8 @@ type Config struct {
 	RunWardenDbLoop         bool   `json:"run_warden_db_loop"`
 	RunWardenProcessLoop    bool   `json:"run_warden_process_loop"`
 	RunWardenDeploymentLoop bool   `json:"run_warden_deployment_loop"`
+
+	RunWardenMigration bool `json:"run_warden_migration"`
 }
 
 type MqttConfig struct {

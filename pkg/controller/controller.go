@@ -137,6 +137,13 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 		return ctrl, err
 	}
 
+	if config.RunWardenMigration {
+		err = ctrl.MigrateToWarden()
+		if err != nil {
+			return ctrl, err
+		}
+	}
+
 	return ctrl, nil
 }
 

@@ -161,6 +161,10 @@ func (this *Controller) ApiDeleteDeployment(networkId string, deploymentId strin
 	if err != nil {
 		return
 	}
+	err = this.deleteInstancesOfDeployment(networkId, deploymentId)
+	if err != nil {
+		return
+	}
 	var current model.Deployment
 	current, err = this.db.ReadDeployment(networkId, deploymentId)
 	if err != nil {
@@ -177,6 +181,17 @@ func (this *Controller) ApiDeleteDeployment(networkId string, deploymentId strin
 		err = this.db.SaveDeployment(current)
 	}
 	return
+}
+
+func (this *Controller) deleteInstancesOfDeployment(networkId string, deploymentId string) error {
+	definition, err := this.db.GetDefinitionByDeploymentId(networkId, deploymentId)
+	if errors.Is(err, database.ErrNotFound) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return this.db.RemoveProcessInstancesByDefinitionId(networkId, definition.Id)
 }
 
 func (this *Controller) ApiListDeployments(networkIds []string, limit int64, offset int64, sort string) (result []model.Deployment, err error, errCode int) {

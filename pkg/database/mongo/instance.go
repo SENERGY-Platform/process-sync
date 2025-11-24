@@ -32,6 +32,7 @@ var instanceIdKey string
 var instanceNetworkIdKey string
 var instancePlaceholderKey string
 var instanceBusinessKeyKey string
+var instanceDefinitionIdKey string
 
 func init() {
 	prepareCollection(func(config configuration.Config) string {
@@ -55,6 +56,10 @@ func init() {
 				FieldName: "SyncInfo.IsPlaceholder",
 				Key:       &instancePlaceholderKey,
 			},
+			{
+				FieldName: "ProcessInstance.DefinitionId",
+				Key:       &instanceDefinitionIdKey,
+			},
 		},
 		[]IndexDesc{
 			{
@@ -74,6 +79,12 @@ func init() {
 				Unique: false,
 				Asc:    true,
 				Keys:   []*string{&instanceIdKey, &instanceNetworkIdKey},
+			},
+			{
+				Name:   "instancedefinitionId",
+				Unique: false,
+				Asc:    true,
+				Keys:   []*string{&instanceDefinitionIdKey},
 			},
 		},
 	)
@@ -103,6 +114,17 @@ func (this *Mongo) RemoveProcessInstance(networkId string, processInstanceId str
 		bson.M{
 			instanceIdKey:        processInstanceId,
 			instanceNetworkIdKey: networkId,
+		})
+	return err
+}
+
+func (this *Mongo) RemoveProcessInstancesByDefinitionId(networkId string, processDefinitionId string) error {
+	ctx, _ := this.getTimeoutContext()
+	_, err := this.processInstanceCollection().DeleteMany(
+		ctx,
+		bson.M{
+			instanceNetworkIdKey:    networkId,
+			instanceDefinitionIdKey: processDefinitionId,
 		})
 	return err
 }
@@ -177,6 +199,9 @@ func (this *Mongo) FindProcessInstances(query model.InstanceQuery) (result []mod
 	}
 	if query.BusinessKeys != nil {
 		filter[instanceBusinessKeyKey] = bson.M{"$in": query.BusinessKeys}
+	}
+	if query.DefinitionIds != nil {
+		filter[instanceDefinitionIdKey] = bson.M{"$in": query.DefinitionIds}
 	}
 
 	ctx, _ := this.getTimeoutContext()
