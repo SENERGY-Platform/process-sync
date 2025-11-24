@@ -50,7 +50,7 @@ type IdWrapper struct {
 func (this *Security) IsAdmin(token string) bool {
 	roles, err := ReadTokenRoles(token)
 	if err != nil {
-		this.config.GetLogger().Error("unable to parse auth token to check if user is admin", "error", err)
+		this.config.GetLogger().Warn("unable to parse auth token to check if user is admin", "error", err)
 		return false
 	}
 	return contains(roles, "admin")
