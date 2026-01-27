@@ -68,8 +68,7 @@ func main() {
 	if config.ApiDocsProviderBaseUrl != "" && config.ApiDocsProviderBaseUrl != "-" {
 		err = PublishAsyncApiDoc(config)
 		if err != nil {
-			config.GetLogger().Error("FATAL", "error", err, "stack", debug.Stack())
-			log.Fatal(err)
+			config.GetLogger().Error("unable to publish async api docs", "error", err.Error())
 		}
 	}
 

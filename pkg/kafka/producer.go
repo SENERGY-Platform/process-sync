@@ -63,6 +63,7 @@ func NewProducer(ctx context.Context, kafkaUrl string, topic string, logger *slo
 		BatchSize:   1,
 		Balancer:    &kafka.Hash{},
 		ErrorLogger: log.New(os.Stderr, "KAFKA", 0),
+		Compression: kafka.Snappy,
 	}
 
 	go func() {
