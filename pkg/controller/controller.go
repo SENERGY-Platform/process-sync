@@ -22,6 +22,7 @@ import (
 	"log/slog"
 	"net/http"
 	"runtime/debug"
+	"slices"
 	"time"
 
 	developerNotifications "github.com/SENERGY-Platform/developer-notifications/pkg/client"
@@ -39,6 +40,8 @@ import (
 	"github.com/SENERGY-Platform/process-sync/pkg/mgw"
 	"github.com/SENERGY-Platform/process-sync/pkg/security"
 	"github.com/SENERGY-Platform/process-sync/pkg/warden"
+
+	model2 "github.com/SENERGY-Platform/process-sync/pkg/model"
 )
 
 type Controller struct {
@@ -171,4 +174,29 @@ func (this *Controller) SetErrCode(err error) int {
 
 func (this *Controller) RemoveOldEntities(maxAge time.Duration) error {
 	return this.db.RemoveOldElements(maxAge)
+}
+
+func (this *Controller) DeleteProcessInstanceByBusinessKey(networkId string, businessKey string) (err error, code int) {
+	bkList := []string{this.warden.MarkInstanceBusinessKeyAsWardenHandled(businessKey)}
+	if !slices.Contains(bkList, businessKey) {
+		bkList = append(bkList, businessKey)
+	}
+	instances, err := this.db.FindProcessInstances(model2.InstanceQuery{
+		BusinessKeys: bkList,
+		NetworkIds:   []string{networkId},
+	})
+	if err != nil {
+		return err, this.SetErrCode(err)
+	}
+	for _, instance := range instances {
+		err = this.warden.RemoveWardenInfoByInstance(instance)
+		if err != nil {
+			return err, this.SetErrCode(err)
+		}
+		err, code = this.StopProcessInstanceWithoutWardenHandling(instance)
+		if err != nil {
+			return err, code
+		}
+	}
+	return nil, http.StatusOK
 }

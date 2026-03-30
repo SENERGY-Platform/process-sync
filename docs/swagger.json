@@ -1066,6 +1066,47 @@
                 }
             }
         },
+        "/process-instances-by-business-key/{networkId}/{business_key}": {
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "stop process-instances identified by business-key",
+                "tags": [
+                    "process-instance"
+                ],
+                "summary": "delete process-instances by business-key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "network id",
+                        "name": "networkId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "business-key of process-instances",
+                        "name": "business_key",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/process-instances/{networkId}/{id}": {
             "get": {
                 "security": [

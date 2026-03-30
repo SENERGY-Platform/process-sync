@@ -18,11 +18,12 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
-	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 )
 
 func init() {
@@ -167,6 +168,42 @@ func (this *ProcessInstanceEndpoints) ListProcessInstances(config configuration.
 		}
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
+		if err != nil {
+			config.GetLogger().Error("unable to encode response", "error", err)
+		}
+		return
+	})
+}
+
+// DeleteProcessInstancesByBusinessKey godoc
+// @Summary      delete process-instances by business-key
+// @Description  stop process-instances identified by business-key
+// @Tags         process-instance
+// @Security Bearer
+// @Param        networkId path string true "network id"
+// @Param        business_key path string true "business-key of process-instances"
+// @Success      200
+// @Failure      400
+// @Failure      500
+// @Router       /process-instances-by-business-key/{networkId}/{business_key} [DELETE]
+func (this *ProcessInstanceEndpoints) DeleteProcessInstancesByBusinessKey(config configuration.Config, ctrl *controller.Controller, router *http.ServeMux) {
+	router.HandleFunc("DELETE /process-instances-by-business-key/{networkId}/{business_key}", func(writer http.ResponseWriter, request *http.Request) {
+		networkId := request.PathValue("networkId")
+		businessKey := request.PathValue("business_key")
+		err, errCode := ctrl.ApiCheckAccess(request, networkId, "a")
+		if err != nil {
+			http.Error(writer, err.Error(), errCode)
+			return
+		}
+
+		err, errCode = ctrl.DeleteProcessInstanceByBusinessKey(networkId, businessKey)
+		if err != nil {
+			http.Error(writer, err.Error(), errCode)
+			return
+		}
+
+		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+		err = json.NewEncoder(writer).Encode(true)
 		if err != nil {
 			config.GetLogger().Error("unable to encode response", "error", err)
 		}

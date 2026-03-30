@@ -1446,6 +1446,32 @@ paths:
       summary: list process-instances
       tags:
       - process-instance
+  /process-instances-by-business-key/{networkId}/{business_key}:
+    delete:
+      description: stop process-instances identified by business-key
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: business-key of process-instances
+        in: path
+        name: business_key
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: delete process-instances by business-key
+      tags:
+      - process-instance
   /process-instances/{networkId}/{id}:
     delete:
       description: get process-instances
