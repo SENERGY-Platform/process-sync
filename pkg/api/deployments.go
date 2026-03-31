@@ -249,7 +249,7 @@ func (this *DeploymentEndpoints) DeleteDeployment(config configuration.Config, c
 // @Param        offset query integer false "default 0"
 // @Param        sort query string false "default id.asc"
 // @Param        extended query bool false "add the fields 'diagram', 'definition_id' and 'error' to the results"
-// @Param        network_id query string true "comma seperated list of network-ids used to filter the deployments"
+// @Param        network_id query string true "comma separated list of network-ids used to filter the deployments"
 // @Success      200 {array}  model.Deployment
 // @Failure      400
 // @Failure      401

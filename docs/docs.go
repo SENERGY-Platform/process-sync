@@ -81,7 +81,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "comma seperated list of network-ids used to filter the deployments",
+                        "description": "comma separated list of network-ids used to filter the deployments",
                         "name": "network_id",
                         "in": "query",
                         "required": true
@@ -428,10 +428,16 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "comma seperated list of network-ids, used to filter the result",
+                        "description": "comma separated list of network-ids, used to filter the result",
                         "name": "network_id",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "comma separated list of business-keys, used to filter the result",
+                        "name": "business_key",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -623,7 +629,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "comma seperated list of network-ids, used to filter the result",
+                        "description": "comma separated list of network-ids, used to filter the result",
                         "name": "network_id",
                         "in": "query",
                         "required": true
@@ -914,7 +920,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "comma seperated list of network-ids used to filter",
+                        "description": "comma separated list of network-ids used to filter",
                         "name": "network_id",
                         "in": "query",
                         "required": true
@@ -1040,7 +1046,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "comma seperated list of network-ids used to filter",
+                        "description": "comma separated list of network-ids used to filter",
                         "name": "network_id",
                         "in": "query",
                         "required": true

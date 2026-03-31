@@ -18,12 +18,13 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
-	"github.com/SENERGY-Platform/process-sync/pkg/controller"
-	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/controller"
+	"github.com/SENERGY-Platform/process-sync/pkg/model"
 )
 
 func init() {
@@ -118,7 +119,8 @@ func (this *HistoryEndpoints) DeleteHistoricProcessInstance(config configuration
 // @Param        limit query integer false "default 100"
 // @Param        offset query integer false "default 0"
 // @Param        sort query string false "default id.asc"
-// @Param        network_id query string true "comma seperated list of network-ids, used to filter the result"
+// @Param        network_id query string true "comma separated list of network-ids, used to filter the result"
+// @Param        business_key query string false "comma separated list of business-keys, used to filter the result"
 // @Param        processDefinitionId query string false "process-definition-id, used to filter the result"
 // @Param        state query string false "state may be 'finished' or 'unfinished', used to filter the result"
 // @Param        with_total query bool false "if set to true, wraps the result in an objet with the result {total:0, data:[]}"
@@ -164,10 +166,16 @@ func (this *HistoryEndpoints) ListHistoricProcessInstances(config configuration.
 			return
 		}
 
+		var businessKeys []string
+		if request.URL.Query().Has("business_key") {
+			businessKeys = strings.Split(request.URL.Query().Get("business_key"), ",")
+		}
+
 		query := model.HistoryQuery{
 			State:               request.URL.Query().Get("state"),
 			ProcessDefinitionId: request.URL.Query().Get("processDefinitionId"),
 			Search:              request.URL.Query().Get("search"),
+			BusinessKeys:        businessKeys,
 		}
 
 		networkIdsStr := request.URL.Query().Get("network_id")

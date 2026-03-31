@@ -110,6 +110,7 @@ type HistoryQuery struct {
 	State               string
 	ProcessDefinitionId string
 	Search              string
+	BusinessKeys        []string
 }
 
 type DeploymentWithEventDesc struct {

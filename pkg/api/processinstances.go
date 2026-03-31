@@ -117,7 +117,7 @@ func (this *ProcessInstanceEndpoints) DeleteProcessInstance(config configuration
 // @Param        limit query integer false "default 100"
 // @Param        offset query integer false "default 0"
 // @Param        sort query string false "default id.asc"
-// @Param        network_id query string true "comma seperated list of network-ids used to filter"
+// @Param        network_id query string true "comma separated list of network-ids used to filter"
 // @Success      200 {array}  model.ProcessInstance
 // @Failure      400
 // @Failure      401

@@ -18,11 +18,12 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
-	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 )
 
 func init() {
@@ -78,7 +79,7 @@ func (this *ProcessDefinitionEndpoints) GetProcessDefinition(config configuratio
 // @Param        limit query integer false "default 100"
 // @Param        offset query integer false "default 0"
 // @Param        sort query string false "default id.asc"
-// @Param        network_id query string true "comma seperated list of network-ids used to filter"
+// @Param        network_id query string true "comma separated list of network-ids used to filter"
 // @Success      200 {array}  model.ProcessDefinition
 // @Failure      400
 // @Failure      401

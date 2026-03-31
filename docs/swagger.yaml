@@ -796,7 +796,7 @@ paths:
         in: query
         name: extended
         type: boolean
-      - description: comma seperated list of network-ids used to filter the deployments
+      - description: comma separated list of network-ids used to filter the deployments
         in: query
         name: network_id
         required: true
@@ -1022,10 +1022,14 @@ paths:
         in: query
         name: sort
         type: string
-      - description: comma seperated list of network-ids, used to filter the result
+      - description: comma separated list of network-ids, used to filter the result
         in: query
         name: network_id
         required: true
+        type: string
+      - description: comma separated list of business-keys, used to filter the result
+        in: query
+        name: business_key
         type: string
       - description: process-definition-id, used to filter the result
         in: query
@@ -1149,7 +1153,7 @@ paths:
         in: query
         name: sort
         type: string
-      - description: comma seperated list of network-ids, used to filter the result
+      - description: comma separated list of network-ids, used to filter the result
         in: query
         name: network_id
         required: true
@@ -1336,7 +1340,7 @@ paths:
         in: query
         name: sort
         type: string
-      - description: comma seperated list of network-ids used to filter
+      - description: comma separated list of network-ids used to filter
         in: query
         name: network_id
         required: true
@@ -1417,7 +1421,7 @@ paths:
         in: query
         name: sort
         type: string
-      - description: comma seperated list of network-ids used to filter
+      - description: comma separated list of network-ids used to filter
         in: query
         name: network_id
         required: true

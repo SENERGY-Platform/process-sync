@@ -197,6 +197,10 @@ func (this *Mongo) ListHistoricProcessInstances(networkIds []string, query model
 
 	filter := bson.M{historyNetworkIdKey: bson.M{"$in": networkIds}}
 
+	if query.BusinessKeys != nil {
+		filter[historyBusinessKeyKey] = bson.M{"$in": query.BusinessKeys}
+	}
+
 	if query.State == "finished" {
 		filter[historyEndTimeKey] = bson.M{"$ne": ""}
 	}

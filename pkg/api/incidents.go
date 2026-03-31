@@ -18,11 +18,12 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
-	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/controller"
 )
 
 func init() {
@@ -116,7 +117,7 @@ func (this *IncidentEndpoints) DeleteIncident(config configuration.Config, ctrl 
 // @Param        limit query integer false "default 100"
 // @Param        offset query integer false "default 0"
 // @Param        sort query string false "default id.asc"
-// @Param        network_id query string true "comma seperated list of network-ids, used to filter the result"
+// @Param        network_id query string true "comma separated list of network-ids, used to filter the result"
 // @Param        process_instance_id query string false "process-instance-id, used to filter the result"
 // @Success      200 {array}  model.Incident
 // @Failure      400
