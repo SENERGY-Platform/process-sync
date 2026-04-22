@@ -19,6 +19,11 @@ package devices
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+
+	"github.com/SENERGY-Platform/device-repository/lib/client"
 	auth2 "github.com/SENERGY-Platform/event-deployment/lib/auth"
 	"github.com/SENERGY-Platform/event-deployment/lib/config"
 	"github.com/SENERGY-Platform/event-deployment/lib/devices"
@@ -27,9 +32,6 @@ import (
 	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/process-deployment/lib/auth"
 	syncconf "github.com/SENERGY-Platform/process-sync/pkg/configuration"
-	"io"
-	"net/http"
-	"net/url"
 )
 
 type DeviceRepo struct {
@@ -114,4 +116,9 @@ func (this *DeviceRepo) GetService(token auth.Token, serviceId string) (result m
 
 func (this *DeviceRepo) GetDevice(token auth.Token, deviceId string) (result models.Device, err error, code int) {
 	return this.deviceProvider(token.Token, this.config.DeviceRepoUrl, deviceId)
+}
+
+func (this *DeviceRepo) GetNetworkOwner(networkId string) (owner string, err error) {
+	hub, err, _ := client.NewClient(this.config.DeviceRepoUrl, nil).ReadHub(networkId, client.InternalAdminToken, client.READ)
+	return hub.OwnerId, err
 }

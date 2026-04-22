@@ -130,6 +130,7 @@ func (this *WardenDb) UpdateWardenInfoDeploymentId(networkId string, oldDeployme
 		newDeploymentWardenInfo := oldDeploymentWardenInfo
 		newDeploymentWardenInfo.DeploymentId = newDeploymentId
 		newDeploymentWardenInfo.Deployment.Id = newDeploymentId
+		newDeploymentWardenInfo.Error = ""
 		err = this.db.SetDeploymentWardenInfo(newDeploymentWardenInfo)
 		if err != nil {
 			return err

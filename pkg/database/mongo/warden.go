@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
+	"github.com/SENERGY-Platform/process-sync/pkg/database"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -30,9 +31,11 @@ import (
 var wardenDeploymentIdKey string
 var wardenNetworkIdKey string
 var wardenBusinessKeyKey string
+var wardenErrorKey string
 
 var deploymentWardenDeploymentIdKey string
 var deploymentWardenNetworkIdKey string
+var deploymentWardenErrorKey string
 
 func init() {
 	prepareCollection(func(config configuration.Config) string {
@@ -51,6 +54,10 @@ func init() {
 			{
 				FieldName: "BusinessKey",
 				Key:       &wardenBusinessKeyKey,
+			},
+			{
+				FieldName: "Error",
+				Key:       &wardenErrorKey,
 			},
 		},
 		[]IndexDesc{
@@ -81,6 +88,10 @@ func init() {
 			{
 				FieldName: "NetworkId",
 				Key:       &deploymentWardenNetworkIdKey,
+			},
+			{
+				FieldName: "Error",
+				Key:       &deploymentWardenErrorKey,
 			},
 		},
 		[]IndexDesc{
@@ -263,4 +274,34 @@ func (this *Mongo) FindWardenInfo(query model.WardenInfoQuery) (result []model.W
 	}
 	err = cursor.Err()
 	return
+}
+
+func (this *Mongo) MarkErrorOnDeploymentWarden(networkId string, deploymentId string, errMsg string) ([]model.Webhook, error) {
+	ctx, _ := this.getTimeoutContext()
+	var warden model.DeploymentWardenInfo
+	err := this.deploymentWardenCollection().FindOneAndUpdate(ctx, bson.M{
+		deploymentWardenNetworkIdKey:    networkId,
+		deploymentWardenDeploymentIdKey: deploymentId,
+	}, bson.M{
+		"$set": bson.M{deploymentWardenErrorKey: errMsg},
+	}).Decode(&warden)
+	if errors.Is(err, database.ErrNotFound) {
+		return nil, nil //you may try to update errors on wardens that do not exist without needing to expect errors
+	}
+	return warden.Webhooks, err
+}
+
+func (this *Mongo) MarkErrorOnInstanceWarden(networkId string, businessKey string, errMsg string) ([]model.Webhook, error) {
+	ctx, _ := this.getTimeoutContext()
+	var warden model.WardenInfo
+	err := this.wardenCollection().FindOneAndUpdate(ctx, bson.M{
+		wardenNetworkIdKey:   networkId,
+		wardenBusinessKeyKey: businessKey,
+	}, bson.M{
+		"$set": bson.M{wardenErrorKey: errMsg},
+	}).Decode(&warden)
+	if errors.Is(err, database.ErrNotFound) {
+		return nil, nil //you may try to update errors on wardens that do not exist without needing to expect errors
+	}
+	return warden.Webhooks, err
 }

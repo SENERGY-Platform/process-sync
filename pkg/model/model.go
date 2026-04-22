@@ -54,6 +54,7 @@ type DeploymentMetadata struct {
 type Deployment struct {
 	camundamodel.Deployment
 	SyncInfo
+	Error string `json:"error,omitempty"`
 }
 
 type HistoricProcessInstance struct {
@@ -132,6 +133,8 @@ type WardenInfo struct {
 	BusinessKey         string                 `json:"business_key" bson:"business_key"`                   //must be the same as the process-instance business-key and start with WardenBusinessKeyPrefix; the prefix may be set by Warden.MarkInstanceBusinessKeyAsWardenHandled
 	ProcessDeploymentId string                 `json:"process_deployment_id" bson:"process_deployment_id"` //must be the same as the process-instance process-deployment-id
 	StartParameters     map[string]interface{} `json:"start_parameters" bson:"start_parameters"`
+	Error               string                 `json:"error,omitempty" bson:"error"`
+	Webhooks            []Webhook              `json:"webhooks" bson:"webhooks"`
 }
 
 const WardenBusinessKeyPrefix = "wardened:"
@@ -169,6 +172,8 @@ type DeploymentWardenInfo struct {
 	DeploymentId string                  `json:"deployment_id" bson:"deployment_id"`
 	NetworkId    string                  `json:"network_id" bson:"network_id"`
 	Deployment   DeploymentWithEventDesc `json:"deployment" bson:"deployment"`
+	Error        string                  `json:"error,omitempty" bson:"error"`
+	Webhooks     []Webhook               `json:"webhooks" bson:"webhooks"`
 }
 
 type DeploymentWardenInfoQuery struct {
@@ -181,4 +186,33 @@ type DeploymentWardenInfoQuery struct {
 
 func NormalizeBpmnDeploymentId(id string) string {
 	return "deplid_" + strings.NewReplacer("-", "_", ":", "_", "#", "_").Replace(id)
+}
+
+type ErrorMessage struct {
+	NetworkId           string `json:"network_id"`
+	DeploymentId        string `json:"deployment_id"`
+	CamundaDeploymentId string `json:"camunda_deployment_id"`
+	BusinessKey         string `json:"business_key"`
+	Error               string `json:"error"`
+}
+
+type WebhookTrigger = string
+
+const (
+	OnError  WebhookTrigger = "error"
+	OnSynced WebhookTrigger = "synced"
+)
+
+type Webhook struct {
+	On     WebhookTrigger `json:"on"`
+	Url    string         `json:"url"`
+	Method string         `json:"method"`
+}
+
+type WebhookMessage struct {
+	ResourceType string         `json:"resource_type"`
+	NetworkId    string         `json:"network_id"`
+	Id           string         `json:"id"`
+	Trigger      WebhookTrigger `json:"trigger"`
+	Message      string         `json:"message"`
 }

@@ -38,6 +38,7 @@
     "auth_client_secret": "",
 
     "developer_notification_url": "http://api.developer-notifications:8080",
+    "user_notification_url": "http://api.notifier:5000",
 
     "init_topics": false,
 

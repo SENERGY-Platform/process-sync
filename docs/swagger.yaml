@@ -75,6 +75,21 @@ definitions:
       sync_date:
         type: string
     type: object
+  model.DeploymentWardenInfo:
+    properties:
+      deployment:
+        $ref: '#/definitions/model.DeploymentWithEventDesc'
+      deployment_id:
+        type: string
+      error:
+        type: string
+      network_id:
+        type: string
+      webhooks:
+        items:
+          $ref: '#/definitions/model.Webhook'
+        type: array
+    type: object
   model.DeploymentWithEventDesc:
     properties:
       description:
@@ -305,6 +320,48 @@ definitions:
       tenantId:
         type: string
     type: object
+  model.WardenInfo:
+    properties:
+      business_key:
+        description: must be the same as the process-instance business-key and start
+          with WardenBusinessKeyPrefix; the prefix may be set by Warden.MarkInstanceBusinessKeyAsWardenHandled
+        type: string
+      creation_time:
+        description: unix timestamp
+        type: integer
+      error:
+        type: string
+      network_id:
+        description: must be the same as the process-instance network-id
+        type: string
+      process_deployment_id:
+        description: must be the same as the process-instance process-deployment-id
+        type: string
+      start_parameters:
+        additionalProperties: true
+        type: object
+      webhooks:
+        items:
+          $ref: '#/definitions/model.Webhook'
+        type: array
+    type: object
+  model.Webhook:
+    properties:
+      method:
+        type: string
+      "on":
+        $ref: '#/definitions/model.WebhookTrigger'
+      url:
+        type: string
+    type: object
+  model.WebhookTrigger:
+    enum:
+    - error
+    - synced
+    type: string
+    x-enum-varnames:
+    - OnError
+    - OnSynced
   models.AspectNode:
     properties:
       ancestor_ids:
@@ -450,6 +507,10 @@ definitions:
     type: object
   models.Hub:
     properties:
+      attributes:
+        items:
+          $ref: '#/definitions/models.Attribute'
+        type: array
       device_ids:
         items:
           type: string
@@ -761,6 +822,85 @@ info:
   title: Process-Sync-Api
   version: "0.1"
 paths:
+  /deployment-wardens/{networkId}:
+    get:
+      description: list deployment wardens
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: filter by comma-separated deployment ids
+        in: query
+        name: deployment_ids
+        type: string
+      - description: default 100
+        in: query
+        name: limit
+        type: integer
+      - description: default 0
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.DeploymentWardenInfo'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: list deployment wardens
+      tags:
+      - warden
+  /deployment-wardens/{networkId}/{deploymentId}:
+    delete:
+      description: delete deployment warden, alias for DELETE /deployments/{networkId}/{deploymentId}
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: deployment id
+        in: path
+        name: deploymentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: delete deployment warden
+      tags:
+      - warden
   /deployments:
     get:
       description: list deployments
@@ -1575,6 +1715,89 @@ paths:
       summary: resync deployments
       tags:
       - deployment
+  /wardens/{networkId}:
+    get:
+      description: list wardens
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: filter by comma-separated deployment ids
+        in: query
+        name: deployment_ids
+        type: string
+      - description: filter by comma-separated business keys
+        in: query
+        name: business_keys
+        type: string
+      - description: default 100
+        in: query
+        name: limit
+        type: integer
+      - description: default 0
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.WardenInfo'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: list wardens
+      tags:
+      - warden
+  /wardens/{networkId}/{businessKey}:
+    delete:
+      description: delete warden, alias for DELETE /process-instances-by-business-key/{networkId}/{business_key}
+      parameters:
+      - description: network id
+        in: path
+        name: networkId
+        required: true
+        type: string
+      - description: businessKey
+        in: path
+        name: businessKey
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - Bearer: []
+      summary: delete warden
+      tags:
+      - warden
 securityDefinitions:
   Bearer:
     description: Type "Bearer" followed by a space and JWT token.

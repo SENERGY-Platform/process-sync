@@ -314,6 +314,23 @@ func (this *DeploymentEndpoints) ListDeployments(config configuration.Config, ct
 			http.Error(writer, err.Error(), errCode)
 			return
 		}
+
+		//add warden errors to deployments
+		wardenQuery := model.DeploymentWardenInfoQuery{NetworkIds: networkIds}
+		for _, deployment := range deployments {
+			wardenQuery.ProcessDeploymentIds = append(wardenQuery.ProcessDeploymentIds, deployment.Id)
+		}
+		wardenInfo, _ := ctrl.ListDeploymentWardens(wardenQuery)
+		for i, depl := range deployments {
+			for _, warden := range wardenInfo {
+				if warden.DeploymentId == depl.Id {
+					depl.Error = warden.Error
+					deployments[i] = depl
+					break
+				}
+			}
+		}
+
 		var result interface{}
 		if extended {
 			result = ctrl.ExtendDeployments(deployments)

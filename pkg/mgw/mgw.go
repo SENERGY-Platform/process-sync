@@ -53,6 +53,8 @@ type Handler interface {
 	DeleteUnknownProcessInstances(networkId string, knownIds []string)
 	UpdateDeploymentMetadata(networkId string, metadata model.Metadata)
 	LogNetworkInteraction(networkId string)
+	HandleProcessSyncNetworkError(networkId string, msg string)
+	HandleProcessSyncError(networkId string, msg model.ErrorMessage)
 }
 
 func New(config configuration.Config, ctx context.Context, handler Handler) (*Mgw, error) {
@@ -114,6 +116,10 @@ func (this *Mgw) subscribe(client paho.Client) {
 	client.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", deploymentTopic, "metadata"), 2, func(client paho.Client, message paho.Message) {
 		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
 		this.handleDeploymentMetadata(message)
+	})
+	client.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", "error"), 2, func(client paho.Client, message paho.Message) {
+		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))
+		this.handleErrorMessage(message)
 	})
 	client.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", incidentTopic), 2, func(client paho.Client, message paho.Message) {
 		this.config.GetLogger().Debug("receive", "topic", message.Topic(), "payload", string(message.Payload()))

@@ -19,13 +19,131 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/deployments": {
+        "/deployment-wardens/{networkId}": {
             "get": {
+                "description": "list deployment wardens",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "warden"
+                ],
+                "summary": "list deployment wardens",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "network id",
+                        "name": "networkId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by comma-separated deployment ids",
+                        "name": "deployment_ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "default 100",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "default 0",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.DeploymentWardenInfo"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
+                ]
+            }
+        },
+        "/deployment-wardens/{networkId}/{deploymentId}": {
+            "delete": {
+                "description": "delete deployment warden, alias for DELETE /deployments/{networkId}/{deploymentId}",
+                "produces": [
+                    "application/json"
                 ],
+                "tags": [
+                    "warden"
+                ],
+                "summary": "delete deployment warden",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "network id",
+                        "name": "networkId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "deployment id",
+                        "name": "deploymentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/deployments": {
+            "get": {
                 "description": "list deployments",
                 "produces": [
                     "application/json"
@@ -112,16 +230,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/deployments/{networkId}": {
-            "post": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/deployments/{networkId}": {
+            "post": {
                 "description": "deploy process; prepared process may be requested from the process-fog-deployment service",
                 "produces": [
                     "application/json"
@@ -160,16 +278,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/deployments/{networkId}/{deploymentId}": {
-            "get": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/deployments/{networkId}/{deploymentId}": {
+            "get": {
                 "description": "get deployment",
                 "produces": [
                     "application/json"
@@ -216,14 +334,14 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            },
-            "delete": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            },
+            "delete": {
                 "description": "delete deployment",
                 "produces": [
                     "application/json"
@@ -267,16 +385,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/deployments/{networkId}/{deploymentId}/metadata": {
-            "get": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/deployments/{networkId}/{deploymentId}/metadata": {
+            "get": {
                 "description": "get deployment metadata",
                 "produces": [
                     "application/json"
@@ -324,16 +442,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/deployments/{networkId}/{deploymentId}/start": {
-            "get": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/deployments/{networkId}/{deploymentId}/start": {
+            "get": {
                 "description": "start deployed process; a process may expect parameters on start. these can be passed as query parameters. swagger allows no arbitrary/dynamic parameter names, which means a query with parameters must be executed manually",
                 "produces": [
                     "application/json"
@@ -383,16 +501,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/history/process-instances": {
-            "get": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/history/process-instances": {
+            "get": {
                 "description": "list historic process-instances",
                 "produces": [
                     "application/json"
@@ -483,16 +601,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/history/process-instances/{networkId}/{id}": {
-            "get": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/history/process-instances/{networkId}/{id}": {
+            "get": {
                 "description": "get historic process-instances",
                 "produces": [
                     "application/json"
@@ -539,14 +657,14 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            },
-            "delete": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            },
+            "delete": {
                 "description": "get historic process-instances",
                 "produces": [
                     "application/json"
@@ -590,16 +708,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/incidents": {
-            "get": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/incidents": {
+            "get": {
                 "description": "list incidents",
                 "produces": [
                     "application/json"
@@ -666,16 +784,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/incidents/{networkId}/{id}": {
-            "get": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/incidents/{networkId}/{id}": {
+            "get": {
                 "description": "get incident",
                 "produces": [
                     "application/json"
@@ -722,14 +840,14 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            },
-            "delete": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            },
+            "delete": {
                 "description": "delete incident",
                 "produces": [
                     "application/json"
@@ -773,16 +891,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/metadata/{networkId}": {
-            "get": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/metadata/{networkId}": {
+            "get": {
                 "description": "list deployment metadata",
                 "produces": [
                     "application/json"
@@ -838,16 +956,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/networks": {
-            "get": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/networks": {
+            "get": {
                 "description": "list networks",
                 "produces": [
                     "application/json"
@@ -881,16 +999,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/process-definitions": {
-            "get": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/process-definitions": {
+            "get": {
                 "description": "list process-definitions",
                 "produces": [
                     "application/json"
@@ -951,16 +1069,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/process-definitions/{networkId}/{id}": {
-            "get": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/process-definitions/{networkId}/{id}": {
+            "get": {
                 "description": "get process-definition",
                 "produces": [
                     "application/json"
@@ -1007,16 +1125,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/process-instances": {
-            "get": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/process-instances": {
+            "get": {
                 "description": "list process-instances",
                 "produces": [
                     "application/json"
@@ -1077,16 +1195,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/process-instances-by-business-key/{networkId}/{business_key}": {
-            "delete": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/process-instances-by-business-key/{networkId}/{business_key}": {
+            "delete": {
                 "description": "stop process-instances identified by business-key",
                 "tags": [
                     "process-instance"
@@ -1118,16 +1236,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/process-instances/{networkId}/{id}": {
-            "get": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/process-instances/{networkId}/{id}": {
+            "get": {
                 "description": "get process-instances",
                 "produces": [
                     "application/json"
@@ -1174,14 +1292,14 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            },
-            "delete": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            },
+            "delete": {
                 "description": "get process-instances",
                 "produces": [
                     "application/json"
@@ -1225,16 +1343,16 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
-            }
-        },
-        "/sync/deployments/{networkId}": {
-            "post": {
+                },
                 "security": [
                     {
                         "Bearer": []
                     }
-                ],
+                ]
+            }
+        },
+        "/sync/deployments/{networkId}": {
+            "post": {
                 "description": "resync deployments that are registered as lost on the mgw side. can only be tried once.",
                 "produces": [
                     "application/json"
@@ -1271,7 +1389,141 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/wardens/{networkId}": {
+            "get": {
+                "description": "list wardens",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "warden"
+                ],
+                "summary": "list wardens",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "network id",
+                        "name": "networkId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by comma-separated deployment ids",
+                        "name": "deployment_ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter by comma-separated business keys",
+                        "name": "business_keys",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "default 100",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "default 0",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.WardenInfo"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/wardens/{networkId}/{businessKey}": {
+            "delete": {
+                "description": "delete warden, alias for DELETE /process-instances-by-business-key/{networkId}/{business_key}",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "warden"
+                ],
+                "summary": "delete warden",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "network id",
+                        "name": "networkId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "businessKey",
+                        "name": "businessKey",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
             }
         }
     },
@@ -1386,6 +1638,29 @@ const docTemplate = `{
                 },
                 "sync_date": {
                     "type": "string"
+                }
+            }
+        },
+        "model.DeploymentWardenInfo": {
+            "type": "object",
+            "properties": {
+                "deployment": {
+                    "$ref": "#/definitions/model.DeploymentWithEventDesc"
+                },
+                "deployment_id": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "network_id": {
+                    "type": "string"
+                },
+                "webhooks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Webhook"
+                    }
                 }
             }
         },
@@ -1734,6 +2009,65 @@ const docTemplate = `{
                 }
             }
         },
+        "model.WardenInfo": {
+            "type": "object",
+            "properties": {
+                "business_key": {
+                    "description": "must be the same as the process-instance business-key and start with WardenBusinessKeyPrefix; the prefix may be set by Warden.MarkInstanceBusinessKeyAsWardenHandled",
+                    "type": "string"
+                },
+                "creation_time": {
+                    "description": "unix timestamp",
+                    "type": "integer"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "network_id": {
+                    "description": "must be the same as the process-instance network-id",
+                    "type": "string"
+                },
+                "process_deployment_id": {
+                    "description": "must be the same as the process-instance process-deployment-id",
+                    "type": "string"
+                },
+                "start_parameters": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "webhooks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Webhook"
+                    }
+                }
+            }
+        },
+        "model.Webhook": {
+            "type": "object",
+            "properties": {
+                "method": {
+                    "type": "string"
+                },
+                "on": {
+                    "$ref": "#/definitions/model.WebhookTrigger"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.WebhookTrigger": {
+            "type": "string",
+            "enum": [
+                "error",
+                "synced"
+            ],
+            "x-enum-varnames": [
+                "OnError",
+                "OnSynced"
+            ]
+        },
         "models.AspectNode": {
             "type": "object",
             "properties": {
@@ -1955,6 +2289,12 @@ const docTemplate = `{
         "models.Hub": {
             "type": "object",
             "properties": {
+                "attributes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Attribute"
+                    }
+                },
                 "device_ids": {
                     "type": "array",
                     "items": {

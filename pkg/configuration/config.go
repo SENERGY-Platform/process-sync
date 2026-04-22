@@ -67,6 +67,7 @@ type Config struct {
 	ApiDocsProviderBaseUrl string `json:"api_docs_provider_base_url"`
 
 	DeveloperNotificationUrl string `json:"developer_notification_url"`
+	UserNotificationUrl      string `json:"user_notification_url"`
 
 	InitTopics bool `json:"init_topics"`
 

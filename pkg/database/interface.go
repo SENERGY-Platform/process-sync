@@ -91,4 +91,7 @@ type Database interface {
 	SetWardenInfo(info model.WardenInfo) error
 	RemoveWardenInfo(networkId string, businessKey string) error
 	FindWardenInfo(query model.WardenInfoQuery) ([]model.WardenInfo, error)
+
+	MarkErrorOnDeploymentWarden(networkId string, deploymentId string, errMsg string) ([]model.Webhook, error)
+	MarkErrorOnInstanceWarden(networkId string, businessKey string, errMsg string) ([]model.Webhook, error)
 }

@@ -29,6 +29,7 @@ import (
 	eventinterfaces "github.com/SENERGY-Platform/event-deployment/lib/interfaces"
 	"github.com/SENERGY-Platform/event-deployment/lib/model"
 	"github.com/SENERGY-Platform/models/go/models"
+	notify "github.com/SENERGY-Platform/notifier/pkg/client"
 	"github.com/SENERGY-Platform/process-deployment/lib/auth"
 	"github.com/SENERGY-Platform/process-deployment/lib/interfaces"
 	"github.com/SENERGY-Platform/process-deployment/lib/model/devicemodel"
@@ -53,6 +54,7 @@ type Controller struct {
 	devicerepo             Devices
 	deploymentDoneNotifier interfaces.Producer
 	devNotifications       developerNotifications.Client
+	userNotifications      *notify.Client
 	logger                 *slog.Logger
 	warden                 warden.Warden
 }
@@ -69,6 +71,7 @@ type Devices interface {
 	GetFunction(token auth.Token, functionId string) (result model.Function, err error, code int)
 	GetService(token auth.Token, serviceId string) (result models.Service, err error, code int)
 	GetDevice(token auth.Token, id string) (devicemodel.Device, error, int)
+	GetNetworkOwner(networkId string) (owner string, err error)
 }
 
 type Security interface {
@@ -104,7 +107,15 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 		return ctrl, err
 	}
 
-	ctrl = &Controller{config: config, db: db, security: security, baseDeviceRepoFactory: baseDeviceRepoFactory, devicerepo: d, logger: logger}
+	ctrl = &Controller{
+		config:                config,
+		db:                    db,
+		security:              security,
+		baseDeviceRepoFactory: baseDeviceRepoFactory,
+		devicerepo:            d,
+		logger:                logger,
+	}
+
 	w, err := warden.New(warden.Config{
 		Interval:          wardenInterval,
 		AgeGate:           wardenAgeGate,
@@ -126,6 +137,10 @@ func New(config configuration.Config, ctx context.Context, db database.Database,
 	if config.DeveloperNotificationUrl != "" && config.DeveloperNotificationUrl != "-" {
 		ctrl.devNotifications = developerNotifications.New(config.DeveloperNotificationUrl)
 	}
+	if config.UserNotificationUrl != "" && config.UserNotificationUrl != "-" {
+		ctrl.userNotifications = notify.New(config.UserNotificationUrl)
+	}
+
 	ctrl.mgw, err = mgw.New(config, ctx, ctrl)
 	if err != nil {
 		return ctrl, err
@@ -196,6 +211,12 @@ func (this *Controller) DeleteProcessInstanceByBusinessKey(networkId string, bus
 		err, code = this.StopProcessInstanceWithoutWardenHandling(instance)
 		if err != nil {
 			return err, code
+		}
+	}
+	for _, bk := range bkList {
+		err = this.warden.RemoveInstanceWardenByBusinessKey(networkId, bk)
+		if err != nil {
+			return err, this.SetErrCode(err)
 		}
 	}
 	return nil, http.StatusOK
