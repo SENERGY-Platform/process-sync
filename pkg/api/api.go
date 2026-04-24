@@ -39,7 +39,7 @@ var endpoints = []interface{}{} //list of objects with EndpointMethod
 func Start(config configuration.Config, ctx context.Context, ctrl *controller.Controller) (err error) {
 	config.GetLogger().Info("start api", "port", config.ApiPort)
 	router := Router(config, ctrl)
-	handler := accesslog.New(util.NewCors(router))
+	handler := accesslog.New(util.NewCors(router), accesslog.Options{TrimFormat: "200:[...]:10", TrimAttributes: "body"})
 	server := &http.Server{Addr: ":" + config.ApiPort, Handler: handler, WriteTimeout: 10 * time.Second, ReadTimeout: 2 * time.Second, ReadHeaderTimeout: 2 * time.Second}
 	go func() {
 		config.GetLogger().Info("listening on " + server.Addr)
