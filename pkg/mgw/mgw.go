@@ -20,7 +20,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/SENERGY-Platform/process-sync/pkg/configuration"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
@@ -30,9 +33,10 @@ import (
 )
 
 type Mgw struct {
-	mqtt    paho.Client
-	config  configuration.Config
-	handler Handler
+	mqtt     paho.Client
+	config   configuration.Config
+	handler  Handler
+	lastPing int64
 }
 
 type Handler interface {
@@ -62,9 +66,31 @@ func New(config configuration.Config, ctx context.Context, handler Handler) (*Mg
 		config:  config,
 		handler: handler,
 	}
-
-	client.mqtt = multimqtt.NewClient(config.Mqtt, func(options *paho.ClientOptions) {
-		options.SetResumeSubs(true).
+	if len(config.Mqtt) == 0 {
+		return nil, errors.New("no mqtt broker configured")
+	}
+	if len(config.Mqtt) > 1 {
+		client.mqtt = multimqtt.NewClient(config.Mqtt, func(options *paho.ClientOptions) {
+			options.SetResumeSubs(true).
+				SetCleanSession(config.MqttCleanSession).
+				SetConnectionLostHandler(func(c paho.Client, err error) {
+					o := c.OptionsReader()
+					config.GetLogger().Error("connection to mqtt broker lost", "error", err, "client", o.ClientID())
+				}).
+				SetOnConnectHandler(func(c paho.Client) {
+					o := c.OptionsReader()
+					config.GetLogger().Info("connected to mqtt broker", "client", o.ClientID())
+					client.subscribe(c)
+				})
+		})
+	} else {
+		client.mqtt = paho.NewClient(paho.NewClientOptions().
+			SetPassword(config.Mqtt[0].Pw).
+			SetUsername(config.Mqtt[0].User).
+			SetClientID(config.Mqtt[0].ClientId).
+			AddBroker(config.Mqtt[0].Broker).
+			SetAutoReconnect(true).
+			SetResumeSubs(true).
 			SetCleanSession(config.MqttCleanSession).
 			SetConnectionLostHandler(func(c paho.Client, err error) {
 				o := c.OptionsReader()
@@ -74,11 +100,15 @@ func New(config configuration.Config, ctx context.Context, handler Handler) (*Mg
 				o := c.OptionsReader()
 				config.GetLogger().Info("connected to mqtt broker", "client", o.ClientID())
 				client.subscribe(c)
-			})
-	})
+			}))
+	}
 	if token := client.mqtt.Connect(); token.Wait() && token.Error() != nil {
 		config.GetLogger().Error("unable to connect to mqtt broker", "error", token.Error())
 		return nil, token.Error()
+	}
+
+	if config.UseMgwPing {
+		client.StartPing(ctx)
 	}
 
 	go func() {
@@ -87,6 +117,48 @@ func New(config configuration.Config, ctx context.Context, handler Handler) (*Mg
 	}()
 
 	return client, nil
+}
+
+func (this *Mgw) StartPing(ctx context.Context) {
+	interval, err := time.ParseDuration(this.config.MgwPingInterval)
+	if err != nil {
+		this.config.GetLogger().Error("unable to parse ping interval --> fallback to 1m", "error", err)
+		interval = time.Minute
+	}
+	timeout, err := time.ParseDuration(this.config.MgwPingTimeout)
+	if err != nil {
+		this.config.GetLogger().Error("unable to parse ping timeout --> fallback to 10m", "error", err)
+		timeout = 10 * time.Minute
+	}
+	ticker := time.NewTicker(interval)
+	this.lastPing = time.Now().Unix()
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				ticker.Stop()
+				return
+			case <-ticker.C:
+				err := this.sendStr(this.config.MgwPingTopic, strconv.FormatInt(time.Now().Unix(), 10))
+				if err != nil {
+					this.config.GetLogger().Error("unable to send ping", "error", err)
+				}
+				lastPingAge := time.Since(time.Unix(this.lastPing, 0))
+				if lastPingAge > timeout {
+					this.config.GetLogger().Error("mgw ping timeout", "last_ping", this.lastPing, "last_ping_age", lastPingAge.String(), "timeout", timeout.String())
+					if this.config.MgwPingFatal {
+						log.Fatal("mgw ping timeout")
+					} else {
+						this.mqtt.Disconnect(0)
+						token := this.mqtt.Connect()
+						if token.Wait() && token.Error() != nil {
+							this.config.GetLogger().Error("unable to reconnect to mqtt broker", "error", token.Error())
+						}
+					}
+				}
+			}
+		}
+	}()
 }
 
 const deploymentTopic = "deployment"
@@ -99,6 +171,17 @@ func (this *Mgw) subscribe(client paho.Client) {
 	sharedSubscriptionPrefix := ""
 	if this.config.MqttGroupId != "" {
 		sharedSubscriptionPrefix = "$share/" + this.config.MqttGroupId + "/"
+	}
+
+	if this.config.MgwPingTopic != "" {
+		client.Subscribe(this.config.MgwPingTopic, 2, func(client paho.Client, message paho.Message) {
+			ts, err := strconv.ParseInt(string(message.Payload()), 10, 64)
+			if err != nil {
+				this.config.GetLogger().Error("unable to parse ping timestamp", "error", err)
+				return
+			}
+			this.lastPing = ts
+		})
 	}
 
 	client.Subscribe(sharedSubscriptionPrefix+this.getStateTopic("+", deploymentTopic), 2, func(client paho.Client, message paho.Message) {

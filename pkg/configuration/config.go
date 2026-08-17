@@ -87,6 +87,12 @@ type Config struct {
 	RunWardenDeploymentLoop bool   `json:"run_warden_deployment_loop"`
 
 	RunWardenMigration bool `json:"run_warden_migration"`
+
+	UseMgwPing      bool   `json:"use_mgw_ping"`
+	MgwPingInterval string `json:"mgw_ping_interval"`
+	MgwPingTimeout  string `json:"mgw_ping_timeout"`
+	MgwPingTopic    string `json:"mgw_ping_topic"`
+	MgwPingFatal    bool   `json:"mgw_ping_fatal"`
 }
 
 type MqttConfig struct {

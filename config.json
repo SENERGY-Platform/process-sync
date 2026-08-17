@@ -50,5 +50,11 @@
     "warden_age_gate": "10s",
     "run_warden_db_loop": true,
     "run_warden_process_loop": true,
-    "run_warden_deployment_loop": true
+    "run_warden_deployment_loop": true,
+
+    "use_mgw_ping": true,
+    "mgw_ping_fatal": true,
+    "mgw_ping_interval": "1m",
+    "mgw_ping_timeout": "10m",
+    "mgw_ping_topic": "processes/ping"
 }
