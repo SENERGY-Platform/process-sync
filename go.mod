@@ -4,16 +4,16 @@ go 1.26.1
 
 require (
 	github.com/SENERGY-Platform/api-docs-provider/lib/client v0.0.3
-	github.com/SENERGY-Platform/camunda-engine-wrapper v1.0.16
-	github.com/SENERGY-Platform/developer-notifications v0.0.5
-	github.com/SENERGY-Platform/device-repository v0.2.53
-	github.com/SENERGY-Platform/event-deployment v0.0.40
-	github.com/SENERGY-Platform/event-worker v1.0.42
+	github.com/SENERGY-Platform/camunda-engine-wrapper v1.0.17
+	github.com/SENERGY-Platform/developer-notifications v0.0.6
+	github.com/SENERGY-Platform/device-repository v0.3.5
+	github.com/SENERGY-Platform/event-deployment v0.0.41
+	github.com/SENERGY-Platform/event-worker v1.0.43
 	github.com/SENERGY-Platform/go-service-base/struct-logger v0.8.0
 	github.com/SENERGY-Platform/models/go v0.0.0-20260710115411-5b8e00d6e038
-	github.com/SENERGY-Platform/notifier v0.0.18
-	github.com/SENERGY-Platform/permissions-v2 v0.0.45
-	github.com/SENERGY-Platform/process-deployment v0.0.22
+	github.com/SENERGY-Platform/notifier v0.0.19
+	github.com/SENERGY-Platform/permissions-v2 v0.0.47
+	github.com/SENERGY-Platform/process-deployment v0.0.23
 	github.com/SENERGY-Platform/service-commons v0.0.0-20260821114734-3e4578ac2358
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/golang-jwt/jwt v3.2.2+incompatible
@@ -81,17 +81,17 @@ require (
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.18.6 // indirect
+	github.com/klauspost/compress v1.18.7 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260216142805-b3301c5f2a88 // indirect
 	github.com/magiconair/properties v1.8.10 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
-	github.com/moby/go-archive v0.2.0 // indirect
-	github.com/moby/patternmatcher v0.6.0 // indirect
-	github.com/moby/sys/sequential v0.6.0 // indirect
-	github.com/moby/sys/user v0.4.0 // indirect
+	github.com/moby/go-archive v0.3.0 // indirect
+	github.com/moby/patternmatcher v0.6.1 // indirect
+	github.com/moby/sys/sequential v0.7.0 // indirect
+	github.com/moby/sys/user v0.4.1 // indirect
 	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/moby/term v0.5.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -154,7 +154,7 @@ require (
 	golang.org/x/tools v0.44.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260526163538-3dc84a4a5aaa // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
-	google.golang.org/grpc v1.81.1 // indirect
+	google.golang.org/grpc v1.82.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
