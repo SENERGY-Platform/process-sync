@@ -77,7 +77,7 @@ func TestWardenWithPreexistingDatabase(t *testing.T) {
 	config := configuration.Config{
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
-		MongoTable:                        "sync",
+		MongoDatabase:                     "sync",
 		MongoProcessDefinitionCollection:  "process_definitions",
 		MongoDeploymentCollection:         "deployments",
 		MongoProcessHistoryCollection:     "process_history",
@@ -775,7 +775,7 @@ func TestWardenWithClientReset(t *testing.T) {
 	config := configuration.Config{
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
-		MongoTable:                        "processes",
+		MongoDatabase:                     "processes",
 		MongoProcessDefinitionCollection:  "process_definition",
 		MongoDeploymentCollection:         "deployments",
 		MongoProcessHistoryCollection:     "histories",
@@ -1150,7 +1150,7 @@ func TestWardenWithParameterProcess(t *testing.T) {
 	config := configuration.Config{
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
-		MongoTable:                        "processes",
+		MongoDatabase:                     "processes",
 		MongoProcessDefinitionCollection:  "process_definition",
 		MongoDeploymentCollection:         "deployments",
 		MongoProcessHistoryCollection:     "histories",
@@ -1487,7 +1487,7 @@ func TestWardenFailingProcess(t *testing.T) {
 	config := configuration.Config{
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
-		MongoTable:                        "processes",
+		MongoDatabase:                     "processes",
 		MongoProcessDefinitionCollection:  "process_definition",
 		MongoDeploymentCollection:         "deployments",
 		MongoProcessHistoryCollection:     "histories",
@@ -1824,7 +1824,7 @@ func TestWardenStoppingProcess(t *testing.T) {
 	config := configuration.Config{
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
-		MongoTable:                        "processes",
+		MongoDatabase:                     "processes",
 		MongoProcessDefinitionCollection:  "process_definition",
 		MongoDeploymentCollection:         "deployments",
 		MongoProcessHistoryCollection:     "histories",
@@ -2161,7 +2161,7 @@ func TestWardenLongRunningProcess(t *testing.T) {
 	config := configuration.Config{
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
-		MongoTable:                        "processes",
+		MongoDatabase:                     "processes",
 		MongoProcessDefinitionCollection:  "process_definition",
 		MongoDeploymentCollection:         "deployments",
 		MongoProcessHistoryCollection:     "histories",

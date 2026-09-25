@@ -19,6 +19,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"reflect"
 	"runtime/debug"
@@ -39,10 +40,20 @@ type Mongo struct {
 
 var CreateCollections = []func(db *Mongo) error{}
 
+var (
+	errEmptyDatabase   = errors.New("mongo database name must not be empty")
+	errMissingPassword = errors.New("mongo password must not be empty when a mongo user is set")
+)
+
+// startupCheckTimeout bounds connect and the authenticated check that follows it.
+const startupCheckTimeout = 10 * time.Second
+
 func New(conf configuration.Config) (*Mongo, error) {
+	if err := validateConfig(conf); err != nil {
+		return nil, err
+	}
 	db := &Mongo{config: conf}
-	ctx, _ := db.getTimeoutContext()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(conf.MongoUrl))
+	client, err := connect(context.Background(), clientOptions(conf), conf.MongoDatabase, startupCheckTimeout)
 	if err != nil {
 		return nil, err
 	}
@@ -50,11 +61,55 @@ func New(conf configuration.Config) (*Mongo, error) {
 	for _, creators := range CreateCollections {
 		err = creators(db)
 		if err != nil {
-			client.Disconnect(context.Background())
+			db.Disconnect()
 			return nil, err
 		}
 	}
 	return db, nil
+}
+
+func validateConfig(conf configuration.Config) error {
+	if conf.MongoDatabase == "" {
+		return errEmptyDatabase
+	}
+	if conf.MongoUser != "" && conf.MongoPassword == "" {
+		return errMissingPassword
+	}
+	return nil
+}
+
+// clientOptions applies the credentials after the URI, so they replace any user, password,
+// authSource and authMechanism given in MONGO_URL.
+func clientOptions(conf configuration.Config) *options.ClientOptions {
+	opts := options.Client().ApplyURI(conf.MongoUrl)
+	if conf.MongoUser != "" {
+		opts.SetAuth(options.Credential{
+			Username:   conf.MongoUser,
+			Password:   conf.MongoPassword,
+			AuthSource: conf.MongoAuthSource,
+		})
+	}
+	return opts
+}
+
+// connect runs listCollections on database because Connect is lazy and ping needs no
+// authentication; unreachable servers and wrong or missing credentials then fail at startup
+// instead of at the first query. On failure the client is disconnected.
+func connect(ctx context.Context, opts *options.ClientOptions, database string, timeout time.Duration) (*mongo.Client, error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	client, err := mongo.Connect(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	listOpts := options.ListCollections().SetNameOnly(true).SetAuthorizedCollections(true)
+	if _, err = client.Database(database).ListCollectionNames(ctx, bson.D{}, listOpts); err != nil {
+		disconnectCtx, disconnectCancel := context.WithTimeout(context.Background(), timeout)
+		defer disconnectCancel()
+		_ = client.Disconnect(disconnectCtx)
+		return nil, fmt.Errorf("mongo startup check failed: %w", err)
+	}
+	return client, nil
 }
 
 func (this *Mongo) ensureIndex(collection *mongo.Collection, indexname string, indexKey string, asc bool, unique bool) error {
@@ -167,7 +222,7 @@ func prepareCollection(mongoCollectionName func(config configuration.Config) str
 	}
 	CreateCollections = append(CreateCollections, func(db *Mongo) error {
 		collectionName := mongoCollectionName(db.config)
-		collection := db.client.Database(db.config.MongoTable).Collection(collectionName)
+		collection := db.client.Database(db.config.MongoDatabase).Collection(collectionName)
 		for _, index := range indexes {
 			keys := []string{}
 			for _, key := range index.Keys {

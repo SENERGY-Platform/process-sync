@@ -16,3 +16,17 @@ for backwards compatibility the following ENV variables can be used where the 'k
 - MQTT_CLIENT_ID
 - MQTT_USER
 - MQTT_PW
+
+## MongoDB Config via ENV
+
+| Env var | Default | Notes |
+|---|---|---|
+| `MONGO_URL` | `mongodb://localhost:27017` | Full connection string including scheme, passed to the driver unchanged; must not contain credentials. |
+| `MONGO_USER` | empty | No authentication when empty. |
+| `MONGO_PASSWORD` | empty | Required when `MONGO_USER` is set; never printed at startup and masked when the config is formatted or marshalled. |
+| `MONGO_AUTH_SOURCE` | `admin` | Database the user is defined in. |
+| `MONGO_DATABASE` | `process_sync` | Must not be empty; collections are configured separately (`MONGO_*_COLLECTION`). |
+
+When `MONGO_USER` is set, the credentials are built from `MONGO_USER`, `MONGO_PASSWORD` and `MONGO_AUTH_SOURCE` alone: they replace any user, password, `authSource` and `authMechanism` given in `MONGO_URL`.
+
+Every applied environment variable is printed at startup, `MONGO_URL` included, so credentials belong in `MONGO_USER`/`MONGO_PASSWORD`, never in `MONGO_URL`. Startup fails unless an authenticated `listCollections` on `MONGO_DATABASE` succeeds within 10 seconds.

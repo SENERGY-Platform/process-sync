@@ -80,7 +80,7 @@ func init() {
 }
 
 func (this *Mongo) processDefinitionCollection() *mongo.Collection {
-	return this.client.Database(this.config.MongoTable).Collection(this.config.MongoProcessDefinitionCollection)
+	return this.client.Database(this.config.MongoDatabase).Collection(this.config.MongoProcessDefinitionCollection)
 }
 
 func (this *Mongo) SaveProcessDefinition(processDefinition model.ProcessDefinition) error {

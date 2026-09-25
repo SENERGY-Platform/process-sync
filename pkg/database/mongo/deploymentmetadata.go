@@ -92,7 +92,7 @@ func init() {
 }
 
 func (this *Mongo) deploymentMetadataCollection() *mongo.Collection {
-	return this.client.Database(this.config.MongoTable).Collection(this.config.MongoDeploymentMetadataCollection)
+	return this.client.Database(this.config.MongoDatabase).Collection(this.config.MongoDeploymentMetadataCollection)
 }
 
 func (this *Mongo) SaveDeploymentMetadata(metadata model.DeploymentMetadata) error {

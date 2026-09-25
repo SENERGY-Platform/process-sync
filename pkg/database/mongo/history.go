@@ -116,7 +116,7 @@ func init() {
 }
 
 func (this *Mongo) processHistoryCollection() *mongo.Collection {
-	return this.client.Database(this.config.MongoTable).Collection(this.config.MongoProcessHistoryCollection)
+	return this.client.Database(this.config.MongoDatabase).Collection(this.config.MongoProcessHistoryCollection)
 }
 
 func (this *Mongo) SaveHistoricProcessInstance(historicProcessInstance model.HistoricProcessInstance) error {

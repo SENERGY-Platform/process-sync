@@ -90,7 +90,7 @@ func init() {
 }
 
 func (this *Mongo) incidentCollection() *mongo.Collection {
-	return this.client.Database(this.config.MongoTable).Collection(this.config.MongoIncidentCollection)
+	return this.client.Database(this.config.MongoDatabase).Collection(this.config.MongoIncidentCollection)
 }
 
 func (this *Mongo) SaveIncident(incident model.Incident) (newDocument bool, err error) {

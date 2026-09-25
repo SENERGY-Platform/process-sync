@@ -63,7 +63,7 @@ func init() {
 }
 
 func (this *Mongo) lastNetworkContactCollection() *mongo.Collection {
-	return this.client.Database(this.config.MongoTable).Collection(this.config.MongoLastNetworkContactCollection)
+	return this.client.Database(this.config.MongoDatabase).Collection(this.config.MongoLastNetworkContactCollection)
 }
 
 func (this *Mongo) SaveLastContact(lastContact model.LastNetworkContact) error {

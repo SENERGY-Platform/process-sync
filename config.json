@@ -1,6 +1,10 @@
 {
     "api_port": "8080",
-    "mongo_url": "",
+    "mongo_url": "mongodb://localhost:27017",
+    "mongo_user": "",
+    "mongo_password": "",
+    "mongo_auth_source": "admin",
+    "mongo_database": "process_sync",
     "mqtt": [
         {
             "broker": "tcp://localhost:1883",
@@ -11,7 +15,6 @@
     ],
     "mqtt_group_id": "",
     "mqtt_clean_session": true,
-    "mongo_table": "sync",
     "mongo_warden_collection": "warden",
     "mongo_deployment_warden_collection": "deployment_warden",
     "mongo_deployment_collection": "deployments",

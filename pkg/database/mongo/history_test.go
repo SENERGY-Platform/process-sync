@@ -44,7 +44,7 @@ func TestHistorySearch(t *testing.T) {
 
 	config := configuration.Config{
 		MongoUrl:                          "mongodb://localhost:" + mongoPort,
-		MongoTable:                        "processes",
+		MongoDatabase:                     "processes",
 		MongoProcessDefinitionCollection:  "process_definition",
 		MongoDeploymentCollection:         "deployments",
 		MongoProcessHistoryCollection:     "histories",

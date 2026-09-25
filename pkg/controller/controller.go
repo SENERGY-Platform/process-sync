@@ -85,7 +85,11 @@ func NewDefault(conf configuration.Config, ctx context.Context) (ctrl *Controlle
 	if err != nil {
 		return ctrl, err
 	}
-	return New(conf, ctx, db, security.New(conf), devices.DefaultBaseDeviceRepoFactory, devices.DefaultDeviceProvider)
+	ctrl, err = New(conf, ctx, db, security.New(conf), devices.DefaultBaseDeviceRepoFactory, devices.DefaultDeviceProvider)
+	if err != nil {
+		db.Disconnect()
+	}
+	return ctrl, err
 }
 
 func New(config configuration.Config, ctx context.Context, db database.Database, security Security, baseDeviceRepoFactory BaseDeviceRepoFactory, deviceProvider DeviceProvider) (ctrl *Controller, err error) {

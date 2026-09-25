@@ -46,7 +46,7 @@ func TestMsgEvents(t *testing.T) {
 	config := configuration.Config{
 		MqttCleanSession:                  true,
 		MqttGroupId:                       "",
-		MongoTable:                        "processes",
+		MongoDatabase:                     "processes",
 		MongoProcessDefinitionCollection:  "process_definition",
 		MongoDeploymentCollection:         "deployments",
 		MongoProcessHistoryCollection:     "histories",

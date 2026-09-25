@@ -89,7 +89,7 @@ func init() {
 }
 
 func (this *Mongo) deploymentCollection() *mongo.Collection {
-	return this.client.Database(this.config.MongoTable).Collection(this.config.MongoDeploymentCollection)
+	return this.client.Database(this.config.MongoDatabase).Collection(this.config.MongoDeploymentCollection)
 }
 
 func (this *Mongo) SaveDeployment(deployment model.Deployment) error {

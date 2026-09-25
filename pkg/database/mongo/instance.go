@@ -91,7 +91,7 @@ func init() {
 }
 
 func (this *Mongo) processInstanceCollection() *mongo.Collection {
-	return this.client.Database(this.config.MongoTable).Collection(this.config.MongoProcessInstanceCollection)
+	return this.client.Database(this.config.MongoDatabase).Collection(this.config.MongoProcessInstanceCollection)
 }
 
 func (this *Mongo) SaveProcessInstance(processInstance model.ProcessInstance) error {

@@ -106,11 +106,11 @@ func init() {
 }
 
 func (this *Mongo) deploymentWardenCollection() *mongo.Collection {
-	return this.client.Database(this.config.MongoTable).Collection(this.config.MongoDeploymentWardenCollection)
+	return this.client.Database(this.config.MongoDatabase).Collection(this.config.MongoDeploymentWardenCollection)
 }
 
 func (this *Mongo) wardenCollection() *mongo.Collection {
-	return this.client.Database(this.config.MongoTable).Collection(this.config.MongoWardenCollection)
+	return this.client.Database(this.config.MongoDatabase).Collection(this.config.MongoWardenCollection)
 }
 
 func (this *Mongo) SetDeploymentWardenInfo(info model.DeploymentWardenInfo) error {
