@@ -51,10 +51,14 @@ func main() {
 		Protocol: "kafka",
 	})
 
+	mqttBroker := ""
+	if len(conf.Mqtt) > 0 {
+		mqttBroker = conf.Mqtt[0].Broker
+	}
 	asyncAPI.AddServer("mqtt", spec.Server{
-		URL:         conf.MqttBroker,
+		URL:         mqttBroker,
 		Protocol:    "mqtt",
-		Description: "this service subscribes with a '$share/[group-id]/' topic prefix, to enable service scaling without duplicate message handling. this prefix is transparent to other mqtt clients.",
+		Description: "this service connects to every broker configured in config.Mqtt and handles the same topics on each; the url shows the first one. this service subscribes with a '$share/[group-id]/' topic prefix, to enable service scaling without duplicate message handling. this prefix is transparent to other mqtt clients.",
 	})
 
 	reflector := asyncapi.Reflector{}
