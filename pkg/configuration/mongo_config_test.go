@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -128,6 +129,45 @@ func TestConfigFormattingMasksMongoPassword(t *testing.T) {
 	}
 	if cfg.MongoPassword != "s3cr3t-pw" {
 		t.Errorf("masking changed the loaded password to %q", cfg.MongoPassword)
+	}
+}
+
+func TestConfigFormattingMasksMqttSecrets(t *testing.T) {
+	cfg := Config{
+		MongoDatabase: "process_sync",
+		Mqtt: []MqttConfig{
+			{Broker: "tcp://a:1883", ClientId: "s3cr3t-client-a", User: "s3cr3t-user-a", Pw: "s3cr3t-pw-a"},
+			{Broker: "tcp://b:1883", ClientId: "s3cr3t-client-b", User: "s3cr3t-user-b", Pw: "s3cr3t-pw-b"},
+		},
+	}
+	original := make([]MqttConfig, len(cfg.Mqtt))
+	copy(original, cfg.Mqtt)
+
+	b, err := json.Marshal(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	outputs := map[string]string{
+		"json": string(b),
+		"%v":   fmt.Sprintf("%v", cfg),
+		"%+v":  fmt.Sprintf("%+v", cfg),
+		"%#v":  fmt.Sprintf("%#v", cfg),
+	}
+	for _, secret := range []string{
+		"s3cr3t-client-a", "s3cr3t-user-a", "s3cr3t-pw-a",
+		"s3cr3t-client-b", "s3cr3t-user-b", "s3cr3t-pw-b",
+	} {
+		for name, s := range outputs {
+			if strings.Contains(s, secret) {
+				t.Errorf("%s leaks mqtt secret %q: %s", name, secret, s)
+			}
+		}
+	}
+	if !strings.Contains(string(b), `"broker":"tcp://a:1883"`) || !strings.Contains(string(b), `"broker":"tcp://b:1883"`) {
+		t.Errorf("json lost the mqtt brokers: %s", b)
+	}
+	if !reflect.DeepEqual(cfg.Mqtt, original) {
+		t.Errorf("formatting mutated the caller's Mqtt entries: got %+v, want %+v", cfg.Mqtt, original)
 	}
 }
 

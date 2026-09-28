@@ -127,13 +127,27 @@ func isSecret(field reflect.StructField) bool {
 // plainConfig has none of Config's methods, so formatting it does not recurse.
 type plainConfig Config
 
-// masked returns a copy in which every non-empty field tagged config:"secret" is replaced.
-func (c Config) masked() plainConfig {
-	v := reflect.ValueOf(&c).Elem()
+// maskStructFields replaces every non-empty string field tagged config:"secret" of the addressable struct value v.
+func maskStructFields(v reflect.Value) {
 	for i := 0; i < v.NumField(); i++ {
 		if isSecret(v.Type().Field(i)) && v.Field(i).Kind() == reflect.String && v.Field(i).String() != "" {
 			v.Field(i).SetString("***")
 		}
+	}
+}
+
+// masked returns a copy in which every non-empty field tagged config:"secret" is replaced, including each
+// element of Mqtt. Mqtt is masked on a copy of the slice, since the value receiver's slice field still shares
+// its backing array with the caller's config.
+func (c Config) masked() plainConfig {
+	maskStructFields(reflect.ValueOf(&c).Elem())
+	if len(c.Mqtt) > 0 {
+		mqtt := make([]MqttConfig, len(c.Mqtt))
+		copy(mqtt, c.Mqtt)
+		for i := range mqtt {
+			maskStructFields(reflect.ValueOf(&mqtt[i]).Elem())
+		}
+		c.Mqtt = mqtt
 	}
 	return plainConfig(c)
 }
