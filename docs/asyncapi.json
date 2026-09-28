@@ -11,9 +11,9 @@
             "protocol": "kafka"
         },
         "mqtt": {
-            "host": "",
+            "host": "localhost:1883",
             "protocol": "mqtt",
-            "description": "this service subscribes with a '$share/[group-id]/' topic prefix, to enable service scaling without duplicate message handling. this prefix is transparent to other mqtt clients."
+            "description": "this service connects to every broker configured in config.Mqtt and handles the same topics on each; the url shows the first one. this service subscribes with a '$share/[group-id]/' topic prefix, to enable service scaling without duplicate message handling. this prefix is transparent to other mqtt clients."
         }
     },
     "channels": {
@@ -765,6 +765,9 @@
             },
             "CamundamodelIncident": {
                 "properties": {
+                    "business_key": {
+                        "type": "string"
+                    },
                     "deployment_name": {
                         "type": "string"
                     },
@@ -910,542 +913,6 @@
                 },
                 "type": "object"
             },
-            "DeploymentmodelConditionalEvent": {
-                "properties": {
-                    "event_id": {
-                        "type": "string"
-                    },
-                    "qos": {
-                        "type": "integer"
-                    },
-                    "script": {
-                        "type": "string"
-                    },
-                    "selection": {
-                        "$ref": "#/components/schemas/DeploymentmodelSelection"
-                    },
-                    "value_variable": {
-                        "type": "string"
-                    },
-                    "variables": {
-                        "additionalProperties": {
-                            "type": "string"
-                        },
-                        "type": [
-                            "object",
-                            "null"
-                        ]
-                    }
-                },
-                "type": [
-                    "object",
-                    "null"
-                ]
-            },
-            "DeploymentmodelDevice": {
-                "properties": {
-                    "id": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "type": [
-                    "object",
-                    "null"
-                ]
-            },
-            "DeploymentmodelDeviceGroup": {
-                "properties": {
-                    "id": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "type": [
-                    "object",
-                    "null"
-                ]
-            },
-            "DeploymentmodelDiagram": {
-                "properties": {
-                    "svg": {
-                        "type": "string"
-                    },
-                    "xml_deployed": {
-                        "type": "string"
-                    },
-                    "xml_raw": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "DeploymentmodelElement": {
-                "properties": {
-                    "bpmn_id": {
-                        "type": "string"
-                    },
-                    "conditional_event": {
-                        "$ref": "#/components/schemas/DeploymentmodelConditionalEvent"
-                    },
-                    "group": {
-                        "type": [
-                            "null",
-                            "string"
-                        ]
-                    },
-                    "message_event": {
-                        "$ref": "#/components/schemas/DeploymentmodelMessageEvent"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "notification": {
-                        "$ref": "#/components/schemas/DeploymentmodelNotification"
-                    },
-                    "order": {
-                        "type": "integer"
-                    },
-                    "task": {
-                        "$ref": "#/components/schemas/DeploymentmodelTask"
-                    },
-                    "time_event": {
-                        "$ref": "#/components/schemas/DeploymentmodelTimeEvent"
-                    }
-                },
-                "type": "object"
-            },
-            "DeploymentmodelFilterCriteria": {
-                "properties": {
-                    "aspect_id": {
-                        "type": [
-                            "null",
-                            "string"
-                        ]
-                    },
-                    "characteristic_id": {
-                        "type": [
-                            "null",
-                            "string"
-                        ]
-                    },
-                    "device_class_id": {
-                        "type": [
-                            "null",
-                            "string"
-                        ]
-                    },
-                    "function_id": {
-                        "type": [
-                            "null",
-                            "string"
-                        ]
-                    }
-                },
-                "type": "object"
-            },
-            "DeploymentmodelGenericEventSource": {
-                "properties": {
-                    "filter_ids": {
-                        "type": "string"
-                    },
-                    "filter_type": {
-                        "type": "string"
-                    },
-                    "topic": {
-                        "type": "string"
-                    }
-                },
-                "type": [
-                    "object",
-                    "null"
-                ]
-            },
-            "DeploymentmodelIncidentHandling": {
-                "properties": {
-                    "notify": {
-                        "type": "boolean"
-                    },
-                    "restart": {
-                        "type": "boolean"
-                    }
-                },
-                "type": "object"
-            },
-            "DeploymentmodelMessageEvent": {
-                "properties": {
-                    "event_id": {
-                        "type": "string"
-                    },
-                    "flow_id": {
-                        "type": "string"
-                    },
-                    "selection": {
-                        "$ref": "#/components/schemas/DeploymentmodelSelection"
-                    },
-                    "use_marshaller": {
-                        "type": "boolean"
-                    },
-                    "value": {
-                        "type": "string"
-                    }
-                },
-                "type": [
-                    "object",
-                    "null"
-                ]
-            },
-            "DeploymentmodelNotification": {
-                "properties": {
-                    "message": {
-                        "type": "string"
-                    },
-                    "title": {
-                        "type": "string"
-                    }
-                },
-                "type": [
-                    "object",
-                    "null"
-                ]
-            },
-            "DeploymentmodelProcessStartParameter": {
-                "properties": {
-                    "default": {
-                        "type": "string"
-                    },
-                    "id": {
-                        "type": "string"
-                    },
-                    "label": {
-                        "type": "string"
-                    },
-                    "properties": {
-                        "additionalProperties": {
-                            "type": "string"
-                        },
-                        "type": [
-                            "object",
-                            "null"
-                        ]
-                    },
-                    "type": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "DeploymentmodelSelection": {
-                "properties": {
-                    "filter_criteria": {
-                        "$ref": "#/components/schemas/DeploymentmodelFilterCriteria"
-                    },
-                    "selected_device_group_id": {
-                        "type": [
-                            "null",
-                            "string"
-                        ]
-                    },
-                    "selected_device_id": {
-                        "type": [
-                            "null",
-                            "string"
-                        ]
-                    },
-                    "selected_generic_event_source": {
-                        "$ref": "#/components/schemas/DeploymentmodelGenericEventSource"
-                    },
-                    "selected_import_id": {
-                        "type": [
-                            "null",
-                            "string"
-                        ]
-                    },
-                    "selected_path": {
-                        "$ref": "#/components/schemas/DeviceselectionmodelPathOption"
-                    },
-                    "selected_service_id": {
-                        "type": [
-                            "null",
-                            "string"
-                        ]
-                    },
-                    "selection_options": {
-                        "items": {
-                            "$ref": "#/components/schemas/DeploymentmodelSelectionOption"
-                        },
-                        "type": [
-                            "array",
-                            "null"
-                        ]
-                    }
-                },
-                "type": "object"
-            },
-            "DeploymentmodelSelectionOption": {
-                "properties": {
-                    "device": {
-                        "$ref": "#/components/schemas/DeploymentmodelDevice"
-                    },
-                    "device_group": {
-                        "$ref": "#/components/schemas/DeploymentmodelDeviceGroup"
-                    },
-                    "import": {
-                        "$ref": "#/components/schemas/ImportmodelImport"
-                    },
-                    "importType": {
-                        "$ref": "#/components/schemas/ImportmodelImportType"
-                    },
-                    "path_options": {
-                        "additionalProperties": {
-                            "items": {
-                                "$ref": "#/components/schemas/DeviceselectionmodelPathOption"
-                            },
-                            "type": "array"
-                        },
-                        "type": "object"
-                    },
-                    "services": {
-                        "items": {
-                            "$ref": "#/components/schemas/DeploymentmodelService"
-                        },
-                        "type": [
-                            "array",
-                            "null"
-                        ]
-                    }
-                },
-                "type": "object"
-            },
-            "DeploymentmodelService": {
-                "properties": {
-                    "id": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "DeploymentmodelTask": {
-                "properties": {
-                    "parameter": {
-                        "additionalProperties": {
-                            "type": "string"
-                        },
-                        "type": [
-                            "object",
-                            "null"
-                        ]
-                    },
-                    "prefer_event": {
-                        "type": "boolean"
-                    },
-                    "retries": {
-                        "type": "integer"
-                    },
-                    "selection": {
-                        "$ref": "#/components/schemas/DeploymentmodelSelection"
-                    }
-                },
-                "type": [
-                    "object",
-                    "null"
-                ]
-            },
-            "DeploymentmodelTimeEvent": {
-                "properties": {
-                    "time": {
-                        "type": "string"
-                    },
-                    "type": {
-                        "type": "string"
-                    }
-                },
-                "type": [
-                    "object",
-                    "null"
-                ]
-            },
-            "DeviceselectionmodelConfigurable": {
-                "properties": {
-                    "aspect_node": {
-                        "$ref": "#/components/schemas/ModelsAspectNode"
-                    },
-                    "characteristic_id": {
-                        "type": "string"
-                    },
-                    "function_id": {
-                        "type": "string"
-                    },
-                    "path": {
-                        "type": "string"
-                    },
-                    "type": {
-                        "type": "string"
-                    },
-                    "value": {}
-                },
-                "type": "object"
-            },
-            "DeviceselectionmodelPathOption": {
-                "properties": {
-                    "aspectNode": {
-                        "$ref": "#/components/schemas/ModelsAspectNode"
-                    },
-                    "characteristicId": {
-                        "type": "string"
-                    },
-                    "configurables": {
-                        "items": {
-                            "$ref": "#/components/schemas/DeviceselectionmodelConfigurable"
-                        },
-                        "type": "array"
-                    },
-                    "functionId": {
-                        "type": "string"
-                    },
-                    "isVoid": {
-                        "type": "boolean"
-                    },
-                    "path": {
-                        "type": "string"
-                    },
-                    "type": {
-                        "type": "string"
-                    },
-                    "value": {}
-                },
-                "type": [
-                    "object",
-                    "null"
-                ]
-            },
-            "ImportmodelImport": {
-                "properties": {
-                    "configs": {
-                        "items": {
-                            "$ref": "#/components/schemas/ImportmodelImportConfig"
-                        },
-                        "type": [
-                            "array",
-                            "null"
-                        ]
-                    },
-                    "id": {
-                        "type": "string"
-                    },
-                    "image": {
-                        "type": "string"
-                    },
-                    "import_type_id": {
-                        "type": "string"
-                    },
-                    "kafka_topic": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "restart": {
-                        "type": [
-                            "null",
-                            "boolean"
-                        ]
-                    }
-                },
-                "type": [
-                    "object",
-                    "null"
-                ]
-            },
-            "ImportmodelImportConfig": {
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    },
-                    "value": {}
-                },
-                "type": "object"
-            },
-            "ImportmodelImportContentVariable": {
-                "properties": {
-                    "aspect_id": {
-                        "type": "string"
-                    },
-                    "characteristic_id": {
-                        "type": "string"
-                    },
-                    "function_id": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "sub_content_variables": {
-                        "items": {
-                            "$ref": "#/components/schemas/ImportmodelImportContentVariable"
-                        },
-                        "type": [
-                            "array",
-                            "null"
-                        ]
-                    },
-                    "type": {
-                        "$ref": "#/components/schemas/ImportmodelType"
-                    },
-                    "use_as_tag": {
-                        "type": "boolean"
-                    }
-                },
-                "type": "object"
-            },
-            "ImportmodelImportType": {
-                "properties": {
-                    "configs": {
-                        "items": {
-                            "$ref": "#/components/schemas/ImportmodelImportConfig"
-                        },
-                        "type": [
-                            "array",
-                            "null"
-                        ]
-                    },
-                    "default_restart": {
-                        "type": "boolean"
-                    },
-                    "description": {
-                        "type": "string"
-                    },
-                    "id": {
-                        "type": "string"
-                    },
-                    "image": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "output": {
-                        "$ref": "#/components/schemas/ImportmodelImportContentVariable"
-                    },
-                    "owner": {
-                        "type": "string"
-                    }
-                },
-                "type": [
-                    "object",
-                    "null"
-                ]
-            },
-            "ImportmodelType": {
-                "type": "string"
-            },
             "MgwEventDescriptionsUpdate": {
                 "properties": {
                     "camunda_deployment_id": {
@@ -1496,11 +963,11 @@
                         ]
                     },
                     "diagram": {
-                        "$ref": "#/components/schemas/DeploymentmodelDiagram"
+                        "$ref": "#/components/schemas/ModelsDiagram"
                     },
                     "elements": {
                         "items": {
-                            "$ref": "#/components/schemas/DeploymentmodelElement"
+                            "$ref": "#/components/schemas/ModelsElement"
                         },
                         "type": [
                             "array",
@@ -1523,7 +990,7 @@
                         "type": "string"
                     },
                     "incident_handling": {
-                        "$ref": "#/components/schemas/DeploymentmodelIncidentHandling"
+                        "$ref": "#/components/schemas/ModelsIncidentHandling"
                     },
                     "name": {
                         "type": "string"
@@ -1539,7 +1006,7 @@
                     },
                     "start_parameter": {
                         "items": {
-                            "$ref": "#/components/schemas/DeploymentmodelProcessStartParameter"
+                            "$ref": "#/components/schemas/ModelsProcessStartParameter"
                         },
                         "type": "array"
                     },
@@ -1552,7 +1019,15 @@
             "ModelEventDesc": {
                 "properties": {
                     "aspect_id": {
+                        "deprecated": true,
+                        "description": "deprecated: please use AspectIds",
                         "type": "string"
+                    },
+                    "aspect_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
                     },
                     "characteristic_id": {
                         "type": "string"
@@ -1630,6 +1105,9 @@
             },
             "ModelStartMessage": {
                 "properties": {
+                    "business_key": {
+                        "type": "string"
+                    },
                     "deployment_id": {
                         "type": "string"
                     },
@@ -1653,6 +1131,9 @@
                             "array",
                             "null"
                         ]
+                    },
+                    "aspect_class_id": {
+                        "type": "string"
                     },
                     "child_ids": {
                         "items": {
@@ -1701,6 +1182,67 @@
                 },
                 "type": "object"
             },
+            "ModelsConditionalEvent": {
+                "properties": {
+                    "event_id": {
+                        "type": "string"
+                    },
+                    "qos": {
+                        "type": "integer"
+                    },
+                    "script": {
+                        "type": "string"
+                    },
+                    "selection": {
+                        "$ref": "#/components/schemas/ModelsSelection"
+                    },
+                    "value_variable": {
+                        "type": "string"
+                    },
+                    "variables": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "object",
+                            "null"
+                        ]
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "ModelsConfigurable": {
+                "properties": {
+                    "aspect_node": {
+                        "$ref": "#/components/schemas/ModelsAspectNode",
+                        "deprecated": true,
+                        "description": "deprecated: alias for a single element AspectNodes; holds the node with the alphabetically first id"
+                    },
+                    "aspect_nodes": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsAspectNode"
+                        },
+                        "type": "array"
+                    },
+                    "characteristic_id": {
+                        "type": "string"
+                    },
+                    "function_id": {
+                        "type": "string"
+                    },
+                    "path": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/ModelsType"
+                    },
+                    "value": {}
+                },
+                "type": "object"
+            },
             "ModelsContent": {
                 "properties": {
                     "content_variable": {
@@ -1721,7 +1263,15 @@
             "ModelsContentVariable": {
                 "properties": {
                     "aspect_id": {
+                        "deprecated": true,
+                        "description": "deprecated: please use AspectIds",
                         "type": "string"
+                    },
+                    "aspect_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
                     },
                     "characteristic_id": {
                         "type": "string"
@@ -1822,7 +1372,15 @@
             "ModelsDeviceGroupFilterCriteria": {
                 "properties": {
                     "aspect_id": {
+                        "deprecated": true,
+                        "description": "deprecated: please use AspectIds",
                         "type": "string"
+                    },
+                    "aspect_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
                     },
                     "device_class_id": {
                         "type": "string"
@@ -1836,8 +1394,494 @@
                 },
                 "type": "object"
             },
+            "ModelsDiagram": {
+                "properties": {
+                    "svg": {
+                        "type": "string"
+                    },
+                    "xml_deployed": {
+                        "type": "string"
+                    },
+                    "xml_raw": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsElement": {
+                "properties": {
+                    "bpmn_id": {
+                        "type": "string"
+                    },
+                    "conditional_event": {
+                        "$ref": "#/components/schemas/ModelsConditionalEvent"
+                    },
+                    "group": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "message_event": {
+                        "$ref": "#/components/schemas/ModelsMessageEvent"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "notification": {
+                        "$ref": "#/components/schemas/ModelsNotification"
+                    },
+                    "order": {
+                        "type": "integer"
+                    },
+                    "task": {
+                        "$ref": "#/components/schemas/ModelsTask"
+                    },
+                    "time_event": {
+                        "$ref": "#/components/schemas/ModelsTimeEvent"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsGenericEventSource": {
+                "properties": {
+                    "filter_ids": {
+                        "type": "string"
+                    },
+                    "filter_type": {
+                        "type": "string"
+                    },
+                    "topic": {
+                        "type": "string"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "ModelsImport": {
+                "properties": {
+                    "configs": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsImportConfig"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "image": {
+                        "type": "string"
+                    },
+                    "import_type_id": {
+                        "type": "string"
+                    },
+                    "kafka_topic": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "restart": {
+                        "type": [
+                            "null",
+                            "boolean"
+                        ]
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "ModelsImportConfig": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "value": {}
+                },
+                "type": "object"
+            },
+            "ModelsImportContentVariable": {
+                "properties": {
+                    "aspect_id": {
+                        "deprecated": true,
+                        "description": "deprecated: please use AspectIds",
+                        "type": "string"
+                    },
+                    "aspect_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "characteristic_id": {
+                        "type": "string"
+                    },
+                    "function_id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "sub_content_variables": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsImportContentVariable"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/ModelsType"
+                    },
+                    "use_as_tag": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsImportType": {
+                "properties": {
+                    "configs": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsImportTypeConfig"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "cost": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "default_restart": {
+                        "type": "boolean"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "image": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "output": {
+                        "$ref": "#/components/schemas/ModelsImportContentVariable"
+                    },
+                    "owner": {
+                        "type": "string"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "ModelsImportTypeConfig": {
+                "properties": {
+                    "default_value": {},
+                    "description": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/ModelsType"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsIncidentHandling": {
+                "properties": {
+                    "notify": {
+                        "type": "boolean"
+                    },
+                    "restart": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
             "ModelsInteraction": {
                 "type": "string"
+            },
+            "ModelsMessageEvent": {
+                "properties": {
+                    "event_id": {
+                        "type": "string"
+                    },
+                    "flow_id": {
+                        "type": "string"
+                    },
+                    "selection": {
+                        "$ref": "#/components/schemas/ModelsSelection"
+                    },
+                    "use_marshaller": {
+                        "type": "boolean"
+                    },
+                    "value": {
+                        "type": "string"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "ModelsNotification": {
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "ModelsPathOption": {
+                "properties": {
+                    "aspectNode": {
+                        "$ref": "#/components/schemas/ModelsAspectNode",
+                        "deprecated": true,
+                        "description": "deprecated: alias for a single element AspectNodes; holds the node with the alphabetically first id"
+                    },
+                    "aspectNodes": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsAspectNode"
+                        },
+                        "type": "array"
+                    },
+                    "characteristicId": {
+                        "type": "string"
+                    },
+                    "configurables": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsConfigurable"
+                        },
+                        "type": "array"
+                    },
+                    "functionId": {
+                        "type": "string"
+                    },
+                    "interaction": {
+                        "$ref": "#/components/schemas/ModelsInteraction"
+                    },
+                    "isVoid": {
+                        "type": "boolean"
+                    },
+                    "path": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/ModelsType"
+                    },
+                    "value": {}
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "ModelsProcessFilterCriteria": {
+                "properties": {
+                    "aspect_id": {
+                        "deprecated": true,
+                        "description": "deprecated: please use AspectIds",
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "aspect_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "characteristic_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "device_class_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "function_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsProcessStartParameter": {
+                "properties": {
+                    "default": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "properties": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "object",
+                            "null"
+                        ]
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsSelection": {
+                "properties": {
+                    "filter_criteria": {
+                        "$ref": "#/components/schemas/ModelsProcessFilterCriteria"
+                    },
+                    "selected_device_group_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "selected_device_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "selected_generic_event_source": {
+                        "$ref": "#/components/schemas/ModelsGenericEventSource"
+                    },
+                    "selected_import_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "selected_path": {
+                        "$ref": "#/components/schemas/ModelsPathOption"
+                    },
+                    "selected_service_id": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "selection_options": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsSelectionOption"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsSelectionDevice": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "ModelsSelectionDeviceGroup": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "ModelsSelectionOption": {
+                "properties": {
+                    "device": {
+                        "$ref": "#/components/schemas/ModelsSelectionDevice"
+                    },
+                    "device_group": {
+                        "$ref": "#/components/schemas/ModelsSelectionDeviceGroup"
+                    },
+                    "import": {
+                        "$ref": "#/components/schemas/ModelsImport"
+                    },
+                    "importType": {
+                        "$ref": "#/components/schemas/ModelsImportType"
+                    },
+                    "path_options": {
+                        "additionalProperties": {
+                            "items": {
+                                "$ref": "#/components/schemas/ModelsPathOption"
+                            },
+                            "type": "array"
+                        },
+                        "type": "object"
+                    },
+                    "services": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsSelectionService"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsSelectionService": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
             },
             "ModelsSerialization": {
                 "type": "string"
@@ -1894,6 +1938,46 @@
                     }
                 },
                 "type": "object"
+            },
+            "ModelsTask": {
+                "properties": {
+                    "parameter": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "object",
+                            "null"
+                        ]
+                    },
+                    "prefer_event": {
+                        "type": "boolean"
+                    },
+                    "retries": {
+                        "type": "integer"
+                    },
+                    "selection": {
+                        "$ref": "#/components/schemas/ModelsSelection"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
+            },
+            "ModelsTimeEvent": {
+                "properties": {
+                    "time": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                },
+                "type": [
+                    "object",
+                    "null"
+                ]
             },
             "ModelsType": {
                 "type": "string"

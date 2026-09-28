@@ -5,6 +5,7 @@ go 1.26.1
 require (
 	github.com/SENERGY-Platform/process-sync v0.0.16
 	github.com/swaggest/go-asyncapi v0.8.0
+	github.com/swaggest/jsonschema-go v0.3.39
 )
 
 require (
@@ -78,7 +79,6 @@ require (
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.59.1 // indirect
 	github.com/segmentio/kafka-go v0.4.50 // indirect
-	github.com/swaggest/jsonschema-go v0.3.39 // indirect
 	github.com/swaggest/refl v1.1.0 // indirect
 	github.com/swaggo/files v1.0.1 // indirect
 	github.com/swaggo/http-swagger v1.3.4 // indirect

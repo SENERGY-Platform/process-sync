@@ -29,9 +29,10 @@ import (
 
 	"github.com/swaggest/go-asyncapi/reflector/asyncapi-2.4.0"
 	"github.com/swaggest/go-asyncapi/spec-2.4.0"
+	"github.com/swaggest/jsonschema-go"
 )
 
-//go:generate go run main.go
+//go:generate go run .
 
 func main() {
 	configLocation := flag.String("config", "../../config.json", "configuration file")
@@ -63,6 +64,7 @@ func main() {
 
 	reflector := asyncapi.Reflector{}
 	reflector.Schema = &asyncAPI
+	reflector.DefaultOptions = append(reflector.DefaultOptions, jsonschema.InterceptType(markDeprecatedProperties))
 
 	mustNotFail := func(err error) {
 		if err != nil {
