@@ -17,7 +17,7 @@
 package controller
 
 import (
-	devicerpo "github.com/SENERGY-Platform/device-repository/lib/client"
+	devicerpo "github.com/SENERGY-Platform/device-repository/v2/lib/client"
 	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/process-sync/pkg/model"
 	"net/http"

@@ -1572,6 +1572,9 @@
             "type": "object",
             "properties": {
                 "deploymentTime": {},
+                "error": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -1716,7 +1719,14 @@
             "type": "object",
             "properties": {
                 "aspect_id": {
+                    "description": "deprecated: please use AspectIds",
                     "type": "string"
+                },
+                "aspect_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "characteristic_id": {
                     "description": "marshaller info",
@@ -2069,6 +2079,9 @@
                         "type": "string"
                     }
                 },
+                "aspect_class_id": {
+                    "type": "string"
+                },
                 "child_ids": {
                     "type": "array",
                     "items": {
@@ -2139,7 +2152,18 @@
             "type": "object",
             "properties": {
                 "aspect_node": {
-                    "$ref": "#/definitions/models.AspectNode"
+                    "description": "deprecated: alias for a single element AspectNodes; holds the node with the alphabetically first id",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.AspectNode"
+                        }
+                    ]
+                },
+                "aspect_nodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.AspectNode"
+                    }
                 },
                 "characteristic_id": {
                     "type": "string"
@@ -2151,7 +2175,7 @@
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
+                    "$ref": "#/definitions/models.Type"
                 },
                 "value": {}
             }
@@ -2177,7 +2201,14 @@
             "type": "object",
             "properties": {
                 "aspect_id": {
+                    "description": "deprecated: please use AspectIds",
                     "type": "string"
+                },
+                "aspect_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "characteristic_id": {
                     "type": "string"
@@ -2355,7 +2386,14 @@
             "type": "object",
             "properties": {
                 "aspect_id": {
+                    "description": "deprecated: please use AspectIds",
                     "type": "string"
+                },
+                "aspect_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "characteristic_id": {
                     "type": "string"
@@ -2386,8 +2424,11 @@
                 "configs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ImportConfig"
+                        "$ref": "#/definitions/models.ImportTypeConfig"
                     }
+                },
+                "cost": {
+                    "type": "integer"
                 },
                 "default_restart": {
                     "type": "boolean"
@@ -2409,6 +2450,21 @@
                 },
                 "owner": {
                     "type": "string"
+                }
+            }
+        },
+        "models.ImportTypeConfig": {
+            "type": "object",
+            "properties": {
+                "default_value": {},
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/models.Type"
                 }
             }
         },
@@ -2471,7 +2527,18 @@
             "type": "object",
             "properties": {
                 "aspectNode": {
-                    "$ref": "#/definitions/models.AspectNode"
+                    "description": "deprecated: alias for a single element AspectNodes; holds the node with the alphabetically first id",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.AspectNode"
+                        }
+                    ]
+                },
+                "aspectNodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.AspectNode"
+                    }
                 },
                 "characteristicId": {
                     "type": "string"
@@ -2485,6 +2552,9 @@
                 "functionId": {
                     "type": "string"
                 },
+                "interaction": {
+                    "$ref": "#/definitions/models.Interaction"
+                },
                 "isVoid": {
                     "type": "boolean"
                 },
@@ -2492,7 +2562,7 @@
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
+                    "$ref": "#/definitions/models.Type"
                 },
                 "value": {}
             }
@@ -2501,7 +2571,14 @@
             "type": "object",
             "properties": {
                 "aspect_id": {
+                    "description": "deprecated: please use AspectIds",
                     "type": "string"
+                },
+                "aspect_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "characteristic_id": {
                     "type": "string"

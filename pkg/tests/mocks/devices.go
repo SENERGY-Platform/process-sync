@@ -17,12 +17,24 @@
 package mocks
 
 import (
+	"sync"
+
 	"github.com/SENERGY-Platform/event-deployment/lib/model"
 	"github.com/SENERGY-Platform/process-deployment/lib/auth"
 	"github.com/SENERGY-Platform/process-deployment/lib/model/devicemodel"
 )
 
-type Devices struct{}
+type Devices struct {
+	mux                          sync.Mutex
+	deviceTypeSelectableCriteria [][]model.FilterCriteria
+}
+
+// DeviceTypeSelectableCriteria returns the criteria of every GetDeviceTypeSelectables call, in call order.
+func (this *Devices) DeviceTypeSelectableCriteria() [][]model.FilterCriteria {
+	this.mux.Lock()
+	defer this.mux.Unlock()
+	return append([][]model.FilterCriteria{}, this.deviceTypeSelectableCriteria...)
+}
 
 func (this *Devices) GetConcept(conceptId string) (result model.Concept, err error, code int) {
 	//TODO implement me
@@ -90,6 +102,9 @@ func (this *Devices) GetService(id string) (devicemodel.Service, error, int) {
 }
 
 func (this *Devices) GetDeviceTypeSelectables(criteria []model.FilterCriteria) (result []model.DeviceTypeSelectable, err error, code int) {
+	this.mux.Lock()
+	this.deviceTypeSelectableCriteria = append(this.deviceTypeSelectableCriteria, criteria)
+	this.mux.Unlock()
 	result = []model.DeviceTypeSelectable{
 		{
 			DeviceTypeId: "dt1",

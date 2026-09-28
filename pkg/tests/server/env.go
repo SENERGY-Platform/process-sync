@@ -98,6 +98,11 @@ func Env(ctx context.Context, wg *sync.WaitGroup, initConf configuration.Config,
 }
 
 func EnvForEventsCheck(ctx context.Context, wg *sync.WaitGroup, initConf configuration.Config, networkId string) (conf configuration.Config, err error) {
+	return EnvForEventsCheckWithDevices(ctx, wg, initConf, networkId, &mocks.Devices{})
+}
+
+// EnvForEventsCheckWithDevices is EnvForEventsCheck with a caller provided devices mock, so a test can inspect what the service asked the device-repository.
+func EnvForEventsCheckWithDevices(ctx context.Context, wg *sync.WaitGroup, initConf configuration.Config, networkId string, d *mocks.Devices) (conf configuration.Config, err error) {
 	conf = initConf
 	conf.ApiPort, err = docker.GetFreePortStr()
 	if err != nil {
@@ -129,8 +134,6 @@ func EnvForEventsCheck(ctx context.Context, wg *sync.WaitGroup, initConf configu
 	if err != nil {
 		return conf, err
 	}
-
-	d := &mocks.Devices{}
 
 	ctrl, err := controller.New(conf, ctx, db, mocks.Security(), func(token string, deviceRepoUrl string) interfaces.Devices {
 		return d
