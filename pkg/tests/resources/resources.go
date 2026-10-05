@@ -26,8 +26,8 @@ var LongProcess string
 //go:embed incident_with_dur.bpmn
 var IncidentWithDurBpmn string
 
-//go:embed repo_fallback.json
-var RepoFallbackFile string
+//go:embed devicerepo.json
+var DeviceRepoEntities string
 
 //go:embed finishing.bpmn
 var Finishing string

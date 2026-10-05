@@ -13,25 +13,24 @@ import (
 )
 
 func TaskWorker(ctx context.Context, wg *sync.WaitGroup, mqttUrl string, camundaUrl string, networkId string) (err error) {
+	repoPort, err := DeviceRepo(ctx, wg, resources.DeviceRepoEntities)
+	if err != nil {
+		return err
+	}
 	log.Println("start mgw-external-task-worker")
 	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
 			AlwaysPullImage: true,
 			Image:           "ghcr.io/senergy-platform/mgw-external-task-worker:dev",
+			HostAccessPorts: []int{repoPort},
 			Env: map[string]string{
 				"MQTT_BROKER":         mqttUrl,
 				"CAMUNDA_URL":         camundaUrl,
+				"DEVICE_REPO_URL":     fmt.Sprintf("http://%s:%d", testcontainers.HostInternal, repoPort),
 				"COMPLETION_STRATEGY": "pessimistic",
 				"CAMUNDA_TOPIC":       "pessimistic",
 				"DEBUG":               "true",
 				"SYNC_NETWORK_ID":     networkId,
-			},
-			Files: []testcontainers.ContainerFile{
-				{
-					Reader:            strings.NewReader(resources.RepoFallbackFile),
-					ContainerFilePath: "/root/devicerepo_fallback.json",
-					FileMode:          777,
-				},
 			},
 		},
 		Started: true,
